@@ -45,17 +45,26 @@ export default function LoginPage() {
       }
       router.push('/')
     } else {
-      const { error } = await supabase.auth.signUp({ email: email.trim(), password })
+      const { data, error } = await supabase.auth.signUp({ email: email.trim(), password })
       if (error) {
         if (error.message.includes('already registered')) {
-          setError('Этот email уже зарегистрирован')
+          setError('Этот email уже зарегистрирован. Попробуй войти.')
+        } else if (error.message.toLowerCase().includes('confirmation email') || error.message.toLowerCase().includes('sending')) {
+          setError('Ошибка отправки письма. Попробуй ещё раз или войди если уже зарегистрирован.')
         } else {
-          setError(error.message)
+          setError('Ошибка регистрации. Попробуй ещё раз.')
         }
         setLoading(false)
         return
       }
-      router.push('/setup')
+      // If email confirmation is disabled in Supabase, session is created immediately
+      if (data.session) {
+        router.push('/setup')
+      } else {
+        // Email confirmation required — try signing in anyway or show message
+        setError('На почту отправлено письмо подтверждения. Подтверди и войди.')
+        setLoading(false)
+      }
     }
   }
 
