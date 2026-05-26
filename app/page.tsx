@@ -5,18 +5,44 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 
+type Profile = {
+  name: string
+  grade: number
+  xp: number
+  streak: number
+}
+
+const SUBJECTS = [
+  { id: 'math',    emoji: '🔢', label: 'Математика', color: '#22C55E', bg: '#F0FDF4' },
+  { id: 'kazakh',  emoji: '🇰🇿', label: 'Қазақша',   color: '#F59E0B', bg: '#FFFBEB' },
+  { id: 'russian', emoji: '📖', label: 'Русский',    color: '#3B82F6', bg: '#EFF6FF' },
+  { id: 'world',   emoji: '🌍', label: 'Дүниетану', color: '#8B5CF6', bg: '#F5F3FF' },
+]
+
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      setUser(user)
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, grade, xp, streak')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile?.grade) { router.push('/setup'); return }
+      setProfile(profile)
       setLoading(false)
-      if (!data.user) router.push('/login')
-    })
+    }
+    init()
   }, [])
 
   const signOut = async () => {
@@ -24,53 +50,84 @@ export default function HomePage() {
     router.push('/login')
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (!user) return null
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-        <span className="text-2xl font-bold text-emerald-600">iМектеп</span>
-        <button onClick={signOut} className="text-sm text-gray-400 hover:text-gray-600">
-          Выйти
-        </button>
+      {/* Header */}
+      <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+        <span className="text-xl font-bold text-emerald-600">iМектеп</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">🔥 {profile?.streak ?? 0}</span>
+          <span className="text-sm font-semibold text-amber-500">⭐ {profile?.xp ?? 0} XP</span>
+          <button onClick={signOut} className="text-sm text-gray-400 hover:text-gray-600">Выйти</button>
+        </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
-          <p className="text-gray-500 text-sm">Добро пожаловать,</p>
-          <h2 className="text-xl font-bold text-gray-800">
-            {user.user_metadata?.full_name ?? 'Ученик'} 👋
-          </h2>
+      <main className="max-w-2xl mx-auto px-4 py-5 flex flex-col gap-4">
+        {/* Greeting */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3">
+          <img src="/otter.png" alt="Otti" className="w-12 h-12 rounded-full" />
+          <div>
+            <p className="text-gray-500 text-sm">Привет,</p>
+            <p className="font-bold text-gray-800">{profile?.name} · {profile?.grade} класс</p>
+          </div>
         </div>
 
+        {/* Quick actions */}
         <div className="grid grid-cols-2 gap-3">
-          {[
-            { icon: '📚', label: 'Уроки', color: 'bg-emerald-50 border-emerald-100', soon: false },
-            { icon: '⚡', label: 'Быстрый счёт', color: 'bg-yellow-50 border-yellow-100', soon: false },
-            { icon: '⚔️', label: '1v1 Дуэль', color: 'bg-red-50 border-red-100', soon: true },
-            { icon: '🏆', label: 'Лидерборд', color: 'bg-purple-50 border-purple-100', soon: true },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className={`relative rounded-2xl border p-5 flex flex-col items-center gap-2 cursor-pointer hover:scale-[1.02] transition-transform ${item.color}`}
-            >
-              <span className="text-3xl">{item.icon}</span>
-              <span className="font-semibold text-gray-700 text-sm">{item.label}</span>
-              {item.soon && (
-                <span className="absolute top-2 right-2 text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">
-                  скоро
-                </span>
-              )}
-            </div>
-          ))}
+          <button
+            onClick={() => router.push('/lessons')}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl p-4 flex flex-col gap-1 items-start transition-all active:scale-95"
+          >
+            <span className="text-2xl">📚</span>
+            <span className="font-bold">Уроки</span>
+            <span className="text-xs opacity-80">{profile?.grade} класс</span>
+          </button>
+          <button
+            onClick={() => router.push('/game/quick')}
+            className="bg-amber-400 hover:bg-amber-500 text-white rounded-2xl p-4 flex flex-col gap-1 items-start transition-all active:scale-95"
+          >
+            <span className="text-2xl">⚡</span>
+            <span className="font-bold">Быстрый счёт</span>
+            <span className="text-xs opacity-80">60 секунд</span>
+          </button>
+        </div>
+
+        {/* Subjects */}
+        <div>
+          <h2 className="font-bold text-gray-700 mb-2">Предметы</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {SUBJECTS.map(s => (
+              <button
+                key={s.id}
+                onClick={() => router.push(`/lessons?subject=${s.id}`)}
+                className="flex items-center gap-3 rounded-2xl border p-4 text-left transition-all active:scale-95 hover:shadow-sm"
+                style={{ background: s.bg, borderColor: s.color + '30' }}
+              >
+                <span className="text-2xl">{s.emoji}</span>
+                <span className="font-semibold text-gray-700 text-sm">{s.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Coming soon */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="relative rounded-2xl border border-red-100 bg-red-50 p-4 flex flex-col gap-1 opacity-60">
+            <span className="text-2xl">⚔️</span>
+            <span className="font-bold text-gray-700 text-sm">1v1 Дуэль</span>
+            <span className="absolute top-2 right-2 text-xs bg-white text-gray-400 px-2 py-0.5 rounded-full">скоро</span>
+          </div>
+          <div className="relative rounded-2xl border border-purple-100 bg-purple-50 p-4 flex flex-col gap-1 opacity-60">
+            <span className="text-2xl">🏆</span>
+            <span className="font-bold text-gray-700 text-sm">Лидерборд</span>
+            <span className="absolute top-2 right-2 text-xs bg-white text-gray-400 px-2 py-0.5 rounded-full">скоро</span>
+          </div>
         </div>
       </main>
     </div>
