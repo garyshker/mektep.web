@@ -1,70 +1,162 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
+type Mode = 'login' | 'register'
+
 export default function LoginPage() {
+  const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
   const supabase = createClient()
 
-  const sendMagicLink = async (e: React.FormEvent) => {
+  const switchMode = (m: Mode) => {
+    setMode(m)
+    setError('')
+    setPassword('')
+    setConfirm('')
+  }
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim()) return
+    setError('')
+
+    if (!email.trim() || !password) return
+
+    if (mode === 'register') {
+      if (password.length < 6) { setError('Пароль должен быть минимум 6 символов'); return }
+      if (password !== confirm) { setError('Пароли не совпадают'); return }
+    }
+
     setLoading(true)
-    await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
-    })
-    setLoading(false)
-    setSent(true)
+
+    if (mode === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (error) {
+        setError('Неверный email или пароль')
+        setLoading(false)
+        return
+      }
+      router.push('/')
+    } else {
+      const { error } = await supabase.auth.signUp({ email: email.trim(), password })
+      if (error) {
+        if (error.message.includes('already registered')) {
+          setError('Этот email уже зарегистрирован')
+        } else {
+          setError(error.message)
+        }
+        setLoading(false)
+        return
+      }
+      router.push('/setup')
+    }
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-emerald-50 to-white px-4">
-      <div className="w-full max-w-sm text-center">
-        <img src="/otter.png" alt="Otti" className="w-24 h-24 mx-auto mb-4 rounded-full" />
-        <h1 className="text-3xl font-bold text-emerald-700 mb-1">iМектеп</h1>
-        <p className="text-gray-500 mb-8">Учись. Играй. Развивайся.</p>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
+      style={{ background: '#F5F4F0' }}>
 
-        {sent ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-6 py-8">
-            <div className="text-4xl mb-3">📬</div>
-            <h2 className="font-bold text-gray-800 mb-1">Письмо отправлено!</h2>
-            <p className="text-sm text-gray-500">
-              Проверь почту <strong>{email}</strong> и нажми на ссылку для входа.
-            </p>
-            <button
-              onClick={() => setSent(false)}
-              className="mt-4 text-sm text-emerald-600 hover:underline"
-            >
-              Другой email
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={sendMagicLink} className="flex flex-col gap-3">
-            <input
-              type="email"
-              placeholder="Введи email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-200 rounded-2xl px-4 py-4 text-gray-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
-            />
+      {/* Logo */}
+      <div className="text-5xl mb-3">🎓</div>
+      <h1 className="text-3xl font-black text-gray-900 mb-1">iМектеп</h1>
+      <p className="text-gray-400 text-sm mb-8">Учись. Играй. Развивайся.</p>
+
+      <div className="w-full max-w-sm flex flex-col gap-4">
+
+        {/* Mode toggle */}
+        <div className="bg-white rounded-2xl p-1 flex shadow-sm">
+          <button
+            onClick={() => switchMode('login')}
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
+            style={mode === 'login' ? { background: '#1f2937', color: 'white' } : { color: '#9ca3af' }}
+          >
+            Войти
+          </button>
+          <button
+            onClick={() => switchMode('register')}
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
+            style={mode === 'register' ? { background: '#1f2937', color: 'white' } : { color: '#9ca3af' }}
+          >
+            Регистрация
+          </button>
+        </div>
+
+        {/* Form card */}
+        <div className="bg-white rounded-3xl px-5 py-5 shadow-sm flex flex-col gap-4">
+          <form onSubmit={submit} className="flex flex-col gap-3">
+
+            {/* Email */}
+            <div>
+              <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Email</p>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="example@mail.com"
+                required
+                autoComplete="email"
+                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-gray-900 font-semibold outline-none focus:border-gray-400 transition-colors"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Пароль</p>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Минимум 6 символов"
+                required
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-gray-900 font-semibold outline-none focus:border-gray-400 transition-colors"
+              />
+            </div>
+
+            {/* Confirm (register only) */}
+            {mode === 'register' && (
+              <div>
+                <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Повтори пароль</p>
+                <input
+                  type="password"
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  placeholder="Ещё раз пароль"
+                  required
+                  autoComplete="new-password"
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-gray-900 font-semibold outline-none focus:border-gray-400 transition-colors"
+                />
+              </div>
+            )}
+
+            {/* Error */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+                <p className="text-red-600 text-sm font-semibold">{error}</p>
+              </div>
+            )}
+
+            {/* Submit */}
             <button
               type="submit"
-              disabled={loading || !email.trim()}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold rounded-2xl px-6 py-4 transition-all active:scale-95"
+              disabled={loading || !email.trim() || !password}
+              className="w-full py-4 rounded-2xl font-black text-base transition-all active:scale-95 disabled:opacity-40 mt-1"
+              style={{ background: '#1f2937', color: 'white' }}
             >
-              {loading ? 'Отправляем...' : 'Войти по ссылке →'}
+              {loading
+                ? '...'
+                : mode === 'login' ? 'Войти →' : 'Создать аккаунт →'}
             </button>
           </form>
-        )}
+        </div>
 
-        <p className="text-xs text-gray-400 mt-6">
-          Без пароля — просто ссылка на почту
-        </p>
       </div>
     </div>
   )
