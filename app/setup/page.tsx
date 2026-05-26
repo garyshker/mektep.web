@@ -67,15 +67,15 @@ export default function SetupPage() {
               <button
                 key={g.n}
                 onClick={() => setGrade(g.n)}
-                className="flex flex-col items-center gap-1.5 rounded-2xl border-2 py-3.5 transition-all active:scale-95"
+                className="flex flex-col items-center gap-1 rounded-2xl border-2 py-4 transition-all active:scale-95"
                 style={
                   grade === g.n
                     ? { background: g.color, borderColor: g.color, color: 'white' }
                     : { background: '#F8F7F4', borderColor: '#e5e7eb', color: '#374151' }
                 }
               >
-                <span className="text-2xl">{g.emoji}</span>
-                <span className="text-xs font-black">{g.n}</span>
+                <span className="text-3xl font-black leading-none">{g.n}</span>
+                <span className="text-[10px] font-semibold opacity-70">класс</span>
               </button>
             ))}
           </div>
