@@ -1,7 +1,7 @@
-import { mathLessons } from './math'
+import { mathLessons, generateClockLesson } from './math'
 import type { Lesson } from './types'
 
-export const ALL_LESSONS: Lesson[] = [...mathLessons]
+export const ALL_LESSONS: Lesson[] = [...mathLessons, generateClockLesson()]
 
 export const LESSONS_BY_ID: Record<string, Lesson> = Object.fromEntries(
   ALL_LESSONS.map(l => [l.id, l])

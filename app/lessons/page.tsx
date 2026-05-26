@@ -82,7 +82,7 @@ function LessonsContent() {
                     {lesson.emoji}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-gray-800">{lesson.title}</div>
+                    <div className="font-bold text-gray-800">{lesson.titleByLang.ru}</div>
                     <div className="text-sm text-gray-400">{lesson.questions.length} вопросов</div>
                   </div>
                   <div className="shrink-0">

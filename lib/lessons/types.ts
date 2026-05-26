@@ -1,23 +1,41 @@
-export type QuestionKind = 'mc' | 'type' | 'clock'
+export type QuestionKind = 'mc' | 'type' | 'tap' | 'word' | 'match' | 'clock'
+
+export interface ByLang { kk: string; ru: string; en: string }
+
+export interface MatchItem { text: string; group: number }
 
 export interface Question {
   kind: QuestionKind
-  prompt: string
+  // text
+  prompt?: string
+  promptByLang?: ByLang
+  storyByLang?: ByLang
+  explainByLang?: ByLang
+  image?: string
+  big?: boolean
+  // mc / word
   options?: string[]
-  answer: string
-  hint?: string
-  // clock specific
-  h?: number
-  m?: number
-  stepsByLang?: { ru: string[]; kk: string[]; en: string[] }
+  answer?: number | string
+  // type
+  // answer is the value
+  // tap
+  words?: string[]
+  correctIdxs?: number[]
+  // match
+  groupsByLang?: { kk: string[]; ru: string[]; en: string[] }
+  items?: MatchItem[]
+  // clock
+  clockH?: number
+  clockM?: number
+  stepsByLang?: { kk: string[]; ru: string[]; en: string[] }
 }
 
 export interface Lesson {
   id: string
   subjectId: string
-  title: string
-  titleKk?: string
-  emoji: string
+  titleByLang: ByLang
+  introByLang?: ByLang
+  emoji?: string
   grade: number[]
   questions: Question[]
 }
