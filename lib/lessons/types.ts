@@ -35,6 +35,7 @@ export interface Lesson {
   subjectId: string
   titleByLang: ByLang
   introByLang?: ByLang
+  subtitle?: string
   emoji?: string
   grade: number[]
   questions: Question[]

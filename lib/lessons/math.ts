@@ -94,6 +94,7 @@ export function generateClockLesson(): Lesson {
     id: 'math-time', subjectId: 'math', emoji: '🕐',
     titleByLang: { kk: 'Уақыт · сағат, минут', ru: 'Время · часы и минуты', en: 'Time · hours & minutes' },
     introByLang: { kk: 'Аналогтік сағатты оқуды үйренеміз!', ru: 'Учимся читать аналоговые часы!', en: "Let's learn to read analog clocks!" },
+    subtitle: 'Учимся читать часы',
     grade: [1, 2, 3, 4],
     questions: clocks,
   }
@@ -102,8 +103,9 @@ export function generateClockLesson(): Lesson {
 export const mathLessons: Lesson[] = [
   {
     id: 'math-1', subjectId: 'math', emoji: '➕',
-    titleByLang: { kk: 'Қосу · 100 ішінде', ru: 'Сложение · в пределах 100', en: 'Addition · within 100' },
+    titleByLang: { kk: 'Қосу · 100 ішінде', ru: 'Сложение до 100', en: 'Addition · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды қосуды үйренеміз!', ru: 'Учимся складывать числа в пределах 100!', en: "Let's practise adding numbers within 100!" },
+    subtitle: 'Двузначные числа',
     grade: [1, 2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '36 + 24', options: ['58', '60', '62', '64'], answer: 1,
@@ -134,8 +136,9 @@ export const mathLessons: Lesson[] = [
 
   {
     id: 'math-2', subjectId: 'math', emoji: '➖',
-    titleByLang: { kk: 'Алу · 100 ішінде', ru: 'Вычитание · в пределах 100', en: 'Subtraction · within 100' },
+    titleByLang: { kk: 'Алу · 100 ішінде', ru: 'Вычитание до 100', en: 'Subtraction · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды алуды үйренеміз!', ru: 'Учимся вычитать в пределах 100!', en: "Let's practise subtraction within 100!" },
+    subtitle: 'Учимся отнимать',
     grade: [1, 2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '45 − 18', options: ['23', '25', '27', '29'], answer: 2,
@@ -166,9 +169,10 @@ export const mathLessons: Lesson[] = [
 
   {
     id: 'math-3', subjectId: 'math', emoji: '✖️',
-    titleByLang: { kk: 'Көбейту кестесі · 2-ге', ru: 'Таблица умножения · на 2', en: 'Times Tables · ×2' },
+    titleByLang: { kk: 'Көбейту кестесі · 2-ге', ru: 'Таблица умножения', en: 'Times Tables · ×2' },
     introByLang: { kk: '2-ге көбейтуді үйренеміз!', ru: 'Учим умножение на 2!', en: "Let's learn the 2 times table!" },
-    grade: [1, 2, 3, 4],
+    subtitle: 'На 2 — проще простого',
+    grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '2 × 3', options: ['4', '5', '6', '8'], answer: 2 },
       { kind: 'mc', big: true, prompt: '2 × 4', options: ['6', '8', '10', '12'], answer: 1 },
@@ -189,9 +193,10 @@ export const mathLessons: Lesson[] = [
 
   {
     id: 'math-4', subjectId: 'math', emoji: '✖️',
-    titleByLang: { kk: 'Көбейту кестесі · 3-ке', ru: 'Таблица умножения · на 3', en: 'Times Tables · ×3' },
+    titleByLang: { kk: 'Көбейту кестесі · 3-ке', ru: 'Таблица умножения', en: 'Times Tables · ×3' },
     introByLang: { kk: '3-ке көбейтуді үйренеміз!', ru: 'Учим умножение на 3!', en: "Let's learn the 3 times table!" },
-    grade: [1, 2, 3, 4],
+    subtitle: 'На 3 и выше',
+    grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '3 × 3', options: ['7', '8', '9', '12'], answer: 2 },
       { kind: 'mc', big: true, prompt: '3 × 4', options: ['9', '10', '12', '15'], answer: 2 },
@@ -212,8 +217,9 @@ export const mathLessons: Lesson[] = [
 
   {
     id: 'math-5', subjectId: 'math', emoji: '✖️',
-    titleByLang: { kk: 'Көбейту кестесі · 4-ке', ru: 'Таблица умножения · на 4', en: 'Times Tables · ×4' },
+    titleByLang: { kk: 'Көбейту кестесі · 4-ке', ru: 'Таблица умножения', en: 'Times Tables · ×4' },
     introByLang: { kk: '4-ке көбейтуді үйренеміз!', ru: 'Учим умножение на 4!', en: "Let's learn the 4 times table!" },
+    subtitle: 'Ступень 4 — растём',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '4 × 2', options: ['6', '7', '8', '10'], answer: 2 },
@@ -235,8 +241,9 @@ export const mathLessons: Lesson[] = [
 
   {
     id: 'math-6', subjectId: 'math', emoji: '✖️',
-    titleByLang: { kk: 'Көбейту кестесі · 5-ке', ru: 'Таблица умножения · на 5', en: 'Times Tables · ×5' },
+    titleByLang: { kk: 'Көбейту кестесі · 5-ке', ru: 'Таблица умножения', en: 'Times Tables · ×5' },
     introByLang: { kk: '5-ке көбейтуді үйренеміз!', ru: 'Учим умножение на 5!', en: "Let's learn the 5 times table!" },
+    subtitle: 'На 5 — легко!',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '5 × 2', options: ['8', '9', '10', '12'], answer: 2 },
@@ -258,8 +265,9 @@ export const mathLessons: Lesson[] = [
 
   {
     id: 'math-7', subjectId: 'math', emoji: '✖️',
-    titleByLang: { kk: 'Көбейту кестесі · 6-ға', ru: 'Таблица умножения · на 6', en: 'Times Tables · ×6' },
+    titleByLang: { kk: 'Көбейту кестесі · 6-ға', ru: 'Таблица умножения', en: 'Times Tables · ×6' },
     introByLang: { kk: '6-ға көбейтуді үйренеміз!', ru: 'Учим умножение на 6!', en: "Let's learn the 6 times table!" },
+    subtitle: 'На 6 и выше',
     grade: [3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '6 × 2', options: ['10', '11', '12', '14'], answer: 2 },
@@ -281,8 +289,9 @@ export const mathLessons: Lesson[] = [
 
   {
     id: 'math-8', subjectId: 'math', emoji: '➗',
-    titleByLang: { kk: 'Бөлу · 2-ге', ru: 'Деление · на 2', en: 'Division · ÷2' },
+    titleByLang: { kk: 'Бөлу · 2-ге', ru: 'Деление на 2', en: 'Division · ÷2' },
     introByLang: { kk: '2-ге бөлуді үйренеміз!', ru: 'Учимся делить на 2!', en: "Let's practise dividing by 2!" },
+    subtitle: 'Делим пополам',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '10 ÷ 2', options: ['3', '4', '5', '6'], answer: 2 },
@@ -301,9 +310,10 @@ export const mathLessons: Lesson[] = [
   },
 
   {
-    id: 'math-9', subjectId: 'math', emoji: '🔢',
-    titleByLang: { kk: 'Сандарды салыстыру · < > =', ru: 'Сравнение чисел · < > =', en: 'Comparing Numbers · < > =' },
+    id: 'math-9', subjectId: 'math', emoji: '⚖️',
+    titleByLang: { kk: 'Сандарды салыстыру · < > =', ru: 'Больше / меньше', en: 'Comparing Numbers · < > =' },
     introByLang: { kk: 'Екі таңбалы сандарды салыстыруды үйренеміз!', ru: 'Учимся сравнивать двузначные числа!', en: "Let's learn to compare two-digit numbers!" },
+    subtitle: 'Сравниваем числа',
     grade: [1, 2, 3, 4],
     questions: [
       { kind: 'mc', big: true, image: '🔢',
@@ -345,6 +355,7 @@ export const mathLessons: Lesson[] = [
     id: 'math-10', subjectId: 'math', emoji: '📏',
     titleByLang: { kk: 'Ұзындық · см, дм, м', ru: 'Длина · см, дм, м', en: 'Length · cm, dm, m' },
     introByLang: { kk: 'Сантиметр, дециметр және метрді үйренеміз!', ru: 'Изучаем сантиметры, дециметры и метры!', en: "Let's learn centimetres, decimetres and metres!" },
+    subtitle: 'Сантиметры и метры',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', image: '📏',
@@ -381,9 +392,10 @@ export const mathLessons: Lesson[] = [
   },
 
   {
-    id: 'math-11', subjectId: 'math', emoji: '⚖️',
-    titleByLang: { kk: 'Көлем мен масса · литр, кг', ru: 'Объём и масса · литр, кг', en: 'Volume & Mass · litre, kg' },
+    id: 'math-11', subjectId: 'math', emoji: '🧪',
+    titleByLang: { kk: 'Көлем мен масса · литр, кг', ru: 'Объём и масса', en: 'Volume & Mass · litre, kg' },
     introByLang: { kk: 'Литр мен килограммды үйренеміз!', ru: 'Изучаем литры и килограммы!', en: "Let's learn litres and kilograms!" },
+    subtitle: 'Литры и килограммы',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', image: '🥛',
@@ -423,8 +435,9 @@ export const mathLessons: Lesson[] = [
 
   {
     id: 'math-12', subjectId: 'math', emoji: '➗',
-    titleByLang: { kk: 'Бөлу · 3-ке, 4-ке, 5-ке', ru: 'Деление · на 3, 4, 5', en: 'Division · ÷3, ÷4, ÷5' },
+    titleByLang: { kk: 'Бөлу · 3-ке, 4-ке, 5-ке', ru: 'Деление', en: 'Division · ÷3, ÷4, ÷5' },
     introByLang: { kk: '3-ке, 4-ке, 5-ке бөлуді үйренеміз!', ru: 'Учимся делить на 3, 4 и 5!', en: "Let's practise dividing by 3, 4 and 5!" },
+    subtitle: 'Делим на 3, 4 и 5',
     grade: [3, 4],
     questions: [
       { kind: 'mc', big: true, image: '➗',
