@@ -15,15 +15,36 @@ function ru(val: string | ByLang | undefined): string {
   return val.ru
 }
 
+// Strip trailing "= ?" from pure math expressions
+function fmtExpr(s: string): string {
+  return s.replace(/\s*=\s*\?\s*$/, '').trim()
+}
+
+function BigMath({ text }: { text: string }) {
+  const clean = fmtExpr(text)
+  const parts = clean.split(/(\s*[+\-−×÷]\s*)/)
+  return (
+    <div className="text-5xl font-black text-center leading-none tracking-tight py-3 select-none">
+      {parts.map((p, i) => {
+        const t = p.trim()
+        const isOp = /^[+\-−×÷]$/.test(t)
+        return (
+          <span key={i} className={isOp ? 'text-orange-500 mx-1' : 'text-gray-900'}>
+            {t === '-' ? '−' : p}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 function ClockFace({ h, m }: { h: number; m: number }) {
   const cx = 60, cy = 60
   const toRad = (deg: number) => (deg - 90) * (Math.PI / 180)
   const hourAngle = ((h % 12) + m / 60) * 30
   const minAngle = m * 6
-  const hLen = 28, mLen = 42
-
   return (
-    <svg width="140" height="140" viewBox="0 0 120 120">
+    <svg width="140" height="140" viewBox="0 0 120 120" className="mx-auto">
       <circle cx={cx} cy={cy} r={55} fill="white" stroke="#e5e7eb" strokeWidth="3" />
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => {
         const a = (n * 30 - 90) * (Math.PI / 180)
@@ -33,16 +54,23 @@ function ClockFace({ h, m }: { h: number; m: number }) {
         )
       })}
       <line x1={cx} y1={cy}
-        x2={cx + hLen * Math.cos(toRad(hourAngle))}
-        y2={cy + hLen * Math.sin(toRad(hourAngle))}
+        x2={cx + 28 * Math.cos(toRad(hourAngle))} y2={cy + 28 * Math.sin(toRad(hourAngle))}
         stroke="#1f2937" strokeWidth="4" strokeLinecap="round" />
       <line x1={cx} y1={cy}
-        x2={cx + mLen * Math.cos(toRad(minAngle))}
-        y2={cy + mLen * Math.sin(toRad(minAngle))}
+        x2={cx + 42 * Math.cos(toRad(minAngle))} y2={cy + 42 * Math.sin(toRad(minAngle))}
         stroke="#374151" strokeWidth="2.5" strokeLinecap="round" />
       <circle cx={cx} cy={cy} r="3" fill="#1f2937" />
     </svg>
   )
+}
+
+const LABELS: Record<string, string> = {
+  mc: 'ВЫБЕРИ ОТВЕТ',
+  type: 'ВВЕДИ ОТВЕТ',
+  tap: 'ВЫБЕРИ ВСЕ ПРАВИЛЬНЫЕ',
+  word: 'РЕШИ ЗАДАЧУ',
+  match: 'РАЗДЕЛИ НА ГРУППЫ',
+  clock: 'КОТОРЫЙ ЧАС?',
 }
 
 export default function LessonPage() {
@@ -56,25 +84,25 @@ export default function LessonPage() {
   const [correctCount, setCorrectCount] = useState(0)
   const [done, setDone] = useState(false)
 
+  // per-type state
   const [selected, setSelected] = useState<string | null>(null)
   const [typeInput, setTypeInput] = useState('')
-  const [tapSelected, setTapSelected] = useState<Set<number>>(new Set())
+  const [tapSel, setTapSel] = useState<Set<number>>(new Set())
   const [matchMap, setMatchMap] = useState<Record<string, number | null>>({})
 
   const q: Question | undefined = lesson?.questions[idx]
   const total = lesson?.questions.length ?? 0
-  const progress = (idx / total) * 100
 
   useEffect(() => {
     if (!q) return
     setSelected(null)
     setTypeInput('')
-    setTapSelected(new Set())
+    setTapSel(new Set())
     setMatchMap(Object.fromEntries((q.items ?? []).map(it => [it.text, null])))
   }, [idx])
 
   if (!lesson) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]">
       <p className="text-gray-400">Урок не найден</p>
     </div>
   )
@@ -88,34 +116,17 @@ export default function LessonPage() {
     return String(q.answer ?? '')
   }
 
-  const submitMC = (opt: string) => {
-    if (feedback) return
-    setSelected(opt)
-    const isRight = opt === correctStr()
+  const markResult = (isRight: boolean) => {
     setFeedback(isRight ? 'right' : 'wrong')
     if (isRight) setCorrectCount(c => c + 1)
   }
 
-  const submitType = () => {
-    if (feedback) return
-    const isRight = typeInput.trim() === String(q?.answer)
-    setFeedback(isRight ? 'right' : 'wrong')
-    if (isRight) setCorrectCount(c => c + 1)
-  }
-
-  const submitTap = () => {
-    if (feedback) return
-    const expected = q?.correctIdxs ?? []
-    const isRight = expected.length === tapSelected.size && expected.every(i => tapSelected.has(i))
-    setFeedback(isRight ? 'right' : 'wrong')
-    if (isRight) setCorrectCount(c => c + 1)
-  }
-
-  const submitMatch = () => {
-    if (feedback) return
-    const allRight = (q?.items ?? []).every(it => matchMap[it.text] === it.group)
-    setFeedback(allRight ? 'right' : 'wrong')
-    if (allRight) setCorrectCount(c => c + 1)
+  const retry = () => {
+    setFeedback(null)
+    setTypeInput('')
+    setSelected(null)
+    setTapSel(new Set())
+    setMatchMap(Object.fromEntries((q?.items ?? []).map(it => [it.text, null])))
   }
 
   const next = async () => {
@@ -142,18 +153,18 @@ export default function LessonPage() {
     const final = correctCount + (feedback === 'right' ? 1 : 0)
     const stars = final >= total ? 3 : final >= total - 2 ? 2 : 1
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-4 text-center">
+      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-6 text-center">
         <div className="text-6xl mb-4">{'⭐'.repeat(stars)}{'☆'.repeat(3 - stars)}</div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-1">Урок завершён!</h2>
+        <h2 className="text-2xl font-black text-gray-900 mb-1">Урок завершён!</h2>
         <p className="text-gray-500 mb-2">{final} из {total} правильно</p>
-        <p className="text-emerald-600 font-bold text-lg mb-8">+{15 + final * 5} XP</p>
-        <div className="flex gap-3">
+        <p className="text-emerald-600 font-bold text-xl mb-10">+{15 + final * 5} XP</p>
+        <div className="flex gap-3 w-full max-w-xs">
           <button onClick={() => router.push('/lessons')}
-            className="px-6 py-3 rounded-2xl border border-gray-200 text-gray-600 font-medium">
-            Все уроки
+            className="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-gray-600 font-bold">
+            Уроки
           </button>
           <button onClick={() => { setIdx(0); setCorrectCount(0); setFeedback(null); setSelected(null); setDone(false) }}
-            className="px-6 py-3 rounded-2xl bg-emerald-500 text-white font-bold">
+            className="flex-1 py-3 rounded-2xl bg-gray-900 text-white font-bold">
             Ещё раз
           </button>
         </div>
@@ -161,20 +172,25 @@ export default function LessonPage() {
     )
   }
 
+  // ─── Option buttons (mc / word / clock) ────────────────────────────
   const renderOptions = (opts: string[]) => {
     const correct = correctStr()
     return (
-      <div className="grid grid-cols-2 gap-3 w-full">
+      <div className="grid grid-cols-2 gap-3">
         {opts.map((opt, i) => {
           const isSel = selected === opt
           const isRight = opt === correct
-          let style = 'bg-white border-gray-200 text-gray-700'
-          if (feedback && isSel && isRight) style = 'bg-emerald-500 border-emerald-500 text-white'
-          else if (feedback && isSel && !isRight) style = 'bg-red-500 border-red-500 text-white'
-          else if (feedback && isRight) style = 'bg-emerald-100 border-emerald-400 text-emerald-700'
+          let cls = 'bg-white border-2 border-gray-200 text-gray-800'
+          if (feedback && isSel && isRight) cls = 'bg-emerald-500 border-emerald-500 text-white'
+          else if (feedback && isSel && !isRight) cls = 'bg-red-400 border-red-400 text-white'
+          else if (feedback && isRight) cls = 'bg-emerald-100 border-emerald-400 text-emerald-800'
           return (
-            <button key={i} onClick={() => submitMC(opt)}
-              className={`rounded-2xl border-2 py-4 text-lg font-bold transition-all active:scale-95 ${style}`}>
+            <button key={i} onClick={() => {
+              if (feedback) return
+              setSelected(opt)
+              markResult(opt === correct)
+            }}
+              className={`${cls} rounded-2xl py-5 text-xl font-bold shadow-sm transition-all active:scale-95`}>
               {opt}
             </button>
           )
@@ -183,56 +199,34 @@ export default function LessonPage() {
     )
   }
 
-  const renderBody = () => {
+  // ─── Interaction area per question kind ────────────────────────────
+  const renderInteraction = () => {
     if (!q) return null
 
-    if (q.kind === 'mc') {
-      return renderOptions(q.options ?? [])
-    }
-
-    if (q.kind === 'word') {
-      return (
-        <>
-          <div className="w-full bg-blue-50 rounded-2xl border border-blue-100 p-4 mb-4 text-center">
-            {q.image && <div className="text-3xl mb-2">{q.image}</div>}
-            <p className="text-gray-700 text-base leading-relaxed">{ru(q.storyByLang)}</p>
-          </div>
-          {renderOptions(q.options ?? [])}
-        </>
-      )
-    }
-
-    if (q.kind === 'clock') {
-      return (
-        <>
-          <div className="flex justify-center mb-4">
-            <ClockFace h={q.clockH!} m={q.clockM!} />
-          </div>
-          {renderOptions(q.options ?? [])}
-        </>
-      )
-    }
+    if (q.kind === 'mc') return renderOptions(q.options ?? [])
+    if (q.kind === 'word') return renderOptions(q.options ?? [])
+    if (q.kind === 'clock') return renderOptions(q.options ?? [])
 
     if (q.kind === 'type') {
       return (
-        <div className="w-full flex flex-col gap-3">
+        <div className="flex gap-3">
           <input
             type="number"
             value={typeInput}
             onChange={e => setTypeInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !feedback && submitType()}
+            onKeyDown={e => e.key === 'Enter' && !feedback && markResult(typeInput.trim() === String(q.answer))}
             disabled={!!feedback}
-            placeholder="Ответ..."
-            className={`w-full text-center text-3xl font-bold border-2 rounded-2xl py-4 focus:outline-none ${
-              feedback === 'right' ? 'border-emerald-500 bg-emerald-50' :
-              feedback === 'wrong' ? 'border-red-400 bg-red-50' :
-              'border-gray-200 focus:border-emerald-500'
-            }`}
+            placeholder="?"
+            className={`flex-1 bg-white shadow-sm border-2 rounded-2xl text-center text-4xl font-black py-4 focus:outline-none transition-colors
+              ${feedback === 'right' ? 'border-emerald-400 bg-emerald-50' :
+                feedback === 'wrong' ? 'border-red-300 bg-red-50' :
+                'border-gray-100 focus:border-emerald-400'}`}
           />
           {!feedback && (
-            <button onClick={submitType}
-              className="w-full py-3 rounded-2xl bg-emerald-500 text-white font-bold text-lg">
-              Проверить
+            <button
+              onClick={() => markResult(typeInput.trim() === String(q.answer))}
+              className="bg-emerald-400 text-white font-black text-xl rounded-2xl px-7 shadow-sm active:scale-95 transition-all">
+              OK
             </button>
           )}
         </div>
@@ -242,23 +236,23 @@ export default function LessonPage() {
     if (q.kind === 'tap') {
       const words = q.words ?? []
       return (
-        <div className="w-full flex flex-col gap-4">
-          <div className="flex flex-wrap gap-2 justify-center">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
             {words.map((word, i) => {
-              const isSel = tapSelected.has(i)
+              const isSel = tapSel.has(i)
               const shouldBe = q.correctIdxs?.includes(i)
               let cls = 'px-4 py-2 rounded-xl border-2 text-base font-semibold transition-all active:scale-95 '
               if (feedback) {
                 if (shouldBe && isSel) cls += 'bg-emerald-500 border-emerald-500 text-white'
-                else if (shouldBe && !isSel) cls += 'bg-emerald-100 border-emerald-400 text-emerald-700'
-                else if (!shouldBe && isSel) cls += 'bg-red-500 border-red-500 text-white'
+                else if (shouldBe && !isSel) cls += 'bg-emerald-100 border-emerald-400 text-emerald-800'
+                else if (!shouldBe && isSel) cls += 'bg-red-400 border-red-400 text-white'
                 else cls += 'bg-white border-gray-200 text-gray-500'
               } else {
-                cls += isSel ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-gray-200 text-gray-700'
+                cls += isSel ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-gray-200 text-gray-700 shadow-sm'
               }
               return (
                 <button key={i} disabled={!!feedback}
-                  onClick={() => setTapSelected(prev => {
+                  onClick={() => setTapSel(prev => {
                     const next = new Set(prev)
                     if (next.has(i)) next.delete(i); else next.add(i)
                     return next
@@ -268,8 +262,12 @@ export default function LessonPage() {
             })}
           </div>
           {!feedback && (
-            <button onClick={submitTap}
-              className="w-full py-3 rounded-2xl bg-emerald-500 text-white font-bold text-lg">
+            <button
+              onClick={() => {
+                const expected = q.correctIdxs ?? []
+                markResult(expected.length === tapSel.size && expected.every(i => tapSel.has(i)))
+              }}
+              className="w-full py-4 rounded-2xl bg-gray-900 text-white font-bold text-lg">
               Проверить
             </button>
           )}
@@ -282,24 +280,23 @@ export default function LessonPage() {
       const items = q.items ?? []
       const allAssigned = items.every(it => matchMap[it.text] !== null && matchMap[it.text] !== undefined)
       return (
-        <div className="w-full flex flex-col gap-3">
+        <div className="flex flex-col gap-3">
           {items.map((item, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className="min-w-[90px] text-sm font-semibold text-gray-800 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-center">
+              <span className="min-w-[90px] text-sm font-bold text-gray-900 bg-white shadow-sm border border-gray-100 px-3 py-2.5 rounded-xl text-center">
                 {item.text}
               </span>
               <div className="flex gap-2 flex-1">
                 {groups.map((g, gi) => {
                   const isAssigned = matchMap[item.text] === gi
-                  let cls = 'flex-1 py-2 px-1 rounded-xl border-2 text-xs font-medium transition-all text-center '
+                  let cls = 'flex-1 py-2.5 px-1 rounded-xl border-2 text-xs font-semibold transition-all text-center '
                   if (feedback) {
-                    const isCorrect = item.group === gi
-                    if (isAssigned && isCorrect) cls += 'bg-emerald-500 border-emerald-500 text-white'
-                    else if (isAssigned && !isCorrect) cls += 'bg-red-500 border-red-500 text-white'
-                    else if (!isAssigned && isCorrect) cls += 'bg-emerald-100 border-emerald-400 text-emerald-700'
-                    else cls += 'bg-white border-gray-200 text-gray-500'
+                    if (isAssigned && item.group === gi) cls += 'bg-emerald-500 border-emerald-500 text-white'
+                    else if (isAssigned && item.group !== gi) cls += 'bg-red-400 border-red-400 text-white'
+                    else if (!isAssigned && item.group === gi) cls += 'bg-emerald-100 border-emerald-400 text-emerald-800'
+                    else cls += 'bg-white border-gray-200 text-gray-600'
                   } else {
-                    cls += isAssigned ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-gray-200 text-gray-700'
+                    cls += isAssigned ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-gray-200 text-gray-700 shadow-sm'
                   }
                   return (
                     <button key={gi} disabled={!!feedback}
@@ -311,8 +308,9 @@ export default function LessonPage() {
             </div>
           ))}
           {!feedback && allAssigned && (
-            <button onClick={submitMatch}
-              className="w-full py-3 rounded-2xl bg-emerald-500 text-white font-bold text-lg mt-2">
+            <button
+              onClick={() => markResult(items.every(it => matchMap[it.text] === it.group))}
+              className="w-full py-4 rounded-2xl bg-gray-900 text-white font-bold text-lg mt-1">
               Проверить
             </button>
           )}
@@ -323,51 +321,157 @@ export default function LessonPage() {
     return null
   }
 
+  // ─── Explanation steps for feedback ────────────────────────────────
+  const steps = ru(q?.explainByLang)?.split('\n').filter(Boolean) ?? []
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.push('/lessons')} className="text-gray-400 text-xl">←</button>
-        <div className="flex-1 bg-gray-100 rounded-full h-2">
-          <div className="bg-emerald-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }} />
+    <div className="min-h-screen flex flex-col" style={{ background: '#F5F4F0' }}>
+
+      {/* ── Header ── */}
+      <header className="px-4 pt-5 pb-3 bg-transparent">
+        {/* Progress row */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push('/lessons')}
+            className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">
+            ✕
+          </button>
+          <div className="flex-1 flex gap-1">
+            {Array.from({ length: total }).map((_, i) => (
+              <div key={i}
+                className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                  i < idx ? 'bg-emerald-500' : i === idx ? 'bg-emerald-400' : 'bg-gray-300'
+                }`} />
+            ))}
+          </div>
+          <span className="text-sm font-bold text-gray-500 shrink-0">{idx + 1}/{total}</span>
         </div>
-        <span className="text-sm text-gray-400 font-medium">{idx + 1}/{total}</span>
+
+        {/* Lesson identity row */}
+        <div className="flex items-center gap-3 mt-4">
+          <div className="w-11 h-11 rounded-2xl bg-white shadow-sm flex items-center justify-center text-2xl shrink-0">
+            {lesson.emoji ?? '📚'}
+          </div>
+          <div>
+            <div className="font-black text-gray-900 text-sm leading-tight">{lesson.titleByLang.ru}</div>
+            {lesson.subtitle && <div className="text-gray-400 text-xs mt-0.5">{lesson.subtitle}</div>}
+          </div>
+        </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-6 max-w-lg mx-auto w-full">
-        <div className="w-full bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-6 text-center">
-          {q?.image && q.kind !== 'word' && <div className="text-4xl mb-3">{q.image}</div>}
-          {prompt && (
-            <p className={`font-bold text-gray-800 ${q?.big ? 'text-4xl' : 'text-xl'}`}>{prompt}</p>
+      {/* ── Question card ── */}
+      <main className="flex-1 flex flex-col px-4 pt-2 pb-5 gap-4">
+        <div className="bg-white rounded-3xl px-5 py-5 shadow-sm">
+          {/* Label */}
+          <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase mb-4">
+            {LABELS[q?.kind ?? 'mc']}
+          </p>
+
+          {/* Content */}
+          {q?.kind === 'type' && (
+            <BigMath text={prompt} />
+          )}
+
+          {(q?.kind === 'mc' || q?.kind === 'word') && (
+            <>
+              {q.image && q.kind !== 'word' && <div className="text-4xl text-center mb-3">{q.image}</div>}
+              {q.kind === 'word' && (
+                <div className="bg-blue-50 rounded-2xl p-4 mb-0">
+                  {q.image && <div className="text-3xl mb-2 text-center">{q.image}</div>}
+                  <p className="text-gray-700 text-base leading-relaxed text-center">{ru(q.storyByLang)}</p>
+                </div>
+              )}
+              {q.kind === 'mc' && (
+                q?.big
+                  ? <BigMath text={prompt} />
+                  : <p className="text-xl font-bold text-gray-800 text-center leading-snug">{prompt}</p>
+              )}
+            </>
+          )}
+
+          {q?.kind === 'clock' && (
+            <ClockFace h={q.clockH!} m={q.clockM!} />
+          )}
+
+          {(q?.kind === 'tap' || q?.kind === 'match') && (
+            <>
+              {q.image && <div className="text-4xl text-center mb-3">{q.image}</div>}
+              <p className="text-base font-bold text-gray-800 text-center leading-snug">{prompt}</p>
+            </>
           )}
         </div>
 
-        {renderBody()}
+        {/* ── Interaction area ── */}
+        {renderInteraction()}
+      </main>
 
-        {feedback && (
-          <div className={`w-full mt-4 rounded-2xl p-4 flex items-center justify-between gap-3 ${
-            feedback === 'right' ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'
-          }`}>
-            <div className="flex-1 min-w-0">
-              <p className={`font-bold ${feedback === 'right' ? 'text-emerald-700' : 'text-red-600'}`}>
-                {feedback === 'right' ? '✓ Правильно!' : '✗ Неверно'}
-              </p>
-              {feedback === 'wrong' && q?.kind !== 'tap' && q?.kind !== 'match' && (
-                <p className="text-sm text-gray-500">Правильный ответ: {correctStr()}</p>
-              )}
-              {ru(q?.explainByLang) && (
-                <p className="text-sm text-gray-500 mt-1 whitespace-pre-line">{ru(q.explainByLang)}</p>
-              )}
-            </div>
+      {/* ── Feedback panel ── */}
+      {feedback && (
+        <div className={`px-4 pt-5 pb-10 rounded-t-3xl ${feedback === 'right' ? 'bg-emerald-400' : 'bg-amber-400'}`}>
+
+          {/* Title */}
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">✦</span>
+            <span className="font-black text-gray-900 text-lg leading-tight">
+              {feedback === 'right' ? 'Отлично! Так держать!' : 'Не совсем. Давай разберём:'}
+            </span>
+          </div>
+
+          {/* Wrong: explanation steps */}
+          {feedback === 'wrong' && steps.length > 0 && (
+            <>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="text-sm">✦</span>
+                <span className="text-sm font-semibold text-gray-800 opacity-80">Шаг за шагом:</span>
+              </div>
+              <div className="flex flex-col gap-2 mb-4">
+                {steps.map((step, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-white/30 rounded-2xl px-4 py-3">
+                    <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-black flex items-center justify-center shrink-0">
+                      {i + 1}
+                    </span>
+                    <span className="text-gray-900 font-semibold text-sm">{step}</span>
+                  </div>
+                ))}
+                <div className="flex items-center gap-3 bg-white/60 rounded-2xl px-4 py-3">
+                  <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-black flex items-center justify-center shrink-0">
+                    {steps.length + 1}
+                  </span>
+                  <span className="text-gray-900 font-black text-sm">Ответ: {correctStr()}</span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Wrong: no steps, just show answer */}
+          {feedback === 'wrong' && steps.length === 0 && (
+            <p className="text-gray-900 font-semibold text-sm mb-4">
+              Правильный ответ: <span className="font-black">{correctStr()}</span>
+            </p>
+          )}
+
+          {/* Right: show explain if available */}
+          {feedback === 'right' && ru(q?.explainByLang) && (
+            <p className="text-gray-900/80 text-sm mb-4 whitespace-pre-line leading-relaxed">
+              {ru(q.explainByLang)}
+            </p>
+          )}
+
+          {/* Buttons */}
+          <div className="flex gap-3">
+            {feedback === 'wrong' && q?.kind === 'type' && (
+              <button onClick={retry}
+                className="flex-1 py-3.5 rounded-2xl bg-amber-200 text-gray-900 font-bold text-base active:scale-95 transition-all">
+                Попробовать снова
+              </button>
+            )}
             <button onClick={next}
-              className={`shrink-0 px-5 py-2 rounded-xl font-bold text-white ${
-                feedback === 'right' ? 'bg-emerald-500' : 'bg-red-500'
-              }`}>
-              Далее →
+              className="flex-1 py-3.5 rounded-2xl bg-gray-900 text-white font-bold text-base active:scale-95 transition-all flex items-center justify-center gap-2">
+              Дальше <span className="text-lg">→</span>
             </button>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   )
 }
