@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# iMektep — Interactive Learning Platform for Kids
+
+<p align="center">
+  <img src="public/favicon.svg" width="64" alt="iMektep logo" />
+</p>
+
+<p align="center">
+  A full-stack educational platform for children in grades 1–4, built with Next.js and Supabase.
+</p>
+
+<p align="center">
+  <a href="https://mektep-web.vercel.app"><strong>🌐 Live →</strong></a>
+</p>
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15, React, TypeScript |
+| Styling | Tailwind CSS |
+| Backend / Auth | Supabase (PostgreSQL + Auth + Realtime) |
+| Hosting | Vercel |
+| 1v1 Realtime | Supabase Realtime (WebSocket) |
+
+---
+
+## Features
+
+- Adaptive math and language lessons for grades 1–4
+- Mini-games: Quick Math, Times Table, Sprint, Clock, Tetris, 2048, Memory, Snake
+- User accounts with Google login
+- XP, streaks, and daily quests
+- Leaderboards
+- 1v1 challenge mode *(coming soon)*
+- Parental screen time controls
+- Kazakh / Russian / English interface
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create `.env.local`:
 
-## Learn More
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+mektep.web/
+├── app/                  # Next.js App Router pages
+│   ├── page.tsx          # Home / dashboard
+│   ├── layout.tsx        # Root layout
+│   ├── login/            # Auth pages
+│   └── lesson/[id]/      # Lesson runner
+├── components/
+│   ├── game/             # Clock, LessonRunner, mini-games
+│   └── ui/               # Shared UI components
+├── lib/
+│   └── supabase.ts       # Supabase client
+├── _legacy/              # Old static version (reference)
+└── public/
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Related
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> Legacy static version: [_legacy/](./_legacy/)  
+> Android app (Kotlin + Jetpack Compose): [github.com/garyshker/iMektep](https://github.com/garyshker/iMektep)
+
+---
+
+<p align="center">Made with ❤️ for the children of Kazakhstan</p>
