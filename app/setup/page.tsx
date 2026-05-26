@@ -5,15 +5,15 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 const GRADES = [
-  { n: 1, emoji: '🌱', label: '1 класс', color: '#22C55E', bg: '#F0FDF4' },
-  { n: 2, emoji: '⭐', label: '2 класс', color: '#F59E0B', bg: '#FFFBEB' },
-  { n: 3, emoji: '🚀', label: '3 класс', color: '#3B82F6', bg: '#EFF6FF' },
-  { n: 4, emoji: '🏆', label: '4 класс', color: '#8B5CF6', bg: '#F5F3FF' },
+  { n: 1, emoji: '🌱', label: '1 класс', color: '#22C55E' },
+  { n: 2, emoji: '⭐', label: '2 класс', color: '#F59E0B' },
+  { n: 3, emoji: '🚀', label: '3 класс', color: '#3B82F6' },
+  { n: 4, emoji: '🏆', label: '4 класс', color: '#8B5CF6' },
 ]
 
 const LANGS = [
-  { code: 'kk', flag: '🇰🇿', label: 'Қазақша' },
   { code: 'ru', flag: '🇷🇺', label: 'Русский' },
+  { code: 'kk', flag: '🇰🇿', label: 'Қазақша' },
   { code: 'en', flag: '🇬🇧', label: 'English' },
 ]
 
@@ -29,67 +29,72 @@ export default function SetupPage() {
     if (!name.trim() || !grade) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    await supabase.from('profiles').upsert({
-      id: user.id,
-      name: name.trim(),
-      grade,
-      language: lang,
-    })
+    if (!user) { setLoading(false); return }
+    await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), grade, language: lang })
     router.push('/')
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-4 py-8">
-      <img src="/otter.png" alt="Otti" className="w-20 h-20 rounded-full mb-3" />
-      <h1 className="text-2xl font-bold text-emerald-700 mb-1">Добро пожаловать!</h1>
-      <p className="text-gray-500 text-sm mb-6">Расскажи немного о себе</p>
+  const ready = name.trim().length > 0 && grade !== null
 
-      <div className="w-full max-w-sm flex flex-col gap-4">
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10" style={{ background: '#F5F4F0' }}>
+
+      {/* Hero */}
+      <div className="text-6xl mb-3">👋</div>
+      <h1 className="text-2xl font-black text-gray-900 mb-1 text-center">Добро пожаловать!</h1>
+      <p className="text-gray-400 text-sm mb-8 text-center">Расскажи немного о себе, чтобы начать</p>
+
+      <div className="w-full max-w-sm flex flex-col gap-5">
+
         {/* Name */}
-        <input
-          className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 text-gray-700"
-          placeholder="Твоё имя"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          maxLength={30}
-          autoFocus
-        />
+        <div className="bg-white rounded-3xl px-5 py-4 shadow-sm">
+          <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-3">Твоё имя</p>
+          <input
+            className="w-full text-xl font-bold text-gray-900 bg-transparent outline-none placeholder:text-gray-300"
+            placeholder="Введи имя..."
+            value={name}
+            onChange={e => setName(e.target.value)}
+            maxLength={30}
+            autoFocus
+          />
+        </div>
 
         {/* Grade */}
-        <div>
-          <p className="text-sm text-gray-500 mb-2 font-medium">Класс</p>
+        <div className="bg-white rounded-3xl px-5 py-4 shadow-sm">
+          <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-3">Твой класс</p>
           <div className="grid grid-cols-4 gap-2">
             {GRADES.map(g => (
               <button
                 key={g.n}
                 onClick={() => setGrade(g.n)}
-                className="flex flex-col items-center gap-1 rounded-2xl border-2 py-3 transition-all"
-                style={grade === g.n
-                  ? { background: g.color, borderColor: g.color, color: 'white' }
-                  : { background: g.bg, borderColor: g.color + '40' }
+                className="flex flex-col items-center gap-1.5 rounded-2xl border-2 py-3.5 transition-all active:scale-95"
+                style={
+                  grade === g.n
+                    ? { background: g.color, borderColor: g.color, color: 'white' }
+                    : { background: '#F8F7F4', borderColor: '#e5e7eb', color: '#374151' }
                 }
               >
-                <span className="text-xl">{g.emoji}</span>
-                <span className="text-xs font-bold">{g.n}</span>
+                <span className="text-2xl">{g.emoji}</span>
+                <span className="text-xs font-black">{g.n}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Language */}
-        <div>
-          <p className="text-sm text-gray-500 mb-2 font-medium">Язык</p>
+        <div className="bg-white rounded-3xl px-5 py-4 shadow-sm">
+          <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-3">Язык</p>
           <div className="flex gap-2">
             {LANGS.map(l => (
               <button
                 key={l.code}
                 onClick={() => setLang(l.code)}
-                className={`flex-1 flex items-center justify-center gap-1 rounded-2xl border-2 py-2 text-sm font-medium transition-all ${
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl border-2 py-2.5 text-sm font-bold transition-all active:scale-95"
+                style={
                   lang === l.code
-                    ? 'bg-emerald-500 border-emerald-500 text-white'
-                    : 'bg-white border-gray-200 text-gray-600'
-                }`}
+                    ? { background: '#1f2937', borderColor: '#1f2937', color: 'white' }
+                    : { background: '#F8F7F4', borderColor: '#e5e7eb', color: '#6b7280' }
+                }
               >
                 {l.flag} {l.label}
               </button>
@@ -97,13 +102,16 @@ export default function SetupPage() {
           </div>
         </div>
 
+        {/* Submit */}
         <button
           onClick={save}
-          disabled={!name.trim() || !grade || loading}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white font-bold rounded-2xl py-4 transition-all active:scale-95 mt-2"
+          disabled={!ready || loading}
+          className="w-full py-4 rounded-2xl font-black text-lg transition-all active:scale-95 disabled:opacity-30"
+          style={{ background: ready ? '#1f2937' : '#9ca3af', color: 'white' }}
         >
           {loading ? 'Сохраняем...' : 'Начать учиться →'}
         </button>
+
       </div>
     </div>
   )
