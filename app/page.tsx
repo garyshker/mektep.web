@@ -45,11 +45,6 @@ export default function HomePage() {
     init()
   }, [])
 
-  const signOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -64,14 +59,29 @@ export default function HomePage() {
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500">🔥 {profile?.streak ?? 0}</span>
           <span className="text-sm font-semibold text-amber-500">⭐ {profile?.xp ?? 0} XP</span>
-          <button onClick={signOut} className="text-sm text-gray-400 hover:text-gray-600">Выйти</button>
+          <button onClick={() => router.push('/profile')}
+            className="w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-sm"
+            style={{ background: (() => {
+              const colors = ['#22C55E','#F59E0B','#3B82F6','#8B5CF6','#EF4444','#EC4899']
+              const l = profile?.name?.[0]?.toUpperCase() ?? 'A'
+              return colors[l.charCodeAt(0) % colors.length]
+            })() }}>
+            {profile?.name?.[0]?.toUpperCase() ?? '?'}
+          </button>
         </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 flex flex-col gap-4">
         {/* Greeting */}
         <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3">
-          <img src="/otter.png" alt="Otti" className="w-12 h-12 rounded-full" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-white text-xl shrink-0"
+            style={{ background: (() => {
+              const colors = ['#22C55E','#F59E0B','#3B82F6','#8B5CF6','#EF4444','#EC4899']
+              const l = profile?.name?.[0]?.toUpperCase() ?? 'A'
+              return colors[l.charCodeAt(0) % colors.length]
+            })() }}>
+            {profile?.name?.[0]?.toUpperCase() ?? '?'}
+          </div>
           <div>
             <p className="text-gray-500 text-sm">Привет,</p>
             <p className="font-bold text-gray-800">{profile?.name} · {profile?.grade} класс</p>
