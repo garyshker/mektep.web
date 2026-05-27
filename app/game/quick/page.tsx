@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { playCorrect, playWrong } from '@/lib/sounds'
 
 type Phase = 'idle' | 'playing' | 'done'
 
@@ -114,7 +115,7 @@ export default function QuickGamePage() {
     if (picked !== null || phase !== 'playing' || !problem) return
     const isRight = opt === String(problem.answer)
     setPicked(opt)
-    if (isRight) setScore(s => s + 1)
+    if (isRight) { setScore(s => s + 1); playCorrect() } else playWrong()
     setTotal(t => t + 1)
     setTimeout(() => {
       setPicked(null)

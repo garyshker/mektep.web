@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase'
 import { LESSONS_BY_ID } from '@/lib/lessons'
 import type { Question } from '@/lib/lessons'
 import type { ByLang } from '@/lib/lessons/types'
+import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 
 type Feedback = 'right' | 'wrong' | null
 
@@ -118,7 +119,7 @@ export default function LessonPage() {
 
   const markResult = (isRight: boolean) => {
     setFeedback(isRight ? 'right' : 'wrong')
-    if (isRight) setCorrectCount(c => c + 1)
+    if (isRight) { setCorrectCount(c => c + 1); playCorrect() } else playWrong()
   }
 
   const retry = () => {
@@ -133,7 +134,7 @@ export default function LessonPage() {
     if (idx + 1 >= total) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const final = correctCount + (feedback === 'right' ? 1 : 0)
+        const final = correctCount
         const stars = final >= total ? 3 : final >= total - 2 ? 2 : 1
         const xp = 15 + final * 5
         await supabase.from('lesson_progress').upsert({
@@ -150,7 +151,7 @@ export default function LessonPage() {
   }
 
   if (done) {
-    const final = correctCount + (feedback === 'right' ? 1 : 0)
+    const final = correctCount
     const stars = final >= total ? 3 : final >= total - 2 ? 2 : 1
     return (
       <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-6 text-center">
@@ -187,6 +188,7 @@ export default function LessonPage() {
           return (
             <button key={i} onClick={() => {
               if (feedback) return
+              playTap()
               setSelected(opt)
               markResult(opt === correct)
             }}
@@ -209,23 +211,24 @@ export default function LessonPage() {
 
     if (q.kind === 'type') {
       return (
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3">
           <input
             type="number"
+            inputMode="numeric"
             value={typeInput}
             onChange={e => setTypeInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !feedback && markResult(typeInput.trim() === String(q.answer))}
             disabled={!!feedback}
             placeholder="?"
-            className={`flex-1 bg-white shadow-sm border-2 rounded-2xl text-center text-4xl font-black py-4 focus:outline-none transition-colors
+            className={`w-full bg-white shadow-sm border-2 rounded-2xl text-center text-4xl font-black py-5 focus:outline-none transition-colors
               ${feedback === 'right' ? 'border-emerald-400 bg-emerald-50' :
                 feedback === 'wrong' ? 'border-red-300 bg-red-50' :
                 'border-gray-100 focus:border-emerald-400'}`}
           />
           {!feedback && (
             <button
-              onClick={() => markResult(typeInput.trim() === String(q.answer))}
-              className="bg-emerald-400 text-white font-black text-xl rounded-2xl px-7 shadow-sm active:scale-95 transition-all">
+              onClick={() => { playTap(); markResult(typeInput.trim() === String(q.answer)) }}
+              className="w-full bg-emerald-400 text-white font-black text-2xl rounded-2xl py-4 shadow-sm active:scale-95 transition-all">
               OK
             </button>
           )}
@@ -324,6 +327,8 @@ export default function LessonPage() {
   // ─── Explanation steps for feedback ────────────────────────────────
   const steps = ru(q?.explainByLang)?.split('\n').filter(Boolean) ?? []
 
+  const feedbackHeight = feedback ? (steps.length > 0 ? 320 : 160) : 0
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F5F4F0' }}>
 
@@ -360,7 +365,7 @@ export default function LessonPage() {
       </header>
 
       {/* ── Question card ── */}
-      <main className="flex-1 flex flex-col px-4 pt-2 pb-5 gap-4">
+      <main className="flex-1 flex flex-col px-4 pt-2 gap-4" style={{ paddingBottom: feedbackHeight + 24 }}>
         <div className="bg-white rounded-3xl px-5 py-5 shadow-sm">
           {/* Label */}
           <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase mb-4">
@@ -405,9 +410,9 @@ export default function LessonPage() {
         {renderInteraction()}
       </main>
 
-      {/* ── Feedback panel ── */}
+      {/* ── Feedback panel (fixed bottom) ── */}
       {feedback && (
-        <div className={`px-4 pt-5 pb-10 rounded-t-3xl ${feedback === 'right' ? 'bg-emerald-400' : 'bg-amber-400'}`}>
+        <div className={`fixed bottom-0 left-0 right-0 px-4 pt-5 pb-10 rounded-t-3xl z-50 ${feedback === 'right' ? 'bg-emerald-400' : 'bg-amber-400'}`}>
 
           {/* Title */}
           <div className="flex items-center gap-2 mb-3">
