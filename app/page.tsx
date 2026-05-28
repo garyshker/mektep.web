@@ -133,11 +133,13 @@ export default function HomePage() {
             <span className="font-bold text-gray-700 text-sm">1v1 Дуэль</span>
             <span className="absolute top-2 right-2 text-xs bg-white text-gray-400 px-2 py-0.5 rounded-full">скоро</span>
           </div>
-          <div className="relative rounded-2xl border border-purple-100 bg-purple-50 p-4 flex flex-col gap-1 opacity-60">
+          <button
+            onClick={() => router.push('/leaderboard')}
+            className="relative rounded-2xl border border-purple-100 bg-purple-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
             <span className="text-2xl">🏆</span>
             <span className="font-bold text-gray-700 text-sm">Лидерборд</span>
-            <span className="absolute top-2 right-2 text-xs bg-white text-gray-400 px-2 py-0.5 rounded-full">скоро</span>
-          </div>
+            <span className="text-xs text-purple-400">Топ игроков</span>
+          </button>
         </div>
       </main>
     </div>
