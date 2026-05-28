@@ -89,24 +89,16 @@ export default function HomePage() {
         </div>
 
         {/* Quick actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => router.push('/lessons')}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl p-4 flex flex-col gap-1 items-start transition-all active:scale-95"
-          >
-            <span className="text-2xl">📚</span>
-            <span className="font-bold">Уроки</span>
-            <span className="text-xs opacity-80">{profile?.grade} класс</span>
-          </button>
-          <button
-            onClick={() => router.push('/game/quick')}
-            className="bg-amber-400 hover:bg-amber-500 text-white rounded-2xl p-4 flex flex-col gap-1 items-start transition-all active:scale-95"
-          >
-            <span className="text-2xl">⚡</span>
-            <span className="font-bold">Быстрый счёт</span>
-            <span className="text-xs opacity-80">60 секунд</span>
-          </button>
-        </div>
+        <button
+          onClick={() => router.push('/lessons')}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl p-4 flex items-center gap-4 transition-all active:scale-95"
+        >
+          <span className="text-3xl">📚</span>
+          <div className="text-left">
+            <p className="font-bold text-base">Уроки</p>
+            <p className="text-xs opacity-80">{profile?.grade} класс · продолжить обучение</p>
+          </div>
+        </button>
 
         {/* Subjects */}
         <div>
@@ -126,23 +118,46 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Coming soon */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => router.push('/game/duel')}
-            className="relative rounded-2xl border border-red-100 bg-red-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
-            <span className="text-2xl">⚔️</span>
-            <span className="font-bold text-gray-700 text-sm">1v1 Дуэль</span>
-            <span className="text-xs text-red-400">Сразись с другом</span>
-          </button>
-          <button
-            onClick={() => router.push('/leaderboard')}
-            className="relative rounded-2xl border border-purple-100 bg-purple-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
-            <span className="text-2xl">🏆</span>
-            <span className="font-bold text-gray-700 text-sm">Лидерборд</span>
-            <span className="text-xs text-purple-400">Топ игроков</span>
-          </button>
+        {/* Games */}
+        <div>
+          <h2 className="font-bold text-gray-700 mb-2">Игры</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => router.push('/game/quick')}
+              className="bg-amber-400 text-white rounded-2xl p-4 flex flex-col gap-1 items-start transition-all active:scale-95">
+              <span className="text-2xl">⚡</span>
+              <span className="font-bold text-sm">Быстрый счёт</span>
+              <span className="text-xs opacity-80">60 секунд</span>
+            </button>
+            <button onClick={() => router.push('/game/duel')}
+              className="rounded-2xl border border-red-100 bg-red-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
+              <span className="text-2xl">⚔️</span>
+              <span className="font-bold text-gray-700 text-sm">1v1 Дуэль</span>
+              <span className="text-xs text-red-400">Сразись с другом</span>
+            </button>
+            <button onClick={() => router.push('/game/snake')}
+              className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
+              <span className="text-2xl">🐍</span>
+              <span className="font-bold text-gray-700 text-sm">Числовая змейка</span>
+              <span className="text-xs text-emerald-500">Ешь по порядку</span>
+            </button>
+            <button onClick={() => router.push('/game/2048')}
+              className="rounded-2xl border border-orange-100 bg-orange-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
+              <span className="text-2xl">🔢</span>
+              <span className="font-bold text-gray-700 text-sm">2048</span>
+              <span className="text-xs text-orange-400">Свайп и думай</span>
+            </button>
+          </div>
         </div>
+
+        {/* Leaderboard */}
+        <button onClick={() => router.push('/leaderboard')}
+          className="flex items-center gap-3 rounded-2xl border border-purple-100 bg-purple-50 p-4 transition-all active:scale-95">
+          <span className="text-2xl">🏆</span>
+          <div className="text-left">
+            <p className="font-bold text-gray-700 text-sm">Лидерборд</p>
+            <p className="text-xs text-purple-400">Топ игроков по XP</p>
+          </div>
+        </button>
       </main>
     </div>
   )
