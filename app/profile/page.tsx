@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { ALL_LESSONS } from '@/lib/lessons'
+import { BottomNav } from '@/components/BottomNav'
 
 type Profile = {
   name: string
@@ -76,18 +77,14 @@ export default function ProfilePage() {
   const LANG_LABELS: Record<string, string> = { ru: '🇷🇺 Русский', kk: '🇰🇿 Қазақша', en: '🇬🇧 English' }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F5F4F0' }}>
+    <div className="min-h-screen flex flex-col bg-white pb-24">
 
       {/* Header */}
-      <header className="px-4 pt-5 pb-4 flex items-center gap-3">
-        <button onClick={() => router.push('/')}
-          className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">
-          ←
-        </button>
-        <h1 className="font-black text-gray-900 text-lg">Профиль</h1>
+      <header className="px-4 pt-5 pb-4 border-b-2 border-gray-50">
+        <h1 className="font-black text-gray-900 text-xl">Профиль</h1>
       </header>
 
-      <main className="flex-1 px-4 flex flex-col gap-4 pb-10">
+      <main className="flex-1 px-4 flex flex-col gap-4 pt-4 pb-6 max-w-lg mx-auto w-full">
 
         {/* Profile card */}
         <div className="bg-white rounded-3xl px-5 py-5 shadow-sm flex items-center gap-4">
@@ -180,6 +177,7 @@ export default function ProfilePage() {
         </div>
 
       </main>
+      <BottomNav />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { BottomNav } from '@/components/BottomNav'
 
 interface Entry {
   id: string
@@ -53,29 +54,24 @@ export default function LeaderboardPage() {
   const rest = rows.slice(3)
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F4F0' }}>
-      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-8 h-8 border-4 border-[#58CC02] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F5F4F0' }}>
+    <div className="min-h-screen flex flex-col bg-white pb-24">
 
       {/* Header */}
-      <header className="px-4 pt-5 pb-4 flex items-center gap-3">
-        <button
-          onClick={() => router.push('/')}
-          className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">
-          ✕
-        </button>
-        <div>
-          <h1 className="text-xl font-black text-gray-900 leading-tight">Лидерборд</h1>
+      <header className="px-4 pt-5 pb-4 border-b-2 border-gray-50 flex items-center gap-3">
+        <div className="flex-1">
+          <h1 className="text-xl font-black text-gray-900 leading-tight">Рейтинг</h1>
           <p className="text-xs text-gray-400">Топ по очкам опыта</p>
         </div>
         {myRank && (
-          <div className="ml-auto bg-white rounded-2xl px-3 py-1.5 shadow-sm">
-            <p className="text-xs text-gray-400 leading-none">Твоё место</p>
-            <p className="text-lg font-black text-gray-900 leading-none">#{myRank}</p>
+          <div className="bg-[#58CC02]/10 rounded-2xl px-3 py-1.5">
+            <p className="text-xs text-[#58CC02] leading-none font-semibold">Твоё место</p>
+            <p className="text-lg font-black text-[#58CC02] leading-none">#{myRank}</p>
           </div>
         )}
       </header>
@@ -133,7 +129,7 @@ export default function LeaderboardPage() {
               return (
                 <div
                   key={entry.id}
-                  className={`flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 last:border-0 ${isMe ? 'bg-emerald-50' : ''}`}>
+                  className={`flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 last:border-0 ${isMe ? 'bg-[#58CC02]/5' : ''}`}>
                   <span className="w-7 text-center text-sm font-black text-gray-400">{rank}</span>
                   <div
                     className="w-9 h-9 rounded-full flex items-center justify-center font-black text-white text-sm shrink-0"
@@ -141,7 +137,7 @@ export default function LeaderboardPage() {
                     {entry.name?.[0]?.toUpperCase() ?? '?'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-bold text-sm truncate ${isMe ? 'text-emerald-700' : 'text-gray-900'}`}>
+                    <p className={`font-bold text-sm truncate ${isMe ? 'text-[#58CC02]' : 'text-gray-900'}`}>
                       {entry.name}{isMe ? ' (ты)' : ''}
                     </p>
                     <p className="text-xs text-gray-400">{entry.grade} класс · 🔥 {entry.streak}</p>
@@ -163,6 +159,7 @@ export default function LeaderboardPage() {
           </div>
         )}
       </main>
+      <BottomNav />
     </div>
   )
 }

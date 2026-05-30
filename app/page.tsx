@@ -3,25 +3,29 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { BottomNav } from '@/components/BottomNav'
+import { ALL_LESSONS } from '@/lib/lessons'
 import type { User } from '@supabase/supabase-js'
 
-type Profile = {
-  name: string
-  grade: number
-  xp: number
-  streak: number
+type Profile = { name: string; grade: number; xp: number; streak: number }
+
+const AVATAR_COLORS = ['#22C55E', '#F59E0B', '#3B82F6', '#8B5CF6', '#EF4444', '#EC4899']
+function avatarColor(name: string) {
+  const l = name?.[0]?.toUpperCase() ?? 'A'
+  return AVATAR_COLORS[l.charCodeAt(0) % AVATAR_COLORS.length]
 }
 
-const SUBJECTS = [
-  { id: 'math',    emoji: '🔢', label: 'Математика', color: '#22C55E', bg: '#F0FDF4' },
-  { id: 'kazakh',  emoji: '🇰🇿', label: 'Қазақша',   color: '#F59E0B', bg: '#FFFBEB' },
-  { id: 'russian', emoji: '📖', label: 'Русский',    color: '#3B82F6', bg: '#EFF6FF' },
-  { id: 'world',   emoji: '🌍', label: 'Дүниетану', color: '#8B5CF6', bg: '#F5F3FF' },
+const GAMES = [
+  { label: 'Быстрый счёт', icon: '⚡', path: '/game/quick', bg: '#FFF7ED', border: '#FED7AA', accent: '#F97316' },
+  { label: '1v1 Дуэль',   icon: '⚔️', path: '/game/duel',  bg: '#FFF1F2', border: '#FECDD3', accent: '#F43F5E' },
+  { label: 'Змейка',       icon: '🐍', path: '/game/snake', bg: '#F0FDF4', border: '#BBF7D0', accent: '#22C55E' },
+  { label: '2048',         icon: '🔢', path: '/game/2048',  bg: '#FFF7ED', border: '#FDE68A', accent: '#EAB308' },
 ]
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [nextLessonId, setNextLessonId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
   const router = useRouter()
@@ -32,133 +36,144 @@ export default function HomePage() {
       if (!user) { router.push('/login'); return }
       setUser(user)
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('name, grade, xp, streak')
-        .eq('id', user.id)
-        .single()
+      const [{ data: profile }, { data: progress }] = await Promise.all([
+        supabase.from('profiles').select('name, grade, xp, streak').eq('id', user.id).single(),
+        supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
+      ])
 
       if (!profile?.grade) { router.push('/setup'); return }
       setProfile(profile)
+
+      const done = new Set(progress?.map((p: { lesson_id: string }) => p.lesson_id) ?? [])
+      const next = ALL_LESSONS.find(l => l.grade.includes(profile.grade) && !done.has(l.id))
+      setNextLessonId(next?.id ?? ALL_LESSONS.find(l => l.grade.includes(profile.grade))?.id ?? null)
+
       setLoading(false)
     }
     init()
   }, [])
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-8 h-8 border-4 border-[#58CC02] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
+  const xp = profile?.xp ?? 0
+  const level = Math.floor(Math.sqrt(xp / 10)) + 1
+  const xpFloor = (level - 1) ** 2 * 10
+  const xpCeil  = level ** 2 * 10
+  const lvlPct  = Math.round(((xp - xpFloor) / (xpCeil - xpFloor)) * 100)
+  const nextLesson = ALL_LESSONS.find(l => l.id === nextLessonId)
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white pb-24">
+
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <span className="text-xl font-bold text-emerald-600">iМектеп</span>
+      <header className="px-4 pt-4 pb-2 flex items-center justify-between">
+        <span className="text-xl font-black text-[#58CC02]">iМектеп</span>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">🔥 {profile?.streak ?? 0}</span>
-          <span className="text-sm font-semibold text-amber-500">⭐ {profile?.xp ?? 0} XP</span>
+          <div className="flex items-center gap-1 bg-orange-50 rounded-full px-3 py-1.5">
+            <span className="text-base">🔥</span>
+            <span className="font-black text-orange-500 text-sm">{profile?.streak ?? 0}</span>
+          </div>
+          <div className="flex items-center gap-1 bg-yellow-50 rounded-full px-3 py-1.5">
+            <span className="text-base">⭐</span>
+            <span className="font-black text-yellow-600 text-sm">{xp}</span>
+          </div>
           <button onClick={() => router.push('/profile')}
-            className="w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-sm"
-            style={{ background: (() => {
-              const colors = ['#22C55E','#F59E0B','#3B82F6','#8B5CF6','#EF4444','#EC4899']
-              const l = profile?.name?.[0]?.toUpperCase() ?? 'A'
-              return colors[l.charCodeAt(0) % colors.length]
-            })() }}>
+            className="w-9 h-9 rounded-full flex items-center justify-center font-black text-white text-sm shrink-0"
+            style={{ background: avatarColor(profile?.name ?? 'A') }}>
             {profile?.name?.[0]?.toUpperCase() ?? '?'}
           </button>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-5 flex flex-col gap-4">
-        {/* Greeting */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-white text-xl shrink-0"
-            style={{ background: (() => {
-              const colors = ['#22C55E','#F59E0B','#3B82F6','#8B5CF6','#EF4444','#EC4899']
-              const l = profile?.name?.[0]?.toUpperCase() ?? 'A'
-              return colors[l.charCodeAt(0) % colors.length]
-            })() }}>
-            {profile?.name?.[0]?.toUpperCase() ?? '?'}
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm">Привет,</p>
-            <p className="font-bold text-gray-800">{profile?.name} · {profile?.grade} класс</p>
+      <main className="max-w-lg mx-auto px-4 flex flex-col gap-4 pt-2">
+
+        {/* Hero card */}
+        <div className="rounded-3xl overflow-hidden shadow-sm"
+          style={{ background: 'linear-gradient(135deg, #58CC02 0%, #3D9900 100%)' }}>
+          <div className="px-5 pt-5 pb-4">
+            <p className="text-white/80 text-sm font-semibold">Привет,</p>
+            <p className="text-white font-black text-2xl leading-tight">{profile?.name}! 👋</p>
+            <p className="text-white/70 text-xs mt-1">{profile?.grade} класс · Уровень {level}</p>
+
+            {/* XP level bar */}
+            <div className="mt-3 flex items-center gap-2">
+              <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full transition-all"
+                  style={{ width: `${lvlPct}%` }} />
+              </div>
+              <span className="text-white/80 text-[10px] font-bold whitespace-nowrap">{xp} / {xpCeil} XP</span>
+            </div>
           </div>
         </div>
 
-        {/* Quick actions */}
-        <button
-          onClick={() => router.push('/lessons')}
-          className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl p-4 flex items-center gap-4 transition-all active:scale-95"
-        >
-          <span className="text-3xl">📚</span>
-          <div className="text-left">
-            <p className="font-bold text-base">Уроки</p>
-            <p className="text-xs opacity-80">{profile?.grade} класс · продолжить обучение</p>
+        {/* Continue learning */}
+        {nextLesson && (
+          <div>
+            <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-2">Продолжить</p>
+            <button
+              onClick={() => router.push(`/lesson/${nextLesson.id}`)}
+              className="w-full bg-white rounded-3xl border-2 border-gray-100 p-4 flex items-center gap-4 text-left shadow-sm active:scale-[0.98] transition-all"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-2xl shrink-0">
+                {nextLesson.emoji ?? '📚'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-gray-900 text-sm">{nextLesson.titleByLang.ru}</p>
+                {nextLesson.subtitle && (
+                  <p className="text-gray-400 text-xs mt-0.5">{nextLesson.subtitle}</p>
+                )}
+              </div>
+              <div
+                className="shrink-0 px-4 py-2 rounded-xl font-black text-white text-sm border-b-[3px] active:border-b-0 transition-none"
+                style={{ background: '#58CC02', borderColor: '#45A800' }}>
+                Старт
+              </div>
+            </button>
           </div>
-        </button>
+        )}
 
-        {/* Subjects */}
+        {/* Streak reminder */}
+        {(profile?.streak ?? 0) > 0 && (
+          <div className="bg-orange-50 border-2 border-orange-100 rounded-2xl px-4 py-3 flex items-center gap-3">
+            <span className="text-2xl">🔥</span>
+            <p className="font-bold text-orange-700 text-sm">
+              {profile!.streak} {profile!.streak === 1 ? 'день' : profile!.streak < 5 ? 'дня' : 'дней'} подряд — не прерывай серию!
+            </p>
+          </div>
+        )}
+
+        {/* Games */}
         <div>
-          <h2 className="font-bold text-gray-700 mb-2">Предметы</h2>
+          <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-2">Игры</p>
           <div className="grid grid-cols-2 gap-3">
-            {SUBJECTS.map(s => (
+            {GAMES.map(g => (
               <button
-                key={s.id}
-                onClick={() => router.push(`/lessons?subject=${s.id}`)}
-                className="flex items-center gap-3 rounded-2xl border p-4 text-left transition-all active:scale-95 hover:shadow-sm"
-                style={{ background: s.bg, borderColor: s.color + '30' }}
-              >
-                <span className="text-2xl">{s.emoji}</span>
-                <span className="font-semibold text-gray-700 text-sm">{s.label}</span>
+                key={g.path}
+                onClick={() => router.push(g.path)}
+                className="rounded-2xl p-4 flex flex-col gap-1 text-left border-2 active:scale-[0.97] transition-all"
+                style={{ background: g.bg, borderColor: g.border }}>
+                <span className="text-2xl">{g.icon}</span>
+                <span className="font-bold text-gray-800 text-sm">{g.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Games */}
-        <div>
-          <h2 className="font-bold text-gray-700 mb-2">Игры</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => router.push('/game/quick')}
-              className="bg-amber-400 text-white rounded-2xl p-4 flex flex-col gap-1 items-start transition-all active:scale-95">
-              <span className="text-2xl">⚡</span>
-              <span className="font-bold text-sm">Быстрый счёт</span>
-              <span className="text-xs opacity-80">60 секунд</span>
-            </button>
-            <button onClick={() => router.push('/game/duel')}
-              className="rounded-2xl border border-red-100 bg-red-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
-              <span className="text-2xl">⚔️</span>
-              <span className="font-bold text-gray-700 text-sm">1v1 Дуэль</span>
-              <span className="text-xs text-red-400">Сразись с другом</span>
-            </button>
-            <button onClick={() => router.push('/game/snake')}
-              className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
-              <span className="text-2xl">🐍</span>
-              <span className="font-bold text-gray-700 text-sm">Числовая змейка</span>
-              <span className="text-xs text-emerald-500">Ешь по порядку</span>
-            </button>
-            <button onClick={() => router.push('/game/2048')}
-              className="rounded-2xl border border-orange-100 bg-orange-50 p-4 flex flex-col gap-1 text-left transition-all active:scale-95">
-              <span className="text-2xl">🔢</span>
-              <span className="font-bold text-gray-700 text-sm">2048</span>
-              <span className="text-xs text-orange-400">Свайп и думай</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Leaderboard */}
-        <button onClick={() => router.push('/leaderboard')}
-          className="flex items-center gap-3 rounded-2xl border border-purple-100 bg-purple-50 p-4 transition-all active:scale-95">
-          <span className="text-2xl">🏆</span>
-          <div className="text-left">
-            <p className="font-bold text-gray-700 text-sm">Лидерборд</p>
-            <p className="text-xs text-purple-400">Топ игроков по XP</p>
-          </div>
+        {/* Go to lessons CTA */}
+        <button
+          onClick={() => router.push('/lessons')}
+          className="w-full py-4 rounded-2xl font-black text-white text-base border-b-[4px] active:border-b-0 active:translate-y-[3px] transition-none"
+          style={{ background: '#58CC02', borderColor: '#45A800' }}>
+          📚 Все уроки →
         </button>
+
       </main>
+
+      <BottomNav />
     </div>
   )
 }
