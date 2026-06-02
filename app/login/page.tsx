@@ -2,15 +2,19 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
 
 type Mode = 'login' | 'register' | 'forgot'
+
+const ORANGE = '#E8943A'
 
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
@@ -39,9 +43,9 @@ export default function LoginPage() {
       console.error('resetPasswordForEmail error:', error)
       const msg = error.message?.toLowerCase() ?? ''
       if (msg.includes('rate') || error.status === 429) {
-        setError('Слишком много запросов. Подожди час или подключи свой SMTP в Supabase.')
+        setError('Слишком много запросов. Подожди немного и попробуй снова.')
       } else {
-        setError(`Ошибка: ${error.message} (код ${error.status ?? '?'})`)
+        setError(`Ошибка: ${error.message}`)
       }
       return
     }
@@ -74,79 +78,152 @@ export default function LoginPage() {
       if (error) {
         if (error.message.includes('already registered')) {
           setError('Этот email уже зарегистрирован. Попробуй войти.')
-        } else if (error.message.toLowerCase().includes('confirmation email') || error.message.toLowerCase().includes('sending')) {
-          setError('Ошибка отправки письма. Попробуй ещё раз или войди если уже зарегистрирован.')
         } else {
           setError('Ошибка регистрации. Попробуй ещё раз.')
         }
         setLoading(false)
         return
       }
-      // If email confirmation is disabled in Supabase, session is created immediately
       if (data.session) {
         router.push('/setup')
       } else {
-        // Email confirmation required — try signing in anyway or show message
         setError('На почту отправлено письмо подтверждения. Подтверди и войди.')
         setLoading(false)
       }
     }
   }
 
+  const heading =
+    mode === 'login' ? 'Вход в аккаунт' :
+    mode === 'register' ? 'Создать аккаунт' : 'Сброс пароля'
+  const sub =
+    mode === 'login' ? 'Введите email и пароль, чтобы продолжить.' :
+    mode === 'register' ? 'Заполни данные, чтобы начать учиться.' :
+    'Введи email — пришлём ссылку для нового пароля.'
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
-      style={{ background: '#F5F4F0' }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: '#FAF6EF' }}>
+      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
 
-      {/* Logo */}
-      <div className="text-5xl mb-3">🎓</div>
-      <h1 className="text-3xl font-black text-gray-900 mb-1">iМектеп</h1>
-      <p className="text-gray-400 text-sm mb-8">Учись. Играй. Развивайся.</p>
+        {/* ── Left: mascot + welcome ── */}
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
+          <Image
+            src="/otter.png"
+            alt="iМектеп"
+            width={220}
+            height={220}
+            priority
+            className="w-32 lg:w-56 h-auto drop-shadow-sm"
+          />
+          <h1 className="mt-5 text-3xl lg:text-5xl font-black leading-tight" style={{ color: '#2D2A26' }}>
+            Добро пожаловать в <span style={{ color: ORANGE }}>iМектеп</span>
+          </h1>
+          <p className="mt-3 text-gray-500 text-base lg:text-lg max-w-md">
+            Школа, которая помещается в кармане. Учись, следи за оценками и не теряй вдохновения.
+          </p>
+        </div>
 
-      <div className="w-full max-w-sm flex flex-col gap-4">
+        {/* ── Right: form card ── */}
+        <div className="w-full max-w-md mx-auto">
+          <div className="bg-white rounded-[28px] px-6 sm:px-8 py-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.12)]">
+            <h2 className="text-2xl font-black" style={{ color: '#2D2A26' }}>{heading}</h2>
+            <p className="text-gray-400 text-sm mt-1 mb-6">{sub}</p>
 
-        {/* Mode toggle */}
-        {mode !== 'forgot' && (
-          <div className="bg-white rounded-2xl p-1 flex shadow-sm">
-            <button
-              onClick={() => switchMode('login')}
-              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
-              style={mode === 'login' ? { background: '#1f2937', color: 'white' } : { color: '#9ca3af' }}
-            >
-              Войти
-            </button>
-            <button
-              onClick={() => switchMode('register')}
-              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
-              style={mode === 'register' ? { background: '#1f2937', color: 'white' } : { color: '#9ca3af' }}
-            >
-              Регистрация
-            </button>
-          </div>
-        )}
+            <form onSubmit={mode === 'forgot' ? sendReset : submit} className="flex flex-col gap-4">
 
-        {/* Forgot-password card */}
-        {mode === 'forgot' && (
-          <div className="bg-white rounded-3xl px-5 py-5 shadow-sm flex flex-col gap-4">
-            <div>
-              <h2 className="font-black text-gray-900 text-lg">Сброс пароля</h2>
-              <p className="text-gray-400 text-sm mt-0.5">
-                Введи email — пришлём ссылку для создания нового пароля.
-              </p>
-            </div>
-            <form onSubmit={sendReset} className="flex flex-col gap-3">
+              {/* Email */}
               <div>
-                <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Email</p>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="example@mail.com"
-                  required
-                  autoComplete="email"
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-gray-900 font-semibold outline-none focus:border-gray-400 transition-colors"
-                />
+                <label className="block text-sm font-bold mb-2" style={{ color: '#2D2A26' }}>Email</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="m3 7 9 6 9-6" />
+                    </svg>
+                  </span>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="you@imektep.kz"
+                    required
+                    autoComplete="email"
+                    className="w-full bg-[#F5F2EC] rounded-2xl pl-12 pr-4 py-3.5 text-gray-900 font-semibold outline-none border-2 border-transparent focus:border-[#E8943A] focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-normal"
+                  />
+                </div>
               </div>
 
+              {/* Password (login + register) */}
+              {mode !== 'forgot' && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-bold" style={{ color: '#2D2A26' }}>Пароль</label>
+                    {mode === 'login' && (
+                      <button type="button" onClick={() => switchMode('forgot')}
+                        className="text-sm font-bold" style={{ color: ORANGE }}>
+                        Забыли?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="4" y="11" width="16" height="10" rx="2" />
+                        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                      </svg>
+                    </span>
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Введите пароль"
+                      required
+                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                      className="w-full bg-[#F5F2EC] rounded-2xl pl-12 pr-12 py-3.5 text-gray-900 font-semibold outline-none border-2 border-transparent focus:border-[#E8943A] focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-normal"
+                    />
+                    <button type="button" onClick={() => setShowPw(s => !s)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 active:scale-90 transition-transform">
+                      {showPw ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a13.16 13.16 0 0 1-1.67 2.68" />
+                          <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 8 10 8a9.74 9.74 0 0 0 5.39-1.61" />
+                          <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" /><path d="m2 2 20 20" />
+                        </svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8Z" /><circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Confirm (register only) */}
+              {mode === 'register' && (
+                <div>
+                  <label className="block text-sm font-bold mb-2" style={{ color: '#2D2A26' }}>Повтори пароль</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="4" y="11" width="16" height="10" rx="2" />
+                        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                      </svg>
+                    </span>
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      value={confirm}
+                      onChange={e => setConfirm(e.target.value)}
+                      placeholder="Ещё раз пароль"
+                      required
+                      autoComplete="new-password"
+                      className="w-full bg-[#F5F2EC] rounded-2xl pl-12 pr-4 py-3.5 text-gray-900 font-semibold outline-none border-2 border-transparent focus:border-[#E8943A] focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-normal"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Error / info */}
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
                   <p className="text-red-600 text-sm font-semibold">{error}</p>
@@ -158,105 +235,52 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {/* Submit */}
               <button
                 type="submit"
-                disabled={loading || !email.trim()}
-                className="w-full py-4 rounded-2xl font-black text-base transition-all active:scale-95 disabled:opacity-40 mt-1"
-                style={{ background: '#1f2937', color: 'white' }}
+                disabled={loading || !email.trim() || (mode !== 'forgot' && !password)}
+                className="w-full py-4 rounded-2xl font-black text-base text-white transition-all active:scale-[0.98] disabled:opacity-40 shadow-sm"
+                style={{ background: 'linear-gradient(180deg, #F5BE4A 0%, #ED9F34 100%)' }}
               >
-                {loading ? '...' : 'Отправить ссылку →'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => switchMode('login')}
-                className="text-gray-400 text-sm font-semibold py-1">
-                ← Вернуться ко входу
+                {loading ? '...' :
+                  mode === 'login' ? 'Войти' :
+                  mode === 'register' ? 'Создать аккаунт' : 'Отправить ссылку'}
               </button>
             </form>
+
+            {/* Mode switch link */}
+            <p className="text-center text-sm text-gray-500 mt-5">
+              {mode === 'login' && (
+                <>Нет аккаунта?{' '}
+                  <button onClick={() => switchMode('register')} className="font-black" style={{ color: ORANGE }}>Создать</button>
+                </>
+              )}
+              {mode === 'register' && (
+                <>Уже есть аккаунт?{' '}
+                  <button onClick={() => switchMode('login')} className="font-black" style={{ color: ORANGE }}>Войти</button>
+                </>
+              )}
+              {mode === 'forgot' && (
+                <button onClick={() => switchMode('login')} className="font-black" style={{ color: ORANGE }}>← Вернуться ко входу</button>
+              )}
+            </p>
+
+            {/* Safety badge */}
+            <div className="mt-5 flex items-center justify-center gap-2 bg-emerald-50 rounded-2xl py-2.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+              <span className="text-emerald-700 text-sm font-bold">Безопасно для детей</span>
+            </div>
           </div>
-        )}
 
-        {/* Form card */}
-        {mode !== 'forgot' && (
-        <div className="bg-white rounded-3xl px-5 py-5 shadow-sm flex flex-col gap-4">
-          <form onSubmit={submit} className="flex flex-col gap-3">
-
-            {/* Email */}
-            <div>
-              <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Email</p>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="example@mail.com"
-                required
-                autoComplete="email"
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-gray-900 font-semibold outline-none focus:border-gray-400 transition-colors"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Пароль</p>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Минимум 6 символов"
-                required
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-gray-900 font-semibold outline-none focus:border-gray-400 transition-colors"
-              />
-            </div>
-
-            {/* Confirm (register only) */}
-            {mode === 'register' && (
-              <div>
-                <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Повтори пароль</p>
-                <input
-                  type="password"
-                  value={confirm}
-                  onChange={e => setConfirm(e.target.value)}
-                  placeholder="Ещё раз пароль"
-                  required
-                  autoComplete="new-password"
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-gray-900 font-semibold outline-none focus:border-gray-400 transition-colors"
-                />
-              </div>
-            )}
-
-            {/* Error */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
-                <p className="text-red-600 text-sm font-semibold">{error}</p>
-              </div>
-            )}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading || !email.trim() || !password}
-              className="w-full py-4 rounded-2xl font-black text-base transition-all active:scale-95 disabled:opacity-40 mt-1"
-              style={{ background: '#1f2937', color: 'white' }}
-            >
-              {loading
-                ? '...'
-                : mode === 'login' ? 'Войти →' : 'Создать аккаунт →'}
-            </button>
-
-            {/* Forgot password link (login only) */}
-            {mode === 'login' && (
-              <button
-                type="button"
-                onClick={() => switchMode('forgot')}
-                className="text-gray-400 text-sm font-semibold py-1 mt-1">
-                Забыли пароль?
-              </button>
-            )}
-          </form>
+          {/* Help link */}
+          <p className="text-center text-sm text-gray-400 mt-5">
+            Нужна помощь?{' '}
+            <a href="mailto:support@imektep.kz" className="font-bold text-gray-600">Напишите нам</a>
+          </p>
         </div>
-        )}
 
       </div>
     </div>
