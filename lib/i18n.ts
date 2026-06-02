@@ -128,6 +128,7 @@ export const I18N = {
   confirm_sent:       { ru: 'На почту отправлено письмо подтверждения. Подтверди и войди.', kk: 'Поштаңа растау хаты жіберілді. Растап, кір.', en: 'Confirmation email sent. Confirm and sign in.' },
   reset_email_sent:   { ru: 'Письмо со ссылкой для сброса отправлено. Проверь почту (и папку «Спам»).', kk: 'Қалпына келтіру сілтемесі жіберілді. Поштаңды тексер («Спам» қалтасын да).', en: 'Reset link sent. Check your email (and Spam folder).' },
   too_many_req:       { ru: 'Слишком много запросов. Подожди немного и попробуй снова.', kk: 'Тым көп сұраныс. Сәл күтіп, қайта көр.', en: 'Too many requests. Wait a moment and try again.' },
+  guest_unavailable:  { ru: 'Гостевой режим пока недоступен. Попробуй позже.', kk: 'Қонақ режимі әзірге қолжетімсіз. Кейінірек көр.', en: 'Guest mode is unavailable right now. Try later.' },
 
   // Reset password page
   reset_title:        { ru: 'Новый пароль',               kk: 'Жаңа құпиясөз',              en: 'New password' },

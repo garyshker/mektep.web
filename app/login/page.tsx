@@ -56,6 +56,25 @@ export default function LoginPage() {
     setInfo(t('reset_email_sent', lang))
   }
 
+  // Hidden guest entry — tapping the mascot signs in anonymously
+  const enterAsGuest = async () => {
+    if (loading) return
+    setError('')
+    setLoading(true)
+    const { data, error } = await supabase.auth.signInAnonymously()
+    if (error || !data.user) {
+      console.error('signInAnonymously error:', error)
+      setError(t('guest_unavailable', lang))
+      setLoading(false)
+      return
+    }
+    const guestName = lang === 'kk' ? 'Қонақ' : lang === 'en' ? 'Guest' : 'Гость'
+    await supabase.from('profiles').upsert({
+      id: data.user.id, name: guestName, grade: 2, language: lang,
+    })
+    router.push('/')
+  }
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -116,14 +135,22 @@ export default function LoginPage() {
 
         {/* ── Left: mascot + welcome ── */}
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
-          <Image
-            src="/otter.png"
-            alt="iМектеп"
-            width={220}
-            height={220}
-            priority
-            className="w-32 lg:w-56 h-auto drop-shadow-sm"
-          />
+          {/* Tapping the mascot is a hidden guest entry */}
+          <button
+            type="button"
+            onClick={enterAsGuest}
+            aria-label="Гость"
+            className="active:scale-95 transition-transform cursor-pointer select-none"
+          >
+            <Image
+              src="/otter.png"
+              alt="iМектеп"
+              width={220}
+              height={220}
+              priority
+              className="w-32 lg:w-56 h-auto drop-shadow-sm pointer-events-none"
+            />
+          </button>
           <h1 className="mt-5 text-3xl lg:text-5xl font-black leading-tight" style={{ color: '#2D2A26' }}>
             {t('login_welcome', lang)} <span style={{ color: ORANGE }}>iМектеп</span>
           </h1>
