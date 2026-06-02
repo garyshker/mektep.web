@@ -9,6 +9,7 @@ import type { ByLang } from '@/lib/lessons/types'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
+import { speak } from '@/lib/speak'
 
 type Feedback = 'right' | 'wrong' | null
 
@@ -387,7 +388,19 @@ export default function LessonPage() {
               )}
               {q.kind === 'mc' && (
                 q?.big
-                  ? <BigMath text={prompt} />
+                  ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <BigMath text={prompt} />
+                      {lesson.subjectId === 'kazakh' && (
+                        <button
+                          onClick={() => speak(prompt, 'kk-KZ')}
+                          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg active:scale-90 transition-all"
+                          aria-label="Произнести">
+                          🔊
+                        </button>
+                      )}
+                    </div>
+                  )
                   : <p className="text-xl font-bold text-gray-800 text-center leading-snug">{prompt}</p>
               )}
             </>
