@@ -7,6 +7,8 @@ import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { ALL_LESSONS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
+import { LangSwitch } from '@/components/LangSwitch'
+import type { Lang } from '@/lib/i18n'
 
 type Profile = {
   name: string
@@ -64,6 +66,12 @@ export default function ProfilePage() {
   const signOut = async () => {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  const changeLang = async (l: Lang) => {
+    setProfile(p => (p ? { ...p, language: l } : p))
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) await supabase.from('profiles').update({ language: l }).eq('id', user.id)
   }
 
   if (loading) return (
@@ -160,6 +168,13 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Language */}
+        <div className="bg-white rounded-3xl shadow-sm px-5 py-4 flex items-center gap-3">
+          <span className="text-xl">🌐</span>
+          <span className="font-semibold text-gray-800 text-sm flex-1">{t('setup_language', lang)}</span>
+          <LangSwitch className="!shadow-none !bg-gray-50" onChange={changeLang} />
+        </div>
 
         {/* Actions */}
         <div className="bg-white rounded-3xl shadow-sm overflow-hidden">

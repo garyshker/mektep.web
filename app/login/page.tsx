@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
+import { LangSwitch } from '@/components/LangSwitch'
 
 type Mode = 'login' | 'register' | 'forgot'
 
@@ -20,6 +23,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const lang = useLang()
 
   const switchMode = (m: Mode) => {
     setMode(m)
@@ -43,13 +47,13 @@ export default function LoginPage() {
       console.error('resetPasswordForEmail error:', error)
       const msg = error.message?.toLowerCase() ?? ''
       if (msg.includes('rate') || error.status === 429) {
-        setError('Слишком много запросов. Подожди немного и попробуй снова.')
+        setError(t('too_many_req', lang))
       } else {
-        setError(`Ошибка: ${error.message}`)
+        setError(`${error.message}`)
       }
       return
     }
-    setInfo('Письмо со ссылкой для сброса отправлено. Проверь почту (и папку «Спам»).')
+    setInfo(t('reset_email_sent', lang))
   }
 
   const submit = async (e: React.FormEvent) => {
@@ -59,8 +63,8 @@ export default function LoginPage() {
     if (!email.trim() || !password) return
 
     if (mode === 'register') {
-      if (password.length < 6) { setError('Пароль должен быть минимум 6 символов'); return }
-      if (password !== confirm) { setError('Пароли не совпадают'); return }
+      if (password.length < 6) { setError(t('err_pw_short', lang)); return }
+      if (password !== confirm) { setError(t('err_pw_mismatch', lang)); return }
     }
 
     setLoading(true)
@@ -68,7 +72,7 @@ export default function LoginPage() {
     if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
       if (error) {
-        setError('Неверный email или пароль')
+        setError(t('err_invalid_creds', lang))
         setLoading(false)
         return
       }
@@ -77,9 +81,9 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signUp({ email: email.trim(), password })
       if (error) {
         if (error.message.includes('already registered')) {
-          setError('Этот email уже зарегистрирован. Попробуй войти.')
+          setError(t('err_registered', lang))
         } else {
-          setError('Ошибка регистрации. Попробуй ещё раз.')
+          setError(t('err_register', lang))
         }
         setLoading(false)
         return
@@ -87,22 +91,27 @@ export default function LoginPage() {
       if (data.session) {
         router.push('/setup')
       } else {
-        setError('На почту отправлено письмо подтверждения. Подтверди и войди.')
+        setError(t('confirm_sent', lang))
         setLoading(false)
       }
     }
   }
 
   const heading =
-    mode === 'login' ? 'Вход в аккаунт' :
-    mode === 'register' ? 'Создать аккаунт' : 'Сброс пароля'
+    mode === 'login' ? t('login_heading', lang) :
+    mode === 'register' ? t('reg_heading', lang) : t('forgot_heading', lang)
   const sub =
-    mode === 'login' ? 'Введите email и пароль, чтобы продолжить.' :
-    mode === 'register' ? 'Заполни данные, чтобы начать учиться.' :
-    'Введи email — пришлём ссылку для нового пароля.'
+    mode === 'login' ? t('login_sub', lang) :
+    mode === 'register' ? t('reg_sub', lang) : t('forgot_sub', lang)
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: '#FAF6EF' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 relative" style={{ background: '#FAF6EF' }}>
+
+      {/* Language switch — top right */}
+      <div className="absolute top-4 right-4 z-10">
+        <LangSwitch />
+      </div>
+
       <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
 
         {/* ── Left: mascot + welcome ── */}
@@ -116,10 +125,10 @@ export default function LoginPage() {
             className="w-32 lg:w-56 h-auto drop-shadow-sm"
           />
           <h1 className="mt-5 text-3xl lg:text-5xl font-black leading-tight" style={{ color: '#2D2A26' }}>
-            Добро пожаловать в <span style={{ color: ORANGE }}>iМектеп</span>
+            {t('login_welcome', lang)} <span style={{ color: ORANGE }}>iМектеп</span>
           </h1>
           <p className="mt-3 text-gray-500 text-base lg:text-lg max-w-md">
-            Школа, которая помещается в кармане. Учись, следи за оценками и не теряй вдохновения.
+            {t('login_tagline', lang)}
           </p>
         </div>
 
@@ -133,7 +142,7 @@ export default function LoginPage() {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-bold mb-2" style={{ color: '#2D2A26' }}>Email</label>
+                <label className="block text-sm font-bold mb-2" style={{ color: '#2D2A26' }}>{t('label_email', lang)}</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -157,11 +166,11 @@ export default function LoginPage() {
               {mode !== 'forgot' && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-bold" style={{ color: '#2D2A26' }}>Пароль</label>
+                    <label className="text-sm font-bold" style={{ color: '#2D2A26' }}>{t('label_password', lang)}</label>
                     {mode === 'login' && (
                       <button type="button" onClick={() => switchMode('forgot')}
                         className="text-sm font-bold" style={{ color: ORANGE }}>
-                        Забыли?
+                        {t('forgot_link', lang)}
                       </button>
                     )}
                   </div>
@@ -176,7 +185,7 @@ export default function LoginPage() {
                       type={showPw ? 'text' : 'password'}
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      placeholder="Введите пароль"
+                      placeholder={t('ph_password', lang)}
                       required
                       autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                       className="w-full bg-[#F5F2EC] rounded-2xl pl-12 pr-12 py-3.5 text-gray-900 font-semibold outline-none border-2 border-transparent focus:border-[#E8943A] focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-normal"
@@ -202,7 +211,7 @@ export default function LoginPage() {
               {/* Confirm (register only) */}
               {mode === 'register' && (
                 <div>
-                  <label className="block text-sm font-bold mb-2" style={{ color: '#2D2A26' }}>Повтори пароль</label>
+                  <label className="block text-sm font-bold mb-2" style={{ color: '#2D2A26' }}>{t('label_confirm', lang)}</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -214,7 +223,7 @@ export default function LoginPage() {
                       type={showPw ? 'text' : 'password'}
                       value={confirm}
                       onChange={e => setConfirm(e.target.value)}
-                      placeholder="Ещё раз пароль"
+                      placeholder={t('ph_confirm', lang)}
                       required
                       autoComplete="new-password"
                       className="w-full bg-[#F5F2EC] rounded-2xl pl-12 pr-4 py-3.5 text-gray-900 font-semibold outline-none border-2 border-transparent focus:border-[#E8943A] focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-normal"
@@ -243,25 +252,25 @@ export default function LoginPage() {
                 style={{ background: 'linear-gradient(180deg, #F5BE4A 0%, #ED9F34 100%)' }}
               >
                 {loading ? '...' :
-                  mode === 'login' ? 'Войти' :
-                  mode === 'register' ? 'Создать аккаунт' : 'Отправить ссылку'}
+                  mode === 'login' ? t('btn_login', lang) :
+                  mode === 'register' ? t('btn_register', lang) : t('btn_send_link', lang)}
               </button>
             </form>
 
             {/* Mode switch link */}
             <p className="text-center text-sm text-gray-500 mt-5">
               {mode === 'login' && (
-                <>Нет аккаунта?{' '}
-                  <button onClick={() => switchMode('register')} className="font-black" style={{ color: ORANGE }}>Создать</button>
+                <>{t('no_account', lang)}{' '}
+                  <button onClick={() => switchMode('register')} className="font-black" style={{ color: ORANGE }}>{t('create_account', lang)}</button>
                 </>
               )}
               {mode === 'register' && (
-                <>Уже есть аккаунт?{' '}
-                  <button onClick={() => switchMode('login')} className="font-black" style={{ color: ORANGE }}>Войти</button>
+                <>{t('have_account', lang)}{' '}
+                  <button onClick={() => switchMode('login')} className="font-black" style={{ color: ORANGE }}>{t('btn_login', lang)}</button>
                 </>
               )}
               {mode === 'forgot' && (
-                <button onClick={() => switchMode('login')} className="font-black" style={{ color: ORANGE }}>← Вернуться ко входу</button>
+                <button onClick={() => switchMode('login')} className="font-black" style={{ color: ORANGE }}>{t('back_to_login', lang)}</button>
               )}
             </p>
 
@@ -271,14 +280,14 @@ export default function LoginPage() {
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
                 <path d="m9 12 2 2 4-4" />
               </svg>
-              <span className="text-emerald-700 text-sm font-bold">Безопасно для детей</span>
+              <span className="text-emerald-700 text-sm font-bold">{t('safe_for_kids', lang)}</span>
             </div>
           </div>
 
           {/* Help link */}
           <p className="text-center text-sm text-gray-400 mt-5">
-            Нужна помощь?{' '}
-            <a href="mailto:support@imektep.kz" className="font-bold text-gray-600">Напишите нам</a>
+            {t('need_help', lang)}{' '}
+            <a href="mailto:support@imektep.kz" className="font-bold text-gray-600">{t('write_us', lang)}</a>
           </p>
         </div>
 
