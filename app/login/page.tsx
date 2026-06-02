@@ -68,7 +68,9 @@ export default function LoginPage() {
       setLoading(false)
       return
     }
-    const guestName = lang === 'kk' ? 'Қонақ' : lang === 'en' ? 'Guest' : 'Гость'
+    const base = lang === 'kk' ? 'Қонақ' : lang === 'en' ? 'Guest' : 'Гость'
+    const suffix = data.user.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase()
+    const guestName = `${base} ${suffix}`
     await supabase.from('profiles').upsert({
       id: data.user.id, name: guestName, grade: 2, language: lang,
     })
