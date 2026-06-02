@@ -322,7 +322,7 @@ export default function DuelPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F5F4F0' }}>
       {/* Score bar */}
-      <header className="px-4 pt-5 pb-3">
+      <header className="px-4 pt-5 pb-3 lg:max-w-2xl lg:mx-auto lg:w-full">
         <div className="bg-white rounded-2xl px-4 py-3 shadow-sm flex items-center gap-3">
           <div className="flex-1 text-center">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ты</p>
@@ -339,7 +339,7 @@ export default function DuelPage() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col px-4 pt-2 gap-4">
+      <main className="flex-1 flex flex-col px-4 pt-2 gap-4 lg:max-w-2xl lg:mx-auto lg:w-full">
         {/* Problem */}
         <div className="bg-white rounded-3xl px-5 py-6 shadow-sm">
           <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-4 text-center">РЕШИ ПРИМЕР</p>
@@ -372,7 +372,7 @@ export default function DuelPage() {
       </main>
 
       {/* Timer bar */}
-      <div className="h-1.5 mx-4 mb-6 mt-4 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-1.5 mx-4 mb-6 mt-4 bg-gray-200 rounded-full overflow-hidden lg:max-w-2xl lg:mx-auto lg:w-full">
         <div className="h-full rounded-full transition-all duration-1000 ease-linear"
           style={{ width: `${(timeLeft / 60) * 100}%`, backgroundColor: timerColor }} />
       </div>

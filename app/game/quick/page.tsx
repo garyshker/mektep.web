@@ -215,7 +215,7 @@ export default function QuickGamePage() {
     <div className="min-h-screen flex flex-col" style={{ background: '#F5F4F0' }}>
 
       {/* Stats bar */}
-      <header className="px-5 pt-5 pb-3 flex items-center justify-between">
+      <header className="px-5 pt-5 pb-3 flex items-center justify-between lg:max-w-2xl lg:mx-auto lg:w-full">
         <div className="flex flex-col items-center">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('game_score', lang)}</span>
           <span className="text-3xl font-black text-gray-900">{score}</span>
@@ -238,7 +238,7 @@ export default function QuickGamePage() {
       </header>
 
       {/* Expression card */}
-      <main className="flex-1 flex flex-col px-4 pt-2 gap-4">
+      <main className="flex-1 flex flex-col px-4 pt-2 gap-4 lg:max-w-2xl lg:mx-auto lg:w-full">
         <div className="bg-white rounded-3xl px-5 py-6 shadow-sm">
           <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase mb-4 text-center">
             {t('game_choose_answer', lang)}
@@ -278,7 +278,7 @@ export default function QuickGamePage() {
       </main>
 
       {/* Bottom timer bar */}
-      <div className="h-1.5 mx-4 mb-6 mt-4 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-1.5 mx-4 mb-6 mt-4 bg-gray-200 rounded-full overflow-hidden lg:max-w-2xl lg:mx-auto lg:w-full">
         <div
           className="h-full rounded-full transition-all duration-1000 ease-linear"
           style={{ width: `${(timeLeft / 60) * 100}%`, backgroundColor: timerColor }}

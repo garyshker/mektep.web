@@ -143,10 +143,10 @@ export default function HomePage() {
   const subjectList = SUBJECTS.filter(s => s.id !== 'russian')
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: '#EDE8F8' }}>
+    <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60 lg:pt-8" style={{ background: '#EDE8F8' }}>
 
       {/* ── Header ── */}
-      <header className="px-4 pt-5 pb-3 flex items-center justify-between max-w-lg mx-auto">
+      <header className="px-4 pt-5 pb-3 flex items-center justify-between max-w-lg lg:max-w-2xl mx-auto">
         {/* Left: label + greeting */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 bg-[#2A5E35]/10 rounded-full px-3 py-1.5">
@@ -172,7 +172,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 flex flex-col gap-4">
+      <main className="max-w-lg lg:max-w-2xl mx-auto px-4 flex flex-col gap-4">
 
         {/* ── Week progress ── */}
         <div className="bg-white rounded-2xl px-4 py-3 shadow-sm flex items-center justify-between">
@@ -275,11 +275,11 @@ export default function HomePage() {
         {/* ── Activities horizontal scroll ── */}
         <div>
           <p className="text-xs font-black text-[#1A1A2E]/50 tracking-widest uppercase mb-2">Ойындар мен тапсырмалар</p>
-          <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:overflow-visible" style={{ scrollbarWidth: 'none' }}>
             {ACTIVITIES.map(act => (
               <button key={act.path}
                 onClick={() => router.push(act.path)}
-                className="shrink-0 w-36 rounded-2xl p-3.5 flex flex-col gap-2 text-left border active:scale-[0.97] transition-all"
+                className="shrink-0 w-36 lg:w-auto rounded-2xl p-3.5 flex flex-col gap-2 text-left border active:scale-[0.97] transition-all"
                 style={{ background: act.color, borderColor: act.border }}>
                 <span className="text-2xl">{act.icon}</span>
                 <div>

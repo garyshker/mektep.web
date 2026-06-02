@@ -49,24 +49,51 @@ export function BottomNav() {
   const lang = useLang()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-100 z-40">
-      <div className="max-w-lg mx-auto flex">
-        {TABS.map(tab => {
-          const active = tab.path === '/' ? pathname === '/' : pathname.startsWith(tab.path)
-          return (
-            <button
-              key={tab.path}
-              onClick={() => router.push(tab.path)}
-              className="flex-1 flex flex-col items-center py-2.5 gap-0.5 transition-all active:scale-95"
-            >
-              {tab.icon(active)}
-              <span className={`text-[10px] font-bold ${active ? 'text-[#58CC02]' : 'text-gray-400'}`}>
-                {t(tab.labelKey, lang)}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </nav>
+    <>
+      {/* Mobile: fixed bottom bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-100 z-40">
+        <div className="max-w-lg mx-auto flex">
+          {TABS.map(tab => {
+            const active = tab.path === '/' ? pathname === '/' : pathname.startsWith(tab.path)
+            return (
+              <button
+                key={tab.path}
+                onClick={() => router.push(tab.path)}
+                className="flex-1 flex flex-col items-center py-2.5 gap-0.5 transition-all active:scale-95"
+              >
+                {tab.icon(active)}
+                <span className={`text-[10px] font-bold ${active ? 'text-[#58CC02]' : 'text-gray-400'}`}>
+                  {t(tab.labelKey, lang)}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
+
+      {/* Desktop: fixed left sidebar */}
+      <nav className="hidden lg:flex flex-col w-60 fixed left-0 top-0 bottom-0 bg-white border-r-2 border-gray-100 z-40">
+        <div className="px-6 py-5 text-xl font-bold text-[#58CC02]">iМектеп</div>
+        <div className="flex flex-col gap-1 px-2">
+          {TABS.map(tab => {
+            const active = tab.path === '/' ? pathname === '/' : pathname.startsWith(tab.path)
+            return (
+              <button
+                key={tab.path}
+                onClick={() => router.push(tab.path)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                  active ? 'bg-[#58CC02]/10' : 'hover:bg-gray-50'
+                }`}
+              >
+                {tab.icon(active)}
+                <span className={`text-sm font-bold ${active ? 'text-[#58CC02]' : 'text-gray-400'}`}>
+                  {t(tab.labelKey, lang)}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
+    </>
   )
 }

@@ -333,7 +333,7 @@ export default function LessonPage() {
     <div className="min-h-screen flex flex-col" style={{ background: '#F5F4F0' }}>
 
       {/* ── Header ── */}
-      <header className="px-4 pt-5 pb-3 bg-transparent">
+      <header className="px-4 pt-5 pb-3 bg-transparent lg:max-w-2xl lg:mx-auto lg:w-full">
         {/* Progress row */}
         <div className="flex items-center gap-3">
           <button
@@ -365,7 +365,7 @@ export default function LessonPage() {
       </header>
 
       {/* ── Question card ── */}
-      <main className="flex-1 flex flex-col px-4 pt-2 gap-4" style={{ paddingBottom: feedbackHeight + 24 }}>
+      <main className="flex-1 flex flex-col px-4 pt-2 gap-4 lg:max-w-2xl lg:mx-auto lg:w-full" style={{ paddingBottom: feedbackHeight + 24 }}>
         <div className="bg-white rounded-3xl px-5 py-5 shadow-sm">
           {/* Label */}
           <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase mb-4">
@@ -425,6 +425,7 @@ export default function LessonPage() {
       {/* ── Feedback panel (fixed bottom) ── */}
       {feedback && (
         <div className={`fixed bottom-0 left-0 right-0 px-4 pt-5 pb-10 rounded-t-3xl z-50 ${feedback === 'right' ? 'bg-emerald-400' : 'bg-amber-400'}`}>
+         <div className="lg:max-w-2xl lg:mx-auto">
 
           {/* Title */}
           <div className="flex items-center gap-2 mb-3">
@@ -487,6 +488,7 @@ export default function LessonPage() {
               {t('next', lang)} <span className="text-lg">→</span>
             </button>
           </div>
+         </div>
         </div>
       )}
     </div>

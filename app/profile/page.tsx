@@ -88,14 +88,16 @@ export default function ProfilePage() {
   const LANG_LABELS: Record<string, string> = { ru: '🇷🇺 Русский', kk: '🇰🇿 Қазақша', en: '🇬🇧 English' }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white pb-24">
+    <div className="min-h-screen flex flex-col bg-white pb-24 lg:pb-10 lg:pl-60">
 
       {/* Header */}
       <header className="px-4 pt-5 pb-4 border-b-2 border-gray-50">
-        <h1 className="font-black text-gray-900 text-xl">Профиль</h1>
+        <div className="max-w-lg lg:max-w-2xl mx-auto w-full">
+          <h1 className="font-black text-gray-900 text-xl">Профиль</h1>
+        </div>
       </header>
 
-      <main className="flex-1 px-4 flex flex-col gap-4 pt-4 pb-6 max-w-lg mx-auto w-full">
+      <main className="flex-1 px-4 flex flex-col gap-4 pt-4 pb-6 max-w-lg lg:max-w-2xl mx-auto w-full">
 
         {/* Profile card */}
         <div className="bg-white rounded-3xl px-5 py-5 shadow-sm flex items-center gap-4">

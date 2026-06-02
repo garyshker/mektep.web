@@ -63,10 +63,10 @@ export default function LeaderboardPage() {
   )
 
   return (
-    <div className="min-h-screen flex flex-col bg-white pb-24">
+    <div className="min-h-screen flex flex-col bg-white pb-24 lg:pb-10 lg:pl-60">
 
       {/* Header */}
-      <header className="px-4 pt-5 pb-4 border-b-2 border-gray-50 flex items-center gap-3">
+      <header className="px-4 pt-5 pb-4 border-b-2 border-gray-50 flex items-center gap-3 lg:max-w-2xl lg:mx-auto lg:w-full">
         <div className="flex-1">
           <h1 className="text-xl font-black text-gray-900 leading-tight">{t('nav_leaderboard', lang)}</h1>
           <p className="text-xs text-gray-400">{t('top_by_xp', lang)}</p>
@@ -79,7 +79,7 @@ export default function LeaderboardPage() {
         )}
       </header>
 
-      <main className="flex-1 px-4 pb-8 flex flex-col gap-4">
+      <main className="flex-1 px-4 pb-8 flex flex-col gap-4 lg:max-w-2xl lg:mx-auto lg:w-full">
 
         {/* Podium — top 3 */}
         {top3.length > 0 && (

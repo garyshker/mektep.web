@@ -114,7 +114,7 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
 
       {/* Active subjects */}
       <div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {SUBJECTS.filter(s => s.id !== 'russian').map(subj => {
             const lessons = ALL_LESSONS.filter(l => l.subjectId === subj.id && l.grade.includes(grade))
             const done    = lessons.filter(l => (starsMap[l.id] ?? 0) > 0).length
@@ -158,7 +158,7 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
       {/* Coming soon subjects */}
       <div>
         <p className="text-xs font-black text-[#1A1A2E]/50 tracking-widest uppercase mb-2">Жақында</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {UPCOMING_SUBJECTS.map(subj => (
             <div key={subj.id}
               className="bg-white rounded-3xl p-4 flex flex-col gap-3 border-2 border-dashed border-gray-200 opacity-75">
@@ -248,7 +248,7 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
           <p className="font-semibold">{t('coming_soon_tmpl', lang).replace('[N]', String(grade))}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
           {unlocked.map(lesson => (
             <LessonCard key={lesson.id} lesson={lesson}
               stars={starsMap[lesson.id] ?? 0}
@@ -266,7 +266,7 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
             <span className="text-xs font-black text-gray-400 tracking-widest uppercase">{t('next_section', lang)}</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {locked.map(lesson => (
               <LessonCard key={lesson.id} lesson={lesson} stars={0} lang={lang} onClick={() => {}} locked />
             ))}
@@ -316,11 +316,11 @@ function LessonsContent() {
   )
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: '#EDE8F8' }}>
+    <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60" style={{ background: '#EDE8F8' }}>
 
       {/* Header */}
       <header className="px-4 pt-5 pb-3 sticky top-0 z-10" style={{ background: '#EDE8F8' }}>
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="max-w-2xl lg:max-w-5xl mx-auto flex items-center justify-between">
           <h1 className="font-black text-[#1A1A2E] text-xl">
             {subjectParam
               ? (SUBJECTS.find(s => s.id === subjectParam)?.labelKk ?? t('lessons', lang))
@@ -330,7 +330,7 @@ function LessonsContent() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-2">
+      <main className="max-w-2xl lg:max-w-5xl mx-auto px-4 py-2">
         {subjectParam ? (
           <LessonList
             subjectId={subjectParam}
