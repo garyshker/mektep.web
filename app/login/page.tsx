@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-type Mode = 'login' | 'register'
+type Mode = 'login' | 'register' | 'forgot'
 
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>('login')
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -19,8 +20,26 @@ export default function LoginPage() {
   const switchMode = (m: Mode) => {
     setMode(m)
     setError('')
+    setInfo('')
     setPassword('')
     setConfirm('')
+  }
+
+  const sendReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setInfo('')
+    if (!email.trim()) return
+    setLoading(true)
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset`,
+    })
+    setLoading(false)
+    if (error) {
+      setError('Не удалось отправить письмо. Проверь email и попробуй снова.')
+      return
+    }
+    setInfo('Письмо со ссылкой для сброса отправлено. Проверь почту (и папку «Спам»).')
   }
 
   const submit = async (e: React.FormEvent) => {
@@ -80,24 +99,80 @@ export default function LoginPage() {
       <div className="w-full max-w-sm flex flex-col gap-4">
 
         {/* Mode toggle */}
-        <div className="bg-white rounded-2xl p-1 flex shadow-sm">
-          <button
-            onClick={() => switchMode('login')}
-            className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
-            style={mode === 'login' ? { background: '#1f2937', color: 'white' } : { color: '#9ca3af' }}
-          >
-            Войти
-          </button>
-          <button
-            onClick={() => switchMode('register')}
-            className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
-            style={mode === 'register' ? { background: '#1f2937', color: 'white' } : { color: '#9ca3af' }}
-          >
-            Регистрация
-          </button>
-        </div>
+        {mode !== 'forgot' && (
+          <div className="bg-white rounded-2xl p-1 flex shadow-sm">
+            <button
+              onClick={() => switchMode('login')}
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
+              style={mode === 'login' ? { background: '#1f2937', color: 'white' } : { color: '#9ca3af' }}
+            >
+              Войти
+            </button>
+            <button
+              onClick={() => switchMode('register')}
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
+              style={mode === 'register' ? { background: '#1f2937', color: 'white' } : { color: '#9ca3af' }}
+            >
+              Регистрация
+            </button>
+          </div>
+        )}
+
+        {/* Forgot-password card */}
+        {mode === 'forgot' && (
+          <div className="bg-white rounded-3xl px-5 py-5 shadow-sm flex flex-col gap-4">
+            <div>
+              <h2 className="font-black text-gray-900 text-lg">Сброс пароля</h2>
+              <p className="text-gray-400 text-sm mt-0.5">
+                Введи email — пришлём ссылку для создания нового пароля.
+              </p>
+            </div>
+            <form onSubmit={sendReset} className="flex flex-col gap-3">
+              <div>
+                <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Email</p>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="example@mail.com"
+                  required
+                  autoComplete="email"
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-gray-900 font-semibold outline-none focus:border-gray-400 transition-colors"
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+                  <p className="text-red-600 text-sm font-semibold">{error}</p>
+                </div>
+              )}
+              {info && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
+                  <p className="text-emerald-700 text-sm font-semibold">{info}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !email.trim()}
+                className="w-full py-4 rounded-2xl font-black text-base transition-all active:scale-95 disabled:opacity-40 mt-1"
+                style={{ background: '#1f2937', color: 'white' }}
+              >
+                {loading ? '...' : 'Отправить ссылку →'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                className="text-gray-400 text-sm font-semibold py-1">
+                ← Вернуться ко входу
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Form card */}
+        {mode !== 'forgot' && (
         <div className="bg-white rounded-3xl px-5 py-5 shadow-sm flex flex-col gap-4">
           <form onSubmit={submit} className="flex flex-col gap-3">
 
@@ -163,8 +238,19 @@ export default function LoginPage() {
                 ? '...'
                 : mode === 'login' ? 'Войти →' : 'Создать аккаунт →'}
             </button>
+
+            {/* Forgot password link (login only) */}
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={() => switchMode('forgot')}
+                className="text-gray-400 text-sm font-semibold py-1 mt-1">
+                Забыли пароль?
+              </button>
+            )}
           </form>
         </div>
+        )}
 
       </div>
     </div>
