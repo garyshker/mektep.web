@@ -34,9 +34,14 @@ export const LESSONS_BY_ID: Record<string, Lesson> = Object.fromEntries(
 )
 
 export const SUBJECTS = [
-  { id: 'math',    label: 'Математика', labelKk: 'Математика', emoji: '🔢', color: '#22C55E', bg: '#F0FDF4' },
-  { id: 'kazakh',  label: 'Казахский',  labelKk: 'Қазақ тілі', emoji: '🇰🇿', color: '#F59E0B', bg: '#FFFBEB' },
-  { id: 'russian', label: 'Русский',    labelKk: 'Орыс тілі',  emoji: '📖', color: '#3B82F6', bg: '#EFF6FF' },
+  { id: 'math',    label: 'Математика', labelKk: 'Математика',  descKk: 'Қосу, алу, көбейту, бөлу',    emoji: '📊', color: '#22C55E', bg: '#E8F8EE' },
+  { id: 'kazakh',  label: 'Казахский',  labelKk: 'Қазақ тілі', descKk: 'Әліпби, дыбыстар, сөздер',    emoji: '📖', color: '#F59E0B', bg: '#FFF8E8' },
+  { id: 'russian', label: 'Русский',    labelKk: 'Орыс тілі',  descKk: 'Орыс тілін үйрен',             emoji: '📝', color: '#3B82F6', bg: '#EEF3FF' },
+]
+
+export const UPCOMING_SUBJECTS = [
+  { id: 'world',   labelKk: 'Дүниетану',          descKk: 'Табиғат, жануарлар',      emoji: '🌍', color: '#10B981' },
+  { id: 'english', labelKk: 'English',             descKk: 'Сөздер мен сөйлемдер',   emoji: '🔤', color: '#6366F1' },
 ]
 
 export type { Lesson, Question, QuestionKind } from './types'
