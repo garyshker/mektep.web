@@ -152,10 +152,7 @@ export default function HomePage() {
           <div className="flex items-center gap-1.5 bg-[#2A5E35]/10 rounded-full px-3 py-1.5">
             <span className="text-[#2A5E35] text-sm font-black">✦</span>
           </div>
-          <div>
-            <p className="text-[10px] font-black text-[#1A1A2E]/50 tracking-widest uppercase leading-tight">БҮГІН НЕ ҮЙРЕНЕМІЗ?</p>
-            <p className="font-black text-[#1A1A2E] text-sm leading-tight">{t('hello', lang)} {profile?.name}!</p>
-          </div>
+          <p className="font-black text-[#1A1A2E] text-base leading-tight">{t('hello', lang)} {profile?.name}!</p>
         </div>
         {/* Right: streak, flag, avatar */}
         <div className="flex items-center gap-2">
