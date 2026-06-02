@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { ALL_LESSONS, SUBJECTS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
-import { useLang } from '@/lib/useLang'
+import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import type { Lesson } from '@/lib/lessons'
 
@@ -89,8 +89,9 @@ function LessonsContent() {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data: profile } = await supabase.from('profiles').select('grade').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('grade, language').eq('id', user.id).single()
       if (profile?.grade) setGrade(profile.grade)
+      if (profile?.language) saveLang(profile.language as 'ru' | 'kk' | 'en')
       const { data: progress } = await supabase.from('lesson_progress').select('lesson_id, stars').eq('user_id', user.id)
       if (progress) {
         const map: Record<string, number> = {}

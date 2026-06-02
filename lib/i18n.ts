@@ -63,6 +63,37 @@ export const I18N = {
   your_rank:          { ru: 'Твоё место',                 kk: 'Орның',                      en: 'Your rank' },
   top3:               { ru: 'Топ 3',                      kk: 'Үздік 3',                    en: 'Top 3' },
   no_users:           { ru: 'Пока никого нет. Будь первым!', kk: 'Әлі ешкім жоқ. Бірінші бол!', en: 'No one yet. Be the first!' },
+
+  // Setup page
+  setup_welcome:      { ru: 'Добро пожаловать!',          kk: 'Қош келдіңіз!',              en: 'Welcome!' },
+  setup_subtitle:     { ru: 'Расскажи о себе, чтобы начать', kk: 'Бастау үшін өзің туралы айт', en: 'Tell us about yourself' },
+  setup_your_name:    { ru: 'Твоё имя',                   kk: 'Есімің',                     en: 'Your name' },
+  setup_name_hint:    { ru: 'Введи имя...',               kk: 'Есіміңді жаз...',            en: 'Enter name...' },
+  setup_your_grade:   { ru: 'Твой класс',                 kk: 'Сыныбың',                    en: 'Your grade' },
+  setup_language:     { ru: 'Язык обучения',              kk: 'Оқыту тілі',                 en: 'Language' },
+  setup_saving:       { ru: 'Сохраняем...',               kk: 'Сақтауда...',                en: 'Saving...' },
+  setup_start:        { ru: 'Начать учиться →',           kk: 'Оқуды бастау →',             en: 'Start learning →' },
+
+  // Games
+  game_score:         { ru: 'Счёт',                       kk: 'Ұпай',                       en: 'Score' },
+  game_time:          { ru: 'Время',                      kk: 'Уақыт',                      en: 'Time' },
+  game_solved:        { ru: 'Решено',                     kk: 'Шешілді',                    en: 'Solved' },
+  game_accuracy:      { ru: 'Точность',                   kk: 'Дәлдік',                     en: 'Accuracy' },
+  game_correct:       { ru: 'Правильных',                 kk: 'Дұрыс',                      en: 'Correct' },
+  game_total:         { ru: 'Всего решено',               kk: 'Барлығы',                    en: 'Total' },
+  game_time_up:       { ru: 'Время вышло!',               kk: 'Уақыт бітті!',               en: "Time's up!" },
+  game_over:          { ru: 'Игра окончена',              kk: 'Ойын аяқталды',              en: 'Game over' },
+  game_go:            { ru: 'Поехали! →',                 kk: 'Бастайық! →',                en: "Let's go! →" },
+  game_again:         { ru: 'Ещё раз →',                  kk: 'Қайтадан →',                 en: 'Again →' },
+  game_home:          { ru: 'На главную',                 kk: 'Басты бетке',                en: 'Home' },
+  game_how_to_play:   { ru: 'Как играть',                 kk: 'Қалай ойнау',                en: 'How to play' },
+  game_quick_desc:    { ru: 'Решай примеры как можно быстрее!', kk: 'Мысалдарды мүмкіндігінше тез шеш!', en: 'Solve problems as fast as you can!' },
+  game_quick_rules:   { ru: 'Видишь пример — выбирай ответ. Правильно = +1 балл.', kk: 'Мысалды көр — жауапты таңда. Дұрыс = +1 ұпай.', en: 'See a problem — pick the answer. Correct = +1 point.' },
+  game_snake_title:   { ru: 'Числовая змейка',            kk: 'Санды жылан',                en: 'Number Snake' },
+  game_snake_desc:    { ru: 'Ешь числа в правильном порядке.', kk: 'Сандарды дұрыс ретпен же.', en: 'Eat numbers in order.' },
+  game_snake_penalty: { ru: 'Неправильное число = −2 сегмента!', kk: 'Қате сан = −2 сегмент!', en: 'Wrong number = −2 segments!' },
+  game_target:        { ru: 'Цель',                       kk: 'Мақсат',                     en: 'Target' },
+  game_choose_answer: { ru: 'ВЫБЕРИ ОТВЕТ',               kk: 'ЖАУАПТЫ ТАҢДА',              en: 'CHOOSE ANSWER' },
 } as const
 
 export type I18NKey = keyof typeof I18N

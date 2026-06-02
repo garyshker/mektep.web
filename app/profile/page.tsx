@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { useLang } from '@/lib/useLang'
+import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { ALL_LESSONS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
@@ -54,7 +54,7 @@ export default function ProfilePage() {
         supabase.from('lesson_progress').select('lesson_id, stars, xp_earned').eq('user_id', user.id),
       ])
 
-      if (prof) setProfile(prof)
+      if (prof) { setProfile(prof); if (prof.language) saveLang(prof.language as 'ru' | 'kk' | 'en') }
       if (prog) setProgress(prog)
       setLoading(false)
     }

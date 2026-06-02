@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong } from '@/lib/sounds'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 
 type Dir = 'up' | 'down' | 'left' | 'right'
 type Phase = 'idle' | 'playing' | 'dead'
@@ -27,9 +29,18 @@ function randPos(occupied: Set<string>): Pos {
 function spawnFood(snake: Pos[], existing: Food[], target: number): Food[] {
   const occ = new Set([...snake, ...existing].map(p => `${p.x},${p.y}`))
   const result: Food[] = [...existing]
+
+  // Always guarantee at least one target food when there isn't one already
+  const hasTarget = result.some(f => f.val === target)
+  if (!hasTarget) {
+    const pos = randPos(occ)
+    occ.add(`${pos.x},${pos.y}`)
+    result.push({ ...pos, val: target })
+  }
+
   while (result.length < FOOD_COUNT) {
-    const vals = [target, target + 1, target + 2, target + 3, target + 4, target + 5]
-    const val = vals[Math.floor(Math.random() * vals.length)]
+    const extras = [target + 1, target + 2, target + 3, target + 4, target + 5]
+    const val = extras[Math.floor(Math.random() * extras.length)]
     const pos = randPos(occ)
     occ.add(`${pos.x},${pos.y}`)
     result.push({ ...pos, val })
@@ -47,6 +58,7 @@ export default function SnakePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const touchRef = useRef<Pos | null>(null)
+  const lang = useLang()
 
   const stateRef = useRef({
     snake: [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }] as Pos[],
@@ -259,16 +271,16 @@ export default function SnakePage() {
         <button onClick={() => router.push('/')}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">✕</button>
         <div className="flex-1">
-          <h1 className="text-xl font-black text-white">Числовая змейка</h1>
-          <p className="text-xs text-gray-400">Ешь числа по порядку: 1 → 2 → 3...</p>
+          <h1 className="text-xl font-black text-white">{t('game_snake_title', lang)}</h1>
+          <p className="text-xs text-gray-400">{t('game_snake_desc', lang)}</p>
         </div>
         <div className="flex gap-2">
           <div className="bg-orange-500 rounded-xl px-3 py-1.5 text-center">
-            <p className="text-[9px] font-black text-white uppercase">Счёт</p>
+            <p className="text-[9px] font-black text-white uppercase">{t('game_score', lang)}</p>
             <p className="text-base font-black text-white leading-none">{score}</p>
           </div>
           <div className="bg-white/10 rounded-xl px-3 py-1.5 text-center">
-            <p className="text-[9px] font-black text-gray-300 uppercase">Цель</p>
+            <p className="text-[9px] font-black text-gray-300 uppercase">{t('game_target', lang)}</p>
             <p className="text-base font-black text-orange-400 leading-none">{target}</p>
           </div>
         </div>
@@ -289,9 +301,9 @@ export default function SnakePage() {
           <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center"
             style={{ background: 'rgba(15,15,26,0.88)' }}>
             <div className="text-5xl mb-3">🐍</div>
-            <h2 className="text-2xl font-black text-white mb-2">Числовая змейка</h2>
-            <p className="text-gray-400 text-sm mb-1 text-center px-8">Ешь числа в правильном порядке.</p>
-            <p className="text-orange-400 text-sm mb-6 text-center font-semibold">Неправильное число = −2 сегмента!</p>
+            <h2 className="text-2xl font-black text-white mb-2">{t('game_snake_title', lang)}</h2>
+            <p className="text-gray-400 text-sm mb-1 text-center px-8">{t('game_snake_desc', lang)}</p>
+            <p className="text-orange-400 text-sm mb-6 text-center font-semibold">{t('game_snake_penalty', lang)}</p>
             <button onClick={startGame}
               className="px-8 py-3.5 rounded-2xl bg-emerald-500 text-white font-black text-lg active:scale-95">
               Старт →
@@ -304,12 +316,12 @@ export default function SnakePage() {
           <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center"
             style={{ background: 'rgba(15,15,26,0.9)' }}>
             <div className="text-5xl mb-3">💀</div>
-            <h2 className="text-2xl font-black text-white mb-1">Игра окончена</h2>
-            <p className="text-gray-400 mb-1">Счёт: <span className="text-white font-black text-xl">{score}</span></p>
+            <h2 className="text-2xl font-black text-white mb-1">{t('game_over', lang)}</h2>
+            <p className="text-gray-400 mb-1">{t('game_score', lang)}: <span className="text-white font-black text-xl">{score}</span></p>
             <p className="text-orange-400 font-semibold mb-6">+{score} XP</p>
             <button onClick={startGame}
               className="px-8 py-3.5 rounded-2xl bg-emerald-500 text-white font-black text-lg active:scale-95">
-              Ещё раз
+              {t('game_again', lang)}
             </button>
           </div>
         )}

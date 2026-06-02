@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong } from '@/lib/sounds'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 
 type Phase = 'idle' | 'playing' | 'done'
 
@@ -60,6 +62,7 @@ export default function QuickGamePage() {
   const [problem, setProblem] = useState<Problem | null>(null)
   const [picked, setPicked] = useState<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const lang = useLang()
 
   useEffect(() => {
     const init = async () => {
@@ -136,7 +139,7 @@ export default function QuickGamePage() {
         </button>
 
         <div className="text-7xl mb-5">⚡</div>
-        <h1 className="text-3xl font-black text-gray-900 mb-2">Быстрый счёт</h1>
+        <h1 className="text-3xl font-black text-gray-900 mb-2">{lang === 'kk' ? 'Жылдам санау' : lang === 'en' ? 'Quick Math' : 'Быстрый счёт'}</h1>
         <p className="text-gray-500 text-base text-center mb-2">
           Решай примеры как можно быстрее!
         </p>
@@ -145,15 +148,13 @@ export default function QuickGamePage() {
         </p>
 
         <div className="bg-white rounded-3xl px-6 py-5 shadow-sm w-full max-w-xs mb-8 text-center">
-          <p className="text-xs font-bold text-gray-400 tracking-widest uppercase mb-2">Как играть</p>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Видишь пример — выбирай ответ. Правильно = +1 балл. Успей набрать как можно больше!
-          </p>
+          <p className="text-xs font-bold text-gray-400 tracking-widest uppercase mb-2">{t('game_how_to_play', lang)}</p>
+          <p className="text-sm text-gray-600 leading-relaxed">{t('game_quick_rules', lang)}</p>
         </div>
 
         <button onClick={start}
           className="w-full max-w-xs py-4 rounded-2xl bg-gray-900 text-white font-black text-xl active:scale-95 transition-all">
-          Поехали! →
+          {t('game_go', lang)}
         </button>
       </div>
     )
@@ -167,22 +168,22 @@ export default function QuickGamePage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: '#F5F4F0' }}>
         <div className="text-7xl mb-4">{medal}</div>
-        <h2 className="text-3xl font-black text-gray-900 mb-1">Время вышло!</h2>
+        <h2 className="text-3xl font-black text-gray-900 mb-1">{t('game_time_up', lang)}</h2>
         <p className="text-gray-500 mb-6">
           {score} из {total} правильно · {pct}%
         </p>
 
         <div className="bg-white rounded-3xl px-6 py-5 shadow-sm w-full max-w-xs mb-2">
           <div className="flex justify-between items-center mb-3">
-            <span className="text-gray-500 text-sm font-semibold">Правильных</span>
+            <span className="text-gray-500 text-sm font-semibold">{t('game_correct', lang)}</span>
             <span className="font-black text-gray-900 text-lg">{score}</span>
           </div>
           <div className="flex justify-between items-center mb-3">
-            <span className="text-gray-500 text-sm font-semibold">Всего решено</span>
+            <span className="text-gray-500 text-sm font-semibold">{t('game_total', lang)}</span>
             <span className="font-black text-gray-900 text-lg">{total}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-500 text-sm font-semibold">Точность</span>
+            <span className="text-gray-500 text-sm font-semibold">{t('game_accuracy', lang)}</span>
             <span className="font-black text-gray-900 text-lg">{pct}%</span>
           </div>
         </div>
@@ -196,11 +197,11 @@ export default function QuickGamePage() {
         <div className="flex gap-3 w-full max-w-xs">
           <button onClick={() => router.push('/')}
             className="flex-1 py-3.5 rounded-2xl bg-white border-2 border-gray-200 text-gray-700 font-bold active:scale-95">
-            На главную
+            {t('game_home', lang)}
           </button>
           <button onClick={start}
             className="flex-1 py-3.5 rounded-2xl bg-gray-900 text-white font-bold active:scale-95">
-            Ещё раз →
+            {t('game_again', lang)}
           </button>
         </div>
       </div>
@@ -216,13 +217,13 @@ export default function QuickGamePage() {
       {/* Stats bar */}
       <header className="px-5 pt-5 pb-3 flex items-center justify-between">
         <div className="flex flex-col items-center">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Счёт</span>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('game_score', lang)}</span>
           <span className="text-3xl font-black text-gray-900">{score}</span>
         </div>
 
         {/* Timer */}
         <div className="flex flex-col items-center">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Время</span>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{t('game_time', lang)}</span>
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl text-white transition-colors duration-500"
             style={{ backgroundColor: timerColor }}>
@@ -231,7 +232,7 @@ export default function QuickGamePage() {
         </div>
 
         <div className="flex flex-col items-center">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Решено</span>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('game_solved', lang)}</span>
           <span className="text-3xl font-black text-gray-900">{total}</span>
         </div>
       </header>
@@ -240,7 +241,7 @@ export default function QuickGamePage() {
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4">
         <div className="bg-white rounded-3xl px-5 py-6 shadow-sm">
           <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase mb-4 text-center">
-            ВВЕДИ ОТВЕТ
+            {t('game_choose_answer', lang)}
           </p>
           <div className="text-5xl font-black text-center leading-none tracking-tight py-2">
             {problem.expr.split(/(\s*[+\-−×÷]\s*)/).map((p, i) => {
