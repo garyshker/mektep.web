@@ -1,5 +1,185 @@
 import type { Lesson, Question } from './types'
 
+// ── Shared helpers ────────────────────────────────────────────────────────────
+
+const _ri = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1))
+
+function _sfl<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) { const j = _ri(0, i);[a[i], a[j]] = [a[j], a[i]] }
+  return a
+}
+
+function _mcOpts(answer: number): string[] {
+  const set = new Set<number>([answer])
+  for (const d of _sfl([1, -1, 2, -2, 3, -3, 5, -5, 7, -7, 10, -10])) {
+    if (set.size >= 4) break
+    const c = answer + d
+    if (c > 0) set.add(c)
+  }
+  while (set.size < 4) set.add(answer + set.size * 7)
+  return _sfl([...set]).map(String)
+}
+
+function _steps(a: number, op: '+' | '−', b: number): string {
+  const tens = Math.floor(b / 10) * 10
+  const ones = b % 10
+  const r = op === '+' ? a + b : a - b
+  if (tens > 0 && ones > 0) {
+    const mid = op === '+' ? a + tens : a - tens
+    return `${a} ${op} ${tens} = ${mid}\n${mid} ${op} ${ones} = ${r} ✓`
+  }
+  return `${a} ${op} ${b} = ${r} ✓`
+}
+
+function _tapQ(promptRu: string, correct: string[], wrong: string[]): Question {
+  const items = _sfl([
+    ...correct.map(e => ({ e, ok: true })),
+    ...wrong.map(e => ({ e, ok: false })),
+  ])
+  return {
+    kind: 'tap',
+    promptByLang: { kk: promptRu, ru: promptRu, en: promptRu },
+    words: items.map(x => x.e),
+    correctIdxs: items.map((x, i) => x.ok ? i : -1).filter(i => i >= 0),
+  }
+}
+
+// ── Dynamic lesson generators ────────────────────────────────────────────────
+
+export function generateAdditionLesson(): Lesson {
+  const used = new Set<string>()
+  const pair = (aMin: number, aMax: number, bMin: number, bMax: number) => {
+    let a: number, b: number, key: string
+    do { a = _ri(aMin, aMax); b = _ri(bMin, bMax); key = `${a}+${b}` } while (used.has(key))
+    used.add(key)
+    return { a, b }
+  }
+
+  const mc = Array.from({ length: 3 }, () => {
+    const { a, b } = pair(15, 65, 10, 30)
+    const ans = a + b; const opts = _mcOpts(ans)
+    return {
+      kind: 'mc' as const, big: true, prompt: `${a} + ${b}`,
+      options: opts, answer: opts.indexOf(String(ans)),
+      explainByLang: { kk: _steps(a, '+', b), ru: _steps(a, '+', b), en: _steps(a, '+', b) },
+    }
+  })
+
+  const typ = Array.from({ length: 3 }, () => {
+    const { a, b } = pair(15, 60, 10, 35)
+    return {
+      kind: 'type' as const, prompt: `${a} + ${b} = ?`, answer: a + b,
+      explainByLang: { kk: _steps(a, '+', b), ru: _steps(a, '+', b), en: _steps(a, '+', b) },
+    }
+  })
+
+  // Tap: random threshold so pattern varies
+  const thr = [20, 30, 40, 50][_ri(0, 3)]
+  const pool = Array.from({ length: 20 }, () => {
+    const a = _ri(5, 60), b = _ri(5, 60)
+    return { expr: `${a}+${b}`, correct: a + b > thr }
+  })
+  const tapQ = _tapQ(
+    `Найди примеры, где сумма больше ${thr}`,
+    _sfl(pool.filter(p => p.correct)).slice(0, 4).map(p => p.expr),
+    _sfl(pool.filter(p => !p.correct)).slice(0, 4).map(p => p.expr),
+  )
+
+  // Word problem — pick one of 3 templates
+  const wordFns = [
+    () => { const { a, b } = pair(20, 55, 10, 40); const ans = a + b; const opts = _mcOpts(ans)
+      return { kind: 'word' as const, image: '🍎',
+        storyByLang: { kk: `Дүкенде ${a} алма мен ${b} алмұрт бар. Барлығы?`, ru: `В магазине ${a} яблок и ${b} груш. Сколько всего фруктов?`, en: `A shop has ${a} apples and ${b} pears. Total?` },
+        options: opts, answer: opts.indexOf(String(ans)) } },
+    () => { const { a, b } = pair(25, 60, 10, 35); const ans = a + b; const opts = _mcOpts(ans)
+      return { kind: 'word' as const, image: '✏️',
+        storyByLang: { kk: `Болатта ${a} қалам болды, досы ${b} берді. Барлығы қанша?`, ru: `У Болата было ${a} карандашей, друг дал ${b}. Сколько стало?`, en: `Bolat had ${a} pencils, got ${b} more. Total?` },
+        options: opts, answer: opts.indexOf(String(ans)) } },
+    () => { const { a, b } = pair(30, 55, 15, 40); const ans = a + b; const opts = _mcOpts(ans)
+      return { kind: 'word' as const, image: '🚌',
+        storyByLang: { kk: `Автобуста ${a} адам болды, аялдамада ${b} мінді. Барлығы қанша?`, ru: `В автобусе было ${a} человек, на остановке вошли ${b}. Сколько стало?`, en: `Bus had ${a} people, ${b} more got on. Total?` },
+        options: opts, answer: opts.indexOf(String(ans)) } },
+  ]
+  const wordQ = _sfl(wordFns)[0]()
+
+  return {
+    id: 'math-1', subjectId: 'math', emoji: '➕',
+    titleByLang: { kk: 'Қосу · 100 ішінде', ru: 'Сложение до 100', en: 'Addition · within 100' },
+    introByLang: { kk: '100-ге дейінгі сандарды қосуды үйренеміз!', ru: 'Учимся складывать числа в пределах 100!', en: "Let's practise adding numbers within 100!" },
+    subtitle: 'Двузначные числа',
+    grade: [1, 2, 3, 4],
+    questions: [...mc, ...typ, tapQ, wordQ],
+  }
+}
+
+export function generateSubtractionLesson(): Lesson {
+  const used = new Set<string>()
+  const pair = (aMin: number, aMax: number, bMin: number, bMax: number) => {
+    let a: number, b: number, key: string
+    do { a = _ri(aMin, aMax); b = _ri(bMin, Math.min(bMax, a - 1)); key = `${a}-${b}` } while (used.has(key) || b <= 0)
+    used.add(key)
+    return { a, b }
+  }
+
+  const mc = Array.from({ length: 3 }, () => {
+    const { a, b } = pair(30, 90, 10, 45)
+    const ans = a - b; const opts = _mcOpts(ans)
+    return {
+      kind: 'mc' as const, big: true, prompt: `${a} − ${b}`,
+      options: opts, answer: opts.indexOf(String(ans)),
+      explainByLang: { kk: _steps(a, '−', b), ru: _steps(a, '−', b), en: _steps(a, '−', b) },
+    }
+  })
+
+  const typ = Array.from({ length: 3 }, () => {
+    const { a, b } = pair(35, 95, 10, 50)
+    return {
+      kind: 'type' as const, prompt: `${a} − ${b} = ?`, answer: a - b,
+      explainByLang: { kk: _steps(a, '−', b), ru: _steps(a, '−', b), en: _steps(a, '−', b) },
+    }
+  })
+
+  // Tap: find results less than threshold
+  const thr = [20, 25, 30, 35][_ri(0, 3)]
+  const pool = Array.from({ length: 20 }, () => {
+    const a = _ri(20, 90), b = _ri(5, a - 1)
+    return { expr: `${a}−${b}`, correct: a - b < thr }
+  })
+  const tapQ = _tapQ(
+    `Найди примеры, где разность меньше ${thr}`,
+    _sfl(pool.filter(p => p.correct)).slice(0, 4).map(p => p.expr),
+    _sfl(pool.filter(p => !p.correct)).slice(0, 4).map(p => p.expr),
+  )
+
+  const wordFns = [
+    () => { const { a, b } = pair(40, 80, 15, 35); const ans = a - b; const opts = _mcOpts(ans)
+      return { kind: 'word' as const, image: '🍭',
+        storyByLang: { kk: `Айдада ${a} карамель болды. Ол ${b}-ін берді. Қанша қалды?`, ru: `У Айды было ${a} конфет. Она отдала ${b}. Сколько осталось?`, en: `Aida had ${a} sweets, gave away ${b}. How many left?` },
+        options: opts, answer: opts.indexOf(String(ans)) } },
+    () => { const { a, b } = pair(50, 90, 20, 45); const ans = a - b; const opts = _mcOpts(ans)
+      return { kind: 'word' as const, image: '📚',
+        storyByLang: { kk: `Кітапхананың ${a} кітабы болды. ${b}-ін оқушылар алып кетті. Қанша қалды?`, ru: `В библиотеке было ${a} книг. Ученики взяли ${b}. Сколько осталось?`, en: `Library had ${a} books, students took ${b}. How many left?` },
+        options: opts, answer: opts.indexOf(String(ans)) } },
+    () => { const { a, b } = pair(60, 100, 25, 55); const ans = a - b; const opts = _mcOpts(ans)
+      return { kind: 'word' as const, image: '💰',
+        storyByLang: { kk: `Болатта ${a} теңге болды. Ол ${b} теңгеге нан сатып алды. Қанша қалды?`, ru: `У Болата было ${a} тенге. Он купил хлеб за ${b} тенге. Сколько осталось?`, en: `Bolat had ${a} tenge, spent ${b}. How much left?` },
+        options: opts, answer: opts.indexOf(String(ans)) } },
+  ]
+  const wordQ = _sfl(wordFns)[0]()
+
+  return {
+    id: 'math-2', subjectId: 'math', emoji: '➖',
+    titleByLang: { kk: 'Алу · 100 ішінде', ru: 'Вычитание до 100', en: 'Subtraction · within 100' },
+    introByLang: { kk: '100-ге дейінгі сандарды алуды үйренеміз!', ru: 'Учимся вычитать в пределах 100!', en: "Let's practise subtraction within 100!" },
+    subtitle: 'Учимся отнимать',
+    grade: [1, 2, 3, 4],
+    questions: [...mc, ...typ, tapQ, wordQ],
+  }
+}
+
+// ── Clock lesson ─────────────────────────────────────────────────────────────
+
 export function generateClockLesson(): Lesson {
   const ri = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1))
   const fmt = (h: number, m: number) => `${h}:${String(m).padStart(2, '0')}`
