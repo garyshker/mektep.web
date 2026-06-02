@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
 import { ALL_LESSONS } from '@/lib/lessons'
+import { useLang, saveLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 import type { User } from '@supabase/supabase-js'
 
 type Profile = { name: string; grade: number; xp: number; streak: number }
@@ -29,6 +31,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
   const router = useRouter()
+  const lang = useLang()
 
   useEffect(() => {
     const init = async () => {
@@ -37,11 +40,12 @@ export default function HomePage() {
       setUser(user)
 
       const [{ data: profile }, { data: progress }] = await Promise.all([
-        supabase.from('profiles').select('name, grade, xp, streak').eq('id', user.id).single(),
+        supabase.from('profiles').select('name, grade, xp, streak, language').eq('id', user.id).single(),
         supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
       ])
 
       if (!profile?.grade) { router.push('/setup'); return }
+      if (profile.language) saveLang(profile.language as 'ru' | 'kk' | 'en')
       setProfile(profile)
 
       const done = new Set(progress?.map((p: { lesson_id: string }) => p.lesson_id) ?? [])
@@ -95,9 +99,9 @@ export default function HomePage() {
         <div className="rounded-3xl overflow-hidden shadow-sm"
           style={{ background: 'linear-gradient(135deg, #58CC02 0%, #3D9900 100%)' }}>
           <div className="px-5 pt-5 pb-4">
-            <p className="text-white/80 text-sm font-semibold">Привет,</p>
+            <p className="text-white/80 text-sm font-semibold">{t('hello', lang)}</p>
             <p className="text-white font-black text-2xl leading-tight">{profile?.name}! 👋</p>
-            <p className="text-white/70 text-xs mt-1">{profile?.grade} класс · Уровень {level}</p>
+            <p className="text-white/70 text-xs mt-1">{profile?.grade} {t('grade', lang)} · {t('level', lang)} {level}</p>
 
             {/* XP level bar */}
             <div className="mt-3 flex items-center gap-2">
@@ -113,7 +117,7 @@ export default function HomePage() {
         {/* Continue learning */}
         {nextLesson && (
           <div>
-            <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-2">Продолжить</p>
+            <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-2">{t('continue_learn', lang)}</p>
             <button
               onClick={() => router.push(`/lesson/${nextLesson.id}`)}
               className="w-full bg-white rounded-3xl border-2 border-gray-100 p-4 flex items-center gap-4 text-left shadow-sm active:scale-[0.98] transition-all"
@@ -122,7 +126,7 @@ export default function HomePage() {
                 {nextLesson.emoji ?? '📚'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-black text-gray-900 text-sm">{nextLesson.titleByLang.ru}</p>
+                <p className="font-black text-gray-900 text-sm">{nextLesson.titleByLang[lang] ?? nextLesson.titleByLang.ru}</p>
                 {nextLesson.subtitle && (
                   <p className="text-gray-400 text-xs mt-0.5">{nextLesson.subtitle}</p>
                 )}
@@ -130,7 +134,7 @@ export default function HomePage() {
               <div
                 className="shrink-0 px-4 py-2 rounded-xl font-black text-white text-sm border-b-[3px] active:border-b-0 transition-none"
                 style={{ background: '#58CC02', borderColor: '#45A800' }}>
-                Старт
+                {t('start', lang)}
               </div>
             </button>
           </div>
@@ -141,14 +145,14 @@ export default function HomePage() {
           <div className="bg-orange-50 border-2 border-orange-100 rounded-2xl px-4 py-3 flex items-center gap-3">
             <span className="text-2xl">🔥</span>
             <p className="font-bold text-orange-700 text-sm">
-              {profile!.streak} {profile!.streak === 1 ? 'день' : profile!.streak < 5 ? 'дня' : 'дней'} подряд — не прерывай серию!
+              {profile!.streak} {t('streak_remind', lang)}
             </p>
           </div>
         )}
 
         {/* Games */}
         <div>
-          <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-2">Игры</p>
+          <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-2">{t('games', lang)}</p>
           <div className="grid grid-cols-2 gap-3">
             {GAMES.map(g => (
               <button
@@ -168,7 +172,7 @@ export default function HomePage() {
           onClick={() => router.push('/lessons')}
           className="w-full py-4 rounded-2xl font-black text-white text-base border-b-[4px] active:border-b-0 active:translate-y-[3px] transition-none"
           style={{ background: '#58CC02', borderColor: '#45A800' }}>
-          📚 Все уроки →
+          {t('all_lessons', lang)}
         </button>
 
       </main>

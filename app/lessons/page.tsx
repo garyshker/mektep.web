@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { ALL_LESSONS, SUBJECTS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 import type { Lesson } from '@/lib/lessons'
 
 const BLOB_COLORS = [
@@ -27,8 +29,8 @@ function StarDots({ stars, color }: { stars: number; color: string }) {
   )
 }
 
-function LessonCard({ lesson, stars, onClick, locked }: {
-  lesson: Lesson; stars: number; onClick: () => void; locked?: boolean
+function LessonCard({ lesson, stars, onClick, locked, lang }: {
+  lesson: Lesson; stars: number; onClick: () => void; locked?: boolean; lang: 'ru' | 'kk' | 'en'
 }) {
   const blob = lessonColor(lesson.id)
   const mins = Math.max(3, Math.ceil(lesson.questions.length * 0.6))
@@ -56,12 +58,12 @@ function LessonCard({ lesson, stars, onClick, locked }: {
       <div className="text-3xl mb-1 relative z-10">{lesson.emoji ?? '📚'}</div>
 
       <div className="flex-1 relative z-10 min-w-0">
-        <div className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">{lesson.titleByLang.ru}</div>
+        <div className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">{lesson.titleByLang[lang] ?? lesson.titleByLang.ru}</div>
         {lesson.subtitle && <div className="text-gray-400 text-xs mt-0.5 line-clamp-1">{lesson.subtitle}</div>}
       </div>
 
       <div className="flex items-center justify-between relative z-10 mt-2">
-        <span className="text-xs text-gray-400">{mins} мин · {lesson.questions.length} зад.</span>
+        <span className="text-xs text-gray-400">{mins} {t('min', lang)} · {lesson.questions.length} {t('tasks', lang)}</span>
         {locked
           ? <span className="text-gray-400 text-sm">🔒</span>
           : <StarDots stars={stars} color={done ? '#58CC02' : '#d1d5db'} />
@@ -78,6 +80,7 @@ function LessonsContent() {
   const router = useRouter()
   const params = useSearchParams()
   const supabase = createClient()
+  const lang = useLang()
 
   useEffect(() => {
     const subjectParam = params.get('subject')
@@ -111,8 +114,8 @@ function LessonsContent() {
       {/* Header */}
       <header className="bg-white px-4 pt-5 pb-3 sticky top-0 z-10 border-b-2 border-gray-50">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="font-black text-gray-900 text-xl">Уроки</h1>
-          <span className="text-sm font-bold text-gray-400">{grade} класс</span>
+          <h1 className="font-black text-gray-900 text-xl">{t('lessons', lang)}</h1>
+          <span className="text-sm font-bold text-gray-400">{grade} {t('grade', lang)}</span>
         </div>
 
         {/* Subject tabs */}
@@ -146,13 +149,14 @@ function LessonsContent() {
         {unlocked.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <div className="text-5xl mb-3">🚧</div>
-            <p className="font-semibold">Уроки для {grade} класса скоро появятся</p>
+            <p className="font-semibold">{t('coming_soon_tmpl', lang).replace('[N]', String(grade))}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {unlocked.map(lesson => (
               <LessonCard key={lesson.id} lesson={lesson}
                 stars={starsMap[lesson.id] ?? 0}
+                lang={lang}
                 onClick={() => router.push(`/lesson/${lesson.id}`)} />
             ))}
           </div>
@@ -163,12 +167,12 @@ function LessonsContent() {
           <>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-xs font-black text-gray-300 tracking-widest uppercase">Дальше</span>
+              <span className="text-xs font-black text-gray-300 tracking-widest uppercase">{t('next_section', lang)}</span>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               {locked.map(lesson => (
-                <LessonCard key={lesson.id} lesson={lesson} stars={0} onClick={() => {}} locked />
+                <LessonCard key={lesson.id} lesson={lesson} stars={0} lang={lang} onClick={() => {}} locked />
               ))}
             </div>
           </>

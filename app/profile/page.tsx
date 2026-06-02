@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 import { ALL_LESSONS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
 
@@ -40,6 +42,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [progress, setProgress] = useState<LessonProgress[]>([])
   const [loading, setLoading] = useState(true)
+  const lang = useLang()
 
   useEffect(() => {
     const init = async () => {
@@ -91,7 +94,7 @@ export default function ProfilePage() {
           <Avatar name={profile?.name ?? '?'} size="lg" />
           <div className="flex-1 min-w-0">
             <p className="font-black text-gray-900 text-xl leading-tight truncate">{profile?.name}</p>
-            <p className="text-gray-400 text-sm mt-0.5">{profile?.grade} класс · {LANG_LABELS[profile?.language ?? 'ru']}</p>
+            <p className="text-gray-400 text-sm mt-0.5">{profile?.grade} {t('grade', lang)} · {LANG_LABELS[profile?.language ?? 'ru']}</p>
           </div>
         </div>
 
@@ -105,12 +108,12 @@ export default function ProfilePage() {
           <div className="bg-white rounded-3xl p-4 shadow-sm flex flex-col items-center gap-1">
             <span className="text-2xl">🔥</span>
             <span className="font-black text-gray-900 text-xl">{profile?.streak ?? 0}</span>
-            <span className="text-[11px] text-gray-400 font-semibold">Дней подряд</span>
+            <span className="text-[11px] text-gray-400 font-semibold">{t('days_streak', lang)}</span>
           </div>
           <div className="bg-white rounded-3xl p-4 shadow-sm flex flex-col items-center gap-1">
             <span className="text-2xl">✅</span>
             <span className="font-black text-gray-900 text-xl">{completedCount}/{totalLessons}</span>
-            <span className="text-[11px] text-gray-400 font-semibold">Уроков</span>
+            <span className="text-[11px] text-gray-400 font-semibold">{t('lessons_count', lang)}</span>
           </div>
         </div>
 
@@ -119,7 +122,7 @@ export default function ProfilePage() {
           <div className="bg-amber-400 rounded-3xl px-5 py-4 shadow-sm flex items-center justify-between">
             <div>
               <p className="font-black text-gray-900 text-lg">{'⭐'.repeat(Math.min(totalStars, 5))}</p>
-              <p className="text-gray-800 text-sm font-semibold mt-0.5">Заработано звёзд: {totalStars}</p>
+              <p className="text-gray-800 text-sm font-semibold mt-0.5">{t('stars_earned', lang)} {totalStars}</p>
             </div>
             <span className="text-4xl">🏆</span>
           </div>
@@ -128,7 +131,7 @@ export default function ProfilePage() {
         {/* Completed lessons */}
         {progress.length > 0 && (
           <div className="bg-white rounded-3xl px-5 py-4 shadow-sm">
-            <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-3">Пройденные уроки</p>
+            <p className="text-xs font-black text-gray-400 tracking-widest uppercase mb-3">{t('completed_lessons', lang)}</p>
             <div className="flex flex-col gap-3">
               {progress.map(p => {
                 const lesson = ALL_LESSONS.find(l => l.id === p.lesson_id)
@@ -143,7 +146,7 @@ export default function ProfilePage() {
                       {lesson.emoji ?? '📚'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 text-sm truncate">{lesson.titleByLang.ru}</p>
+                      <p className="font-bold text-gray-900 text-sm truncate">{lesson.titleByLang[lang] ?? lesson.titleByLang.ru}</p>
                       <p className="text-xs text-gray-400">+{p.xp_earned} XP</p>
                     </div>
                     <div className="flex gap-0.5 shrink-0">
@@ -164,14 +167,14 @@ export default function ProfilePage() {
             onClick={() => router.push('/setup')}
             className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 active:bg-gray-50 transition-colors">
             <span className="text-xl">✏️</span>
-            <span className="font-semibold text-gray-800 text-sm flex-1 text-left">Редактировать профиль</span>
+            <span className="font-semibold text-gray-800 text-sm flex-1 text-left">{t('edit_profile', lang)}</span>
             <span className="text-gray-300">›</span>
           </button>
           <button
             onClick={signOut}
             className="w-full flex items-center gap-3 px-5 py-4 active:bg-gray-50 transition-colors">
             <span className="text-xl">🚪</span>
-            <span className="font-semibold text-red-500 text-sm flex-1 text-left">Выйти из аккаунта</span>
+            <span className="font-semibold text-red-500 text-sm flex-1 text-left">{t('sign_out', lang)}</span>
             <span className="text-gray-300">›</span>
           </button>
         </div>

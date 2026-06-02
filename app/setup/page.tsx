@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { saveLang } from '@/lib/useLang'
 
 const GRADES = [
   { n: 1, emoji: '🌱', label: '1 класс', color: '#22C55E' },
@@ -31,6 +32,7 @@ export default function SetupPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
     await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), grade, language: lang })
+    saveLang(lang as 'ru' | 'kk' | 'en')
     router.push('/')
   }
 

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 import { BottomNav } from '@/components/BottomNav'
 
 interface Entry {
@@ -27,6 +29,7 @@ export default function LeaderboardPage() {
   const [myId, setMyId] = useState<string | null>(null)
   const [myRank, setMyRank] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  const lang = useLang()
 
   useEffect(() => {
     const load = async () => {
@@ -65,12 +68,12 @@ export default function LeaderboardPage() {
       {/* Header */}
       <header className="px-4 pt-5 pb-4 border-b-2 border-gray-50 flex items-center gap-3">
         <div className="flex-1">
-          <h1 className="text-xl font-black text-gray-900 leading-tight">Рейтинг</h1>
-          <p className="text-xs text-gray-400">Топ по очкам опыта</p>
+          <h1 className="text-xl font-black text-gray-900 leading-tight">{t('nav_leaderboard', lang)}</h1>
+          <p className="text-xs text-gray-400">{t('top_by_xp', lang)}</p>
         </div>
         {myRank && (
           <div className="bg-[#58CC02]/10 rounded-2xl px-3 py-1.5">
-            <p className="text-xs text-[#58CC02] leading-none font-semibold">Твоё место</p>
+            <p className="text-xs text-[#58CC02] leading-none font-semibold">{t('your_rank', lang)}</p>
             <p className="text-lg font-black text-[#58CC02] leading-none">#{myRank}</p>
           </div>
         )}
@@ -82,7 +85,7 @@ export default function LeaderboardPage() {
         {top3.length > 0 && (
           <div className="bg-white rounded-3xl px-4 pt-5 pb-6 shadow-sm">
             <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-5 text-center">
-              Топ 3
+              {t('top3', lang)}
             </p>
             <div className="flex items-end justify-center gap-3">
               {/* 2nd place */}
@@ -138,9 +141,9 @@ export default function LeaderboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`font-bold text-sm truncate ${isMe ? 'text-[#58CC02]' : 'text-gray-900'}`}>
-                      {entry.name}{isMe ? ' (ты)' : ''}
+                      {entry.name}{isMe ? ` (${lang === 'kk' ? 'сен' : 'ты'})` : ''}
                     </p>
-                    <p className="text-xs text-gray-400">{entry.grade} класс · 🔥 {entry.streak}</p>
+                    <p className="text-xs text-gray-400">{entry.grade} {t('grade', lang)} · 🔥 {entry.streak}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="font-black text-gray-900 text-sm">{entry.xp}</p>
@@ -155,7 +158,7 @@ export default function LeaderboardPage() {
         {rows.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-16">
             <div className="text-5xl mb-3">🏆</div>
-            <p className="text-gray-400 text-sm">Пока никого нет. Будь первым!</p>
+            <p className="text-gray-400 text-sm">{t('no_users', lang)}</p>
           </div>
         )}
       </main>

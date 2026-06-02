@@ -7,13 +7,15 @@ import { LESSONS_BY_ID } from '@/lib/lessons'
 import type { Question } from '@/lib/lessons'
 import type { ByLang } from '@/lib/lessons/types'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
+import { useLang, saveLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 
 type Feedback = 'right' | 'wrong' | null
 
-function ru(val: string | ByLang | undefined): string {
+function byLang(val: string | ByLang | undefined, lang: string): string {
   if (!val) return ''
   if (typeof val === 'string') return val
-  return val.ru
+  return (val as unknown as Record<string, string>)[lang] ?? val.ru ?? ''
 }
 
 // Strip trailing "= ?" from pure math expressions
@@ -65,13 +67,9 @@ function ClockFace({ h, m }: { h: number; m: number }) {
   )
 }
 
-const LABELS: Record<string, string> = {
-  mc: 'ВЫБЕРИ ОТВЕТ',
-  type: 'ВВЕДИ ОТВЕТ',
-  tap: 'ВЫБЕРИ ВСЕ ПРАВИЛЬНЫЕ',
-  word: 'РЕШИ ЗАДАЧУ',
-  match: 'РАЗДЕЛИ НА ГРУППЫ',
-  clock: 'КОТОРЫЙ ЧАС?',
+const LABEL_KEYS: Record<string, 'label_mc' | 'label_type' | 'label_tap' | 'label_word' | 'label_match' | 'label_clock'> = {
+  mc: 'label_mc', type: 'label_type', tap: 'label_tap',
+  word: 'label_word', match: 'label_match', clock: 'label_clock',
 }
 
 export default function LessonPage() {
@@ -90,6 +88,7 @@ export default function LessonPage() {
   const [typeInput, setTypeInput] = useState('')
   const [tapSel, setTapSel] = useState<Set<number>>(new Set())
   const [matchMap, setMatchMap] = useState<Record<string, number | null>>({})
+  const lang = useLang()
 
   const q: Question | undefined = lesson?.questions[idx]
   const total = lesson?.questions.length ?? 0
@@ -104,11 +103,11 @@ export default function LessonPage() {
 
   if (!lesson) return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]">
-      <p className="text-gray-400">Урок не найден</p>
+      <p className="text-gray-400">{t('not_found', lang)}</p>
     </div>
   )
 
-  const prompt = ru(q?.promptByLang) || q?.prompt || ''
+  const prompt = byLang(q?.promptByLang, lang) || q?.prompt || ''
 
   const correctStr = (): string => {
     if (!q) return ''
@@ -156,17 +155,17 @@ export default function LessonPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-6 text-center">
         <div className="text-6xl mb-4">{'⭐'.repeat(stars)}{'☆'.repeat(3 - stars)}</div>
-        <h2 className="text-2xl font-black text-gray-900 mb-1">Урок завершён!</h2>
-        <p className="text-gray-500 mb-2">{final} из {total} правильно</p>
+        <h2 className="text-2xl font-black text-gray-900 mb-1">{t('lesson_done', lang)}</h2>
+        <p className="text-gray-500 mb-2">{t('score_tmpl', lang).replace('[N]', String(final)).replace('[T]', String(total))}</p>
         <p className="text-emerald-600 font-bold text-xl mb-10">+{15 + final * 5} XP</p>
         <div className="flex gap-3 w-full max-w-xs">
           <button onClick={() => router.push('/lessons')}
             className="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-gray-600 font-bold">
-            Уроки
+            {t('lessons', lang)}
           </button>
           <button onClick={() => { setIdx(0); setCorrectCount(0); setFeedback(null); setSelected(null); setDone(false) }}
             className="flex-1 py-3 rounded-2xl bg-gray-900 text-white font-bold">
-            Ещё раз
+            {t('again', lang)}
           </button>
         </div>
       </div>
@@ -271,7 +270,7 @@ export default function LessonPage() {
                 markResult(expected.length === tapSel.size && expected.every(i => tapSel.has(i)))
               }}
               className="w-full py-4 rounded-2xl bg-gray-900 text-white font-bold text-lg">
-              Проверить
+              {t('check', lang)}
             </button>
           )}
         </div>
@@ -314,7 +313,7 @@ export default function LessonPage() {
             <button
               onClick={() => markResult(items.every(it => matchMap[it.text] === it.group))}
               className="w-full py-4 rounded-2xl bg-gray-900 text-white font-bold text-lg mt-1">
-              Проверить
+              {t('check', lang)}
             </button>
           )}
         </div>
@@ -325,7 +324,7 @@ export default function LessonPage() {
   }
 
   // ─── Explanation steps for feedback ────────────────────────────────
-  const steps = ru(q?.explainByLang)?.split('\n').filter(Boolean) ?? []
+  const steps = byLang(q?.explainByLang, lang)?.split('\n').filter(Boolean) ?? []
 
   const feedbackHeight = feedback ? (steps.length > 0 ? 320 : 160) : 0
 
@@ -358,7 +357,7 @@ export default function LessonPage() {
             {lesson.emoji ?? '📚'}
           </div>
           <div>
-            <div className="font-black text-gray-900 text-sm leading-tight">{lesson.titleByLang.ru}</div>
+            <div className="font-black text-gray-900 text-sm leading-tight">{lesson.titleByLang[lang] ?? lesson.titleByLang.ru}</div>
             {lesson.subtitle && <div className="text-gray-400 text-xs mt-0.5">{lesson.subtitle}</div>}
           </div>
         </div>
@@ -369,7 +368,7 @@ export default function LessonPage() {
         <div className="bg-white rounded-3xl px-5 py-5 shadow-sm">
           {/* Label */}
           <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase mb-4">
-            {LABELS[q?.kind ?? 'mc']}
+            {t(LABEL_KEYS[q?.kind ?? 'mc'], lang)}
           </p>
 
           {/* Content */}
@@ -383,7 +382,7 @@ export default function LessonPage() {
               {q.kind === 'word' && (
                 <div className="bg-blue-50 rounded-2xl p-4 mb-0">
                   {q.image && <div className="text-3xl mb-2 text-center">{q.image}</div>}
-                  <p className="text-gray-700 text-base leading-relaxed text-center">{ru(q.storyByLang)}</p>
+                  <p className="text-gray-700 text-base leading-relaxed text-center">{byLang(q.storyByLang, lang)}</p>
                 </div>
               )}
               {q.kind === 'mc' && (
@@ -418,7 +417,7 @@ export default function LessonPage() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">✦</span>
             <span className="font-black text-gray-900 text-lg leading-tight">
-              {feedback === 'right' ? 'Отлично! Так держать!' : 'Не совсем. Давай разберём:'}
+              {feedback === 'right' ? t('correct_fb', lang) : t('wrong_fb', lang)}
             </span>
           </div>
 
@@ -427,7 +426,7 @@ export default function LessonPage() {
             <>
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-sm">✦</span>
-                <span className="text-sm font-semibold text-gray-800 opacity-80">Шаг за шагом:</span>
+                <span className="text-sm font-semibold text-gray-800 opacity-80">{t('step_by_step', lang)}</span>
               </div>
               <div className="flex flex-col gap-2 mb-4">
                 {steps.map((step, i) => (
@@ -442,7 +441,7 @@ export default function LessonPage() {
                   <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-black flex items-center justify-center shrink-0">
                     {steps.length + 1}
                   </span>
-                  <span className="text-gray-900 font-black text-sm">Ответ: {correctStr()}</span>
+                  <span className="text-gray-900 font-black text-sm">{t('answer_label', lang)} {correctStr()}</span>
                 </div>
               </div>
             </>
@@ -451,14 +450,14 @@ export default function LessonPage() {
           {/* Wrong: no steps, just show answer */}
           {feedback === 'wrong' && steps.length === 0 && (
             <p className="text-gray-900 font-semibold text-sm mb-4">
-              Правильный ответ: <span className="font-black">{correctStr()}</span>
+              {t('correct_answer', lang)} <span className="font-black">{correctStr()}</span>
             </p>
           )}
 
           {/* Right: show explain if available */}
-          {feedback === 'right' && ru(q?.explainByLang) && (
+          {feedback === 'right' && byLang(q?.explainByLang, lang) && (
             <p className="text-gray-900/80 text-sm mb-4 whitespace-pre-line leading-relaxed">
-              {ru(q.explainByLang)}
+              {byLang(q.explainByLang, lang)}
             </p>
           )}
 
@@ -467,12 +466,12 @@ export default function LessonPage() {
             {feedback === 'wrong' && q?.kind === 'type' && (
               <button onClick={retry}
                 className="flex-1 py-3.5 rounded-2xl bg-amber-200 text-gray-900 font-bold text-base active:scale-95 transition-all">
-                Попробовать снова
+                {t('retry', lang)}
               </button>
             )}
             <button onClick={next}
               className="flex-1 py-3.5 rounded-2xl bg-gray-900 text-white font-bold text-base active:scale-95 transition-all flex items-center justify-center gap-2">
-              Дальше <span className="text-lg">→</span>
+              {t('next', lang)} <span className="text-lg">→</span>
             </button>
           </div>
         </div>
