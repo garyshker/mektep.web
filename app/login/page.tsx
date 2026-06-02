@@ -36,7 +36,13 @@ export default function LoginPage() {
     })
     setLoading(false)
     if (error) {
-      setError('Не удалось отправить письмо. Проверь email и попробуй снова.')
+      console.error('resetPasswordForEmail error:', error)
+      const msg = error.message?.toLowerCase() ?? ''
+      if (msg.includes('rate') || error.status === 429) {
+        setError('Слишком много запросов. Подожди час или подключи свой SMTP в Supabase.')
+      } else {
+        setError(`Ошибка: ${error.message} (код ${error.status ?? '?'})`)
+      }
       return
     }
     setInfo('Письмо со ссылкой для сброса отправлено. Проверь почту (и папку «Спам»).')
