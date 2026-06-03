@@ -13,6 +13,7 @@ export interface Question {
   explainByLang?: ByLang
   image?: string
   big?: boolean
+  audio?: string   // Kazakh text to pronounce (shows a 🔊 button in the lesson)
   // mc / word
   options?: string[]
   answer?: number | string

@@ -73,6 +73,17 @@ function ClockFace({ h, m }: { h: number; m: number }) {
   )
 }
 
+function SpeakButton({ text }: { text: string }) {
+  return (
+    <button onClick={() => speak(text, 'kk-KZ')}
+      className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition-transform shrink-0"
+      style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)', color: 'var(--primary)' }}
+      aria-label="Дыбыс">
+      <Volume2 size={18} />
+    </button>
+  )
+}
+
 const LABEL_KEYS: Record<string, 'label_mc' | 'label_type' | 'label_tap' | 'label_word' | 'label_match' | 'label_clock'> = {
   mc: 'label_mc', type: 'label_type', tap: 'label_tap',
   word: 'label_word', match: 'label_match', clock: 'label_clock',
@@ -304,7 +315,7 @@ export default function LessonPage() {
     }
 
     if (q.kind === 'match') {
-      const groups = q.groupsByLang?.ru ?? []
+      const groups = (q.groupsByLang as unknown as Record<string, string[]>)?.[lang] ?? q.groupsByLang?.ru ?? []
       const items = q.items ?? []
       const allAssigned = items.every(it => matchMap[it.text] !== null && matchMap[it.text] !== undefined)
       return (
@@ -408,9 +419,9 @@ export default function LessonPage() {
             <>
               {q.image && q.kind !== 'word' && <div className="text-4xl text-center mb-3">{q.image}</div>}
               {q.kind === 'word' && (
-                <div className="bg-blue-50 rounded-2xl p-4 mb-0">
+                <div className="rounded-2xl p-4 mb-0" style={{ background: 'color-mix(in oklch, var(--primary) 8%, white)' }}>
                   {q.image && <div className="text-3xl mb-2 text-center">{q.image}</div>}
-                  <p className="text-gray-700 text-base leading-relaxed text-center">{byLang(q.storyByLang, lang)}</p>
+                  <p className="text-foreground text-base leading-relaxed text-center">{byLang(q.storyByLang, lang)}</p>
                 </div>
               )}
               {q.kind === 'mc' && (
@@ -418,18 +429,15 @@ export default function LessonPage() {
                   ? (
                     <div className="flex flex-col items-center gap-2">
                       <BigMath text={prompt} />
-                      {lesson.subjectId === 'kazakh' && (
-                        <button
-                          onClick={() => speak(prompt, 'kk-KZ')}
-                          className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition-transform"
-                          style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)', color: 'var(--primary)' }}
-                          aria-label="Дыбыс">
-                          <Volume2 size={18} />
-                        </button>
-                      )}
+                      {q.audio && <SpeakButton text={q.audio} />}
                     </div>
                   )
-                  : <p className="text-xl font-bold text-foreground text-center leading-snug">{prompt}</p>
+                  : (
+                    <div className="flex items-center justify-center gap-2">
+                      <p className="text-xl font-bold text-foreground text-center leading-snug">{prompt}</p>
+                      {q.audio && <SpeakButton text={q.audio} />}
+                    </div>
+                  )
               )}
             </>
           )}
@@ -442,6 +450,7 @@ export default function LessonPage() {
             <>
               {q.image && <div className="text-4xl text-center mb-3">{q.image}</div>}
               <p className="text-base font-bold text-foreground text-center leading-snug">{prompt}</p>
+              {q.audio && <div className="flex justify-center mt-2"><SpeakButton text={q.audio} /></div>}
             </>
           )}
         </div>
