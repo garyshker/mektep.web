@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  /* core — warm paper, near-black ink */
-  --background: oklch(0.99 0.005 95);
+  /* core — soft lavender app surface, near-black ink */
+  --background: oklch(0.93 0.02 292);
   --foreground: oklch(0.18 0.02 260);
   --card: oklch(1 0 0);
   --border: oklch(0.92 0.01 95);

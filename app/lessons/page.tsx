@@ -314,16 +314,16 @@ function LessonsContent() {
   }, [])
 
   if (!loaded) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#EDE8F8' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
       <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
     </div>
   )
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60" style={{ background: '#EDE8F8' }}>
+    <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60" style={{ background: 'var(--background)' }}>
 
       {/* Header */}
-      <header className="px-4 pt-5 pb-3 sticky top-0 z-10" style={{ background: '#EDE8F8' }}>
+      <header className="px-4 pt-5 pb-3 sticky top-0 z-10" style={{ background: 'var(--background)' }}>
         <div className="max-w-2xl lg:max-w-5xl mx-auto flex items-center justify-between">
           <h1 className="font-display font-black text-foreground text-xl">
             {subjectParam

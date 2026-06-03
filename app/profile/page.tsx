@@ -8,7 +8,8 @@ import { t } from '@/lib/i18n'
 import { ALL_LESSONS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
 import { LangSwitch } from '@/components/LangSwitch'
-import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight } from 'lucide-react'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon } from 'lucide-react'
 import type { Lang } from '@/lib/i18n'
 
 type Profile = {
@@ -76,7 +77,7 @@ export default function ProfilePage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F5F4F0' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
       <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
     </div>
   )
@@ -89,7 +90,7 @@ export default function ProfilePage() {
   const LANG_LABELS: Record<string, string> = { ru: '🇷🇺 Русский', kk: '🇰🇿 Қазақша', en: '🇬🇧 English' }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white pb-24 lg:pb-10 lg:pl-60">
+    <div className="min-h-screen flex flex-col bg-background pb-24 lg:pb-10 lg:pl-60">
 
       {/* Header */}
       <header className="px-4 pt-5 pb-4 border-b-2 border-border/50">
@@ -177,7 +178,14 @@ export default function ProfilePage() {
         <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] px-5 py-4 flex items-center gap-3">
           <Globe size={20} className="text-muted-foreground" />
           <span className="font-semibold text-foreground text-sm flex-1">{t('setup_language', lang)}</span>
-          <LangSwitch className="!shadow-none !bg-gray-50" onChange={changeLang} />
+          <LangSwitch className="!shadow-none" onChange={changeLang} />
+        </div>
+
+        {/* Dark theme */}
+        <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] px-5 py-4 flex items-center gap-3">
+          <Moon size={20} className="text-muted-foreground" />
+          <span className="font-semibold text-foreground text-sm flex-1">{t('theme_label', lang)}</span>
+          <ThemeToggle />
         </div>
 
         {/* Actions */}

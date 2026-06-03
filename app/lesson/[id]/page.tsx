@@ -38,7 +38,7 @@ function BigMath({ text }: { text: string }) {
         const t = p.trim()
         const isOp = /^[+\-−×÷]$/.test(t)
         return (
-          <span key={i} className={isOp ? 'text-orange-500 mx-1' : 'text-gray-900'}>
+          <span key={i} className={isOp ? 'text-orange-500 mx-1' : 'text-foreground'}>
             {t === '-' ? '−' : p}
           </span>
         )
@@ -109,8 +109,8 @@ export default function LessonPage() {
   }, [idx])
 
   if (!lesson) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]">
-      <p className="text-gray-400">{t('not_found', lang)}</p>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <p className="text-muted-foreground">{t('not_found', lang)}</p>
     </div>
   )
 
@@ -429,7 +429,7 @@ export default function LessonPage() {
                       )}
                     </div>
                   )
-                  : <p className="text-xl font-bold text-gray-800 text-center leading-snug">{prompt}</p>
+                  : <p className="text-xl font-bold text-foreground text-center leading-snug">{prompt}</p>
               )}
             </>
           )}
@@ -441,7 +441,7 @@ export default function LessonPage() {
           {(q?.kind === 'tap' || q?.kind === 'match') && (
             <>
               {q.image && <div className="text-4xl text-center mb-3">{q.image}</div>}
-              <p className="text-base font-bold text-gray-800 text-center leading-snug">{prompt}</p>
+              <p className="text-base font-bold text-foreground text-center leading-snug">{prompt}</p>
             </>
           )}
         </div>

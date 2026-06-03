@@ -58,13 +58,13 @@ export default function LeaderboardPage() {
   const rest = rows.slice(3)
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
     </div>
   )
 
   return (
-    <div className="min-h-screen flex flex-col bg-white pb-24 lg:pb-10 lg:pl-60">
+    <div className="min-h-screen flex flex-col bg-background pb-24 lg:pb-10 lg:pl-60">
 
       {/* Header */}
       <header className="px-4 pt-5 pb-4 border-b-2 border-border/50 flex items-center gap-3 lg:max-w-2xl lg:mx-auto lg:w-full">

@@ -32,8 +32,16 @@ export default function RootLayout({
     <html
       lang="kk"
       className={`${nunito.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" style={{ background: '#EDE8F8' }}>{children}</body>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('mektep_theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col" style={{ background: 'var(--background)' }}>{children}</body>
     </html>
   );
 }

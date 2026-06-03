@@ -59,6 +59,7 @@ export const I18N = {
   completed_lessons:  { ru: 'Пройденные уроки',           kk: 'Өткен сабақтар',             en: 'Completed lessons' },
   edit_profile:       { ru: 'Редактировать профиль',      kk: 'Профильді өзгерту',          en: 'Edit profile' },
   sign_out:           { ru: 'Выйти из аккаунта',          kk: 'Шығу',                       en: 'Sign out' },
+  theme_label:        { ru: 'Тёмная тема',                kk: 'Қараңғы тақырып',            en: 'Dark theme' },
 
   // Leaderboard
   top_by_xp:          { ru: 'Топ по очкам опыта',         kk: 'Тәжірибе ұпайы бойынша үздіктер', en: 'Top by XP' },

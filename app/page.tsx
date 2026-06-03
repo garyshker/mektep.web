@@ -151,7 +151,7 @@ export default function HomePage() {
   }, [])
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#EDE8F8' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
       <div className="w-8 h-8 border-4 border-[#7B5CBF] border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -174,7 +174,7 @@ export default function HomePage() {
   const ti = todayIdx()
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60 lg:pt-8" style={{ background: '#EDE8F8' }}>
+    <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60 lg:pt-8" style={{ background: 'var(--background)' }}>
 
       {/* ── Header ── */}
       <header className="px-4 pt-5 pb-3 flex items-center justify-between max-w-lg lg:max-w-2xl mx-auto">
