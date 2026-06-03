@@ -139,6 +139,15 @@ export const I18N = {
   checkers_you_lose:  { ru: 'Компьютер выиграл',          kk: 'Компьютер жеңді',            en: 'Computer wins' },
   checkers_must_cap:  { ru: 'Бить обязательно!',          kk: 'Алу міндетті!',              en: 'You must capture!' },
   checkers_rules:     { ru: 'Бей по диагонали вперёд и назад. Бить обязательно. Дойдёшь до конца — станешь дамкой.', kk: 'Қиғаш алға да, артқа да ал. Алу міндетті. Соңғы қатарға жетсең — дамка боласың.', en: 'Capture diagonally forward and backward. Capturing is mandatory. Reach the far row to become a king.' },
+  checkers_pick_mode: { ru: 'Выбери режим',                kk: 'Режимді таңда',              en: 'Choose a mode' },
+  checkers_vs_ai:     { ru: 'Против компьютера',           kk: 'Компьютермен',               en: 'Vs computer' },
+  checkers_vs_ai_sub: { ru: 'Один игрок',                  kk: 'Бір ойыншы',                 en: 'Single player' },
+  checkers_vs_local:  { ru: 'Вдвоём на одном устройстве',  kk: 'Бір құрылғыда екеу',         en: 'Two on one device' },
+  checkers_vs_local_sub: { ru: 'Передавай устройство по очереди', kk: 'Құрылғыны кезекпен бер', en: 'Pass the device each turn' },
+  checkers_white_turn:{ ru: 'Ход белых ⚪',                kk: 'Ақтың кезегі ⚪',            en: 'White to move ⚪' },
+  checkers_black_turn:{ ru: 'Ход чёрных ⚫',                kk: 'Қараның кезегі ⚫',           en: 'Black to move ⚫' },
+  checkers_white_win: { ru: 'Белые победили! ⚪',          kk: 'Ақтар жеңді! ⚪',            en: 'White wins! ⚪' },
+  checkers_black_win: { ru: 'Чёрные победили! ⚫',          kk: 'Қаралар жеңді! ⚫',           en: 'Black wins! ⚫' },
 
   // Reset password page
   reset_title:        { ru: 'Новый пароль',               kk: 'Жаңа құпиясөз',              en: 'New password' },

@@ -173,6 +173,7 @@ export default function CheckersPage() {
   const supabase = createClient()
   const lang = useLang()
 
+  const [mode, setMode] = useState<'ai' | 'local' | null>(null)
   const [board, setBoard] = useState<Board>(initBoard)
   const [turn, setTurn] = useState<Color>('w')
   const [sel, setSel] = useState<Pt | null>(null)
@@ -182,19 +183,21 @@ export default function CheckersPage() {
   const boardRef = useRef(board)
   boardRef.current = board
 
-  const mustCapture = turn === 'w' && sideHasCapture(board, 'w') && chain.length === 0
+  // Whose turn is controlled by a human right now
+  const humanTurn = mode === 'local' || (mode === 'ai' && turn === 'w')
+  const mustCapture = humanTurn && sideHasCapture(board, turn) && chain.length === 0
 
   // End-of-turn / win detection happens when turn flips to a side with no moves
   useEffect(() => {
-    if (winner) return
+    if (winner || !mode) return
     if (legalMoves(board, turn).length === 0) {
       setWinner(turn === 'w' ? 'b' : 'w')
     }
-  }, [turn, board, winner])
+  }, [turn, board, winner, mode])
 
-  // AI move
+  // AI move (only in single-player mode)
   useEffect(() => {
-    if (winner || turn !== 'b') return
+    if (winner || mode !== 'ai' || turn !== 'b') return
     const id = setTimeout(() => {
       const m = pickAiMove(boardRef.current)
       if (!m) { setWinner('w'); return }
@@ -205,10 +208,10 @@ export default function CheckersPage() {
     return () => clearTimeout(id)
   }, [turn, winner])
 
-  // Award XP once on a human win
+  // Award XP once on a win vs computer
   const savedRef = useRef(false)
   useEffect(() => {
-    if (winner === 'w' && !savedRef.current) {
+    if (winner === 'w' && mode === 'ai' && !savedRef.current) {
       savedRef.current = true
       playCorrect()
       ;(async () => {
@@ -234,11 +237,12 @@ export default function CheckersPage() {
   }
 
   const onCellClick = (r: number, c: number) => {
-    if (winner || turn !== 'w') return
+    if (winner || !humanTurn) return
     const piece = board[r][c]
+    const next: Color = turn === 'w' ? 'b' : 'w'
 
     // selecting / re-selecting own piece (not during a forced chain)
-    if (piece?.color === 'w' && chain.length === 0) { playTap(); selectPiece(r, c); return }
+    if (piece?.color === turn && chain.length === 0) { playTap(); selectPiece(r, c); return }
 
     // moving to a destination
     const move = dests.find(m => m.to[0] === r && m.to[1] === c)
@@ -266,32 +270,77 @@ export default function CheckersPage() {
       const final = clone(nb)
       for (const [cr, cc] of newChain) final[cr][cc] = null
       setBoard(final); setChain([]); setSel(null); setDests([])
-      setTurn('b')
+      setTurn(next)
     } else {
       const nb = applyMove(board, move)
       setBoard(nb); setSel(null); setDests([])
-      setTurn('b')
+      setTurn(next)
     }
   }
 
-  const restart = () => {
+  const resetState = () => {
     savedRef.current = false
     setBoard(initBoard()); setTurn('w'); setSel(null); setDests([]); setChain([]); setWinner(null)
   }
+  const startGame = (m: 'ai' | 'local') => { resetState(); setMode(m) }
+  const restart = () => resetState()
 
   const destSet = new Set(dests.map(m => key(m.to[0], m.to[1])))
   const chainSet = new Set(chain.map(([r, c]) => key(r, c)))
 
+  const winText = (w: Color) =>
+    mode === 'local'
+      ? (w === 'w' ? t('checkers_white_win', lang) : t('checkers_black_win', lang))
+      : (w === 'w' ? t('checkers_you_win', lang) : t('checkers_you_lose', lang))
+
   const status =
-    winner === 'w' ? t('checkers_you_win', lang) :
-    winner === 'b' ? t('checkers_you_lose', lang) :
-    turn === 'w' ? t('checkers_your_turn', lang) : t('checkers_ai_turn', lang)
+    winner ? winText(winner) :
+    mode === 'local'
+      ? (turn === 'w' ? t('checkers_white_turn', lang) : t('checkers_black_turn', lang))
+      : (turn === 'w' ? t('checkers_your_turn', lang) : t('checkers_ai_turn', lang))
+
+  // ── Mode-selection menu ──
+  if (mode === null) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: '#2A2520' }}>
+        <button onClick={() => router.push('/')}
+          className="absolute top-5 left-4 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">✕</button>
+
+        <div className="text-6xl mb-4">🔴⚫</div>
+        <h1 className="text-2xl font-black text-white mb-1 text-center">{t('checkers_title', lang)}</h1>
+        <p className="text-white/50 text-sm mb-8">{t('checkers_pick_mode', lang)}</p>
+
+        <div className="w-full max-w-xs flex flex-col gap-3">
+          <button onClick={() => startGame('ai')}
+            className="w-full bg-white/10 hover:bg-white/15 rounded-2xl px-5 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-all">
+            <span className="text-3xl">🤖</span>
+            <div>
+              <p className="font-black text-white text-base">{t('checkers_vs_ai', lang)}</p>
+              <p className="text-white/50 text-xs">{t('checkers_vs_ai_sub', lang)}</p>
+            </div>
+          </button>
+          <button onClick={() => startGame('local')}
+            className="w-full bg-amber-400 hover:brightness-105 rounded-2xl px-5 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-all">
+            <span className="text-3xl">👥</span>
+            <div>
+              <p className="font-black text-gray-900 text-base">{t('checkers_vs_local', lang)}</p>
+              <p className="text-gray-800/70 text-xs">{t('checkers_vs_local_sub', lang)}</p>
+            </div>
+          </button>
+        </div>
+
+        <p className="w-full max-w-xs text-white/40 text-xs leading-relaxed mt-8 text-center">
+          {t('checkers_rules', lang)}
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-5" style={{ background: '#2A2520' }}>
       {/* Header */}
       <div className="w-full max-w-md flex items-center gap-3 mb-3">
-        <button onClick={() => router.push('/')}
+        <button onClick={() => { resetState(); setMode(null) }}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">✕</button>
         <div className="flex-1">
           <h1 className="text-lg font-black text-white leading-tight">{t('checkers_title', lang)}</h1>
@@ -368,11 +417,13 @@ export default function CheckersPage() {
         {winner && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4"
             style={{ background: 'rgba(20,16,12,0.86)' }}>
-            <div className="text-5xl">{winner === 'w' ? '🏆' : '🤖'}</div>
+            <div className="text-5xl">
+              {mode === 'local' ? (winner === 'w' ? '⚪' : '⚫') : (winner === 'w' ? '🏆' : '🤖')}
+            </div>
             <h2 className="text-2xl font-black text-white text-center px-6">
-              {winner === 'w' ? t('checkers_you_win', lang) : t('checkers_you_lose', lang)}
+              {winText(winner)}
             </h2>
-            {winner === 'w' && <p className="text-amber-300 font-bold">+30 XP</p>}
+            {winner === 'w' && mode === 'ai' && <p className="text-amber-300 font-bold">+30 XP</p>}
             <div className="flex gap-3">
               <button onClick={() => router.push('/')}
                 className="px-6 py-3 rounded-2xl bg-white/15 text-white font-bold active:scale-95">
