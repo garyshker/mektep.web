@@ -127,15 +127,24 @@ export default function TogyzPage() {
   const [turn, setTurn] = useState<Player>(0)
   const [winner, setWinner] = useState<Outcome>(null)
   const [lastMove, setLastMove] = useState<number | null>(null)
+  const [flash, setFlash] = useState<{ hole: number; kazanP: Player | null; id: number } | null>(null)
   const stateRef = useRef(state)
   stateRef.current = state
+  const flashId = useRef(0)
 
   const humanTurn = mode === 'local' || (mode === 'ai' && turn === 0)
 
   const commitMove = (p: Player, hole: number) => {
+    const before = stateRef.current.kazan[p]
     const moved = applyMove(stateRef.current, p, hole)
     const next = (1 - p) as Player
     const { state: fin, winner: w } = resolveEnd(moved, next)
+    const gained = fin.kazan[p] - before
+    gained > 0 ? playCorrect() : playTap()      // capture vs sow sound
+    flashId.current++
+    const id = flashId.current
+    setFlash({ hole, kazanP: gained > 0 ? p : null, id })
+    setTimeout(() => setFlash(f => (f && f.id === id ? null : f)), 450)
     setState(fin)
     setLastMove(hole)
     if (w !== null) { setWinner(w); return }
@@ -148,7 +157,6 @@ export default function TogyzPage() {
     const id = setTimeout(() => {
       const h = pickAi(stateRef.current, 1)
       if (h === null) return
-      playTap()
       commitMove(1, h)
     }, 650)
     return () => clearTimeout(id)
@@ -173,7 +181,6 @@ export default function TogyzPage() {
   const onHole = (i: number) => {
     if (winner !== null || !humanTurn) return
     if (!legalHoles(state, turn).includes(i)) return
-    playTap()
     commitMove(turn, i)
   }
 
@@ -217,81 +224,81 @@ export default function TogyzPage() {
       ? (turn === 0 ? t('togyz_p1_turn', lang) : t('togyz_p2_turn', lang))
       : (turn === 0 ? t('togyz_your_turn', lang) : t('togyz_ai_turn', lang))
 
-  // Vertical board (mobile-friendly): two columns of 9 + kazans in the middle.
-  // Counter-clockwise loop: your column bottom→top (0..8), across the top to the
-  // opponent column top→bottom (9..17), and back across the bottom.
-  const leftCol = [9, 10, 11, 12, 13, 14, 15, 16, 17]   // opponent, top→bottom
-  const rightCol = [8, 7, 6, 5, 4, 3, 2, 1, 0]          // you, 0 at the bottom
-
-  const Pebble = ({ d }: { d: number }) => (
-    <span style={{
-      width: d, height: d, borderRadius: '50%',
-      background: 'radial-gradient(circle at 35% 30%, #F4EAD2, #B8975E)',
-      boxShadow: '0 1px 1px rgba(0,0,0,0.5)',
-    }} />
-  )
+  // Horizontal board (best in landscape): opponent row on top, your row below,
+  // kazans at the two ends. Counter-clockwise: your row left→right (0..8), then
+  // up and across the opponent row right→left (9..17), back to the start.
+  const topRow = [17, 16, 15, 14, 13, 12, 11, 10, 9]   // opponent
+  const botRow = [0, 1, 2, 3, 4, 5, 6, 7, 8]           // you
 
   const Hole = ({ i }: { i: number }) => {
     const isLegal = legal.includes(i)
     const isLast = lastMove === i
     const tuzOwner = state.tuz[0] === i ? 0 : state.tuz[1] === i ? 1 : null
     const cnt = state.holes[i]
+    const popping = flash?.hole === i
     return (
       <button onClick={() => onHole(i)}
-        className="relative w-full flex flex-wrap items-center justify-center content-center overflow-hidden transition-all"
+        className={`relative w-full aspect-square rounded-full flex items-center justify-center transition-transform ${popping ? 'togyz-pop' : ''}`}
         style={{
-          aspectRatio: '1.7 / 1', borderRadius: '50%', gap: 2, padding: 4,
           background: tuzOwner !== null
-            ? (tuzOwner === 0 ? 'radial-gradient(ellipse at 50% 30%, #3f7a52, #163320)' : 'radial-gradient(ellipse at 50% 30%, #8a6420, #3a2a0c)')
-            : 'radial-gradient(ellipse at 50% 30%, #4a2f1a, #23130a)',
-          boxShadow: isLegal ? '0 0 0 3px #FCD34D, inset 0 4px 9px rgba(0,0,0,0.65)' : 'inset 0 4px 9px rgba(0,0,0,0.65)',
-          outline: isLast ? '2px solid rgba(255,240,200,0.6)' : 'none',
+            ? (tuzOwner === 0 ? 'radial-gradient(ellipse at 50% 32%, #3f7a52, #163320)' : 'radial-gradient(ellipse at 50% 32%, #8a6420, #3a2a0c)')
+            : 'radial-gradient(ellipse at 50% 32%, #4a2f1a, #23130a)',
+          boxShadow: isLegal ? '0 0 0 3px #FCD34D, inset 0 3px 8px rgba(0,0,0,0.7)' : 'inset 0 3px 8px rgba(0,0,0,0.7)',
+          outline: isLast ? '2px solid rgba(255,240,200,0.65)' : 'none',
           cursor: isLegal ? 'pointer' : 'default',
         }}>
-        {Array.from({ length: Math.min(cnt, 9) }).map((_, k) => <Pebble key={k} d={6} />)}
+        {/* faint pebbles for texture */}
         {cnt > 0 && (
-          <span className="absolute bottom-0 right-1 px-1 rounded-full bg-black/55 text-amber-50 font-black tabular-nums leading-tight"
-            style={{ fontSize: 11 }}>{cnt}</span>
+          <div className="absolute inset-0 flex flex-wrap items-center justify-center content-center gap-[2px] p-[18%] opacity-25 pointer-events-none">
+            {Array.from({ length: Math.min(cnt, 12) }).map((_, k) => (
+              <span key={k} style={{ width: 5, height: 5, borderRadius: '50%', background: '#F0E4C6' }} />
+            ))}
+          </div>
         )}
-        {tuzOwner !== null && <span className="absolute top-0 left-1 text-xs text-amber-200">★</span>}
+        {/* big readable count */}
+        <span className="relative font-black text-amber-50 tabular-nums leading-none"
+          style={{ fontSize: 'clamp(16px, 5.2vw, 28px)', textShadow: '0 1px 4px rgba(0,0,0,0.95)' }}>
+          {cnt}
+        </span>
+        {tuzOwner !== null && <span className="absolute top-0.5 left-1 text-xs text-amber-200">★</span>}
       </button>
     )
   }
 
-  const Kazan = ({ p }: { p: Player }) => (
-    <div className="relative w-full flex flex-col items-center justify-center px-1"
-      style={{
-        flex: 1, minHeight: 96, borderRadius: '44% / 26%',
-        background: 'radial-gradient(ellipse at 50% 24%, #4a2f1a, #1b0e05)',
-        boxShadow: 'inset 0 5px 16px rgba(0,0,0,0.72)',
-      }}>
-      <div className="flex flex-wrap items-center justify-center pt-2" style={{ gap: 2, maxWidth: '92%' }}>
-        {Array.from({ length: Math.min(state.kazan[p], 28) }).map((_, k) => <Pebble key={k} d={5} />)}
+  const Kazan = ({ p }: { p: Player }) => {
+    const popping = flash?.kazanP === p
+    return (
+      <div className={`relative self-stretch flex flex-col items-center justify-center px-1 ${popping ? 'togyz-pop' : ''}`}
+        style={{
+          width: 'clamp(50px, 16vw, 72px)', borderRadius: '34% / 12%',
+          background: 'radial-gradient(ellipse at 50% 22%, #4a2f1a, #1b0e05)',
+          boxShadow: 'inset 0 5px 16px rgba(0,0,0,0.75)',
+        }}>
+        <span className="text-amber-50 font-black tabular-nums leading-none"
+          style={{ fontSize: 'clamp(22px, 6vw, 32px)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{state.kazan[p]}</span>
+        <span className="text-amber-200/55 text-[10px] font-bold mt-1">{t('togyz_kazan', lang)}</span>
+        <span className="text-sm">{mode === 'local' ? (p === 0 ? '1️⃣' : '2️⃣') : (p === 0 ? '⚪' : '🤖')}</span>
       </div>
-      <span className="text-amber-50 font-black tabular-nums leading-none mt-0.5" style={{ fontSize: 22 }}>{state.kazan[p]}</span>
-      <span className="text-amber-200/55 text-[10px] font-bold">
-        {t('togyz_kazan', lang)} {mode === 'local' ? (p === 0 ? '1' : '2') : (p === 0 ? '⚪' : '🤖')}
-      </span>
-    </div>
-  )
+    )
+  }
 
   const Ornament = () => (
-    <div className="flex items-center justify-center py-0.5">
-      <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
-        <g stroke="#2a1708" strokeWidth="2" opacity="0.5" strokeLinecap="round">
-          <path d="M18 5C24 11 24 25 18 31C12 25 12 11 18 5Z" fill="rgba(0,0,0,0.06)" />
-          <path d="M5 18C9 15 9 21 5 18Z" />
-          <path d="M31 18C27 15 27 21 31 18Z" />
-          <circle cx="18" cy="18" r="2.3" fill="#2a1708" stroke="none" />
+    <div className="flex items-center justify-center gap-3 py-0.5 opacity-50">
+      <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, transparent, #2a1708)' }} />
+      <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+        <g stroke="#2a1708" strokeWidth="2.5" strokeLinecap="round">
+          <path d="M18 5C24 11 24 25 18 31C12 25 12 11 18 5Z" fill="rgba(0,0,0,0.08)" />
+          <circle cx="18" cy="18" r="2.4" fill="#2a1708" stroke="none" />
         </g>
       </svg>
+      <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, #2a1708, transparent)' }} />
     </div>
   )
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 py-4" style={{ background: '#2A2017' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-3 py-3" style={{ background: '#2A2017' }}>
       {/* Header */}
-      <div className="w-full max-w-[340px] flex items-center gap-3 mb-3">
+      <div className="w-full max-w-3xl flex items-center gap-3 mb-2">
         <button onClick={() => { reset(); setMode(null) }}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">✕</button>
         <div className="flex-1">
@@ -304,29 +311,30 @@ export default function TogyzPage() {
         </div>
       </div>
 
-      {/* Wooden board */}
-      <div className="relative w-full max-w-[340px] rounded-[28px] p-3 shadow-2xl"
-        style={{ background: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 7px), linear-gradient(150deg, #C8945A, #8E5E30)' }}>
-        <div className="grid gap-2 items-stretch" style={{ gridTemplateColumns: '1fr 1.15fr 1fr' }}>
-          {/* opponent column */}
-          <div className="flex flex-col gap-2">
-            {leftCol.map(i => <Hole key={i} i={i} />)}
-          </div>
-          {/* center: kazans + ornament */}
-          <div className="flex flex-col gap-2">
-            <Kazan p={1} />
+      {/* Rotate hint — portrait only */}
+      <p className="portrait:block landscape:hidden text-amber-200/60 text-xs font-semibold mb-2">{t('togyz_rotate', lang)}</p>
+
+      {/* Wooden board (horizontal) */}
+      <div className="relative w-full max-w-3xl rounded-[26px] p-3 shadow-2xl"
+        style={{ background: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 7px), linear-gradient(150deg, #C8945A, #8E5E30)' }}>
+        <div className="flex items-stretch gap-2">
+          {/* opponent kazan (left) */}
+          <Kazan p={1} />
+
+          {/* rows + ornament */}
+          <div className="flex-1 flex flex-col gap-1.5">
+            <div className="grid grid-cols-9 gap-1.5">{topRow.map(i => <Hole key={i} i={i} />)}</div>
             <Ornament />
-            <Kazan p={0} />
+            <div className="grid grid-cols-9 gap-1.5">{botRow.map(i => <Hole key={i} i={i} />)}</div>
           </div>
-          {/* your column (0 at bottom) */}
-          <div className="flex flex-col gap-2">
-            {rightCol.map(i => <Hole key={i} i={i} />)}
-          </div>
+
+          {/* your kazan (right) */}
+          <Kazan p={0} />
         </div>
 
         {/* Win overlay */}
         {winner !== null && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[28px]"
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[26px]"
             style={{ background: 'rgba(30,20,12,0.9)' }}>
             <div className="text-5xl">{winner === 'draw' ? '🤝' : winner === 0 ? '🏆' : (mode === 'ai' ? '🤖' : '🏆')}</div>
             <h2 className="text-2xl font-black text-white text-center px-6">{status}</h2>
@@ -342,8 +350,6 @@ export default function TogyzPage() {
           </div>
         )}
       </div>
-
-      <p className="w-full max-w-[340px] text-white/40 text-xs leading-relaxed mt-3 text-center">{t('togyz_rules', lang)}</p>
     </div>
   )
 }
