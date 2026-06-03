@@ -1,5 +1,18 @@
 let ctx: AudioContext | null = null
 
+const SOUND_KEY = 'mektep_sound'
+
+export function soundEnabled(): boolean {
+  if (typeof window === 'undefined') return true
+  return localStorage.getItem(SOUND_KEY) !== 'off'
+}
+
+export function setSoundEnabled(on: boolean) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(SOUND_KEY, on ? 'on' : 'off')
+  window.dispatchEvent(new StorageEvent('storage', { key: SOUND_KEY, newValue: on ? 'on' : 'off' }))
+}
+
 function ac(): AudioContext {
   if (!ctx) ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
   return ctx
@@ -21,6 +34,7 @@ function tone(freq: number, type: OscillatorType, start: number, dur: number, vo
 }
 
 export function playCorrect() {
+  if (!soundEnabled()) return
   try {
     const c = ac()
     const now = c.currentTime
@@ -32,6 +46,7 @@ export function playCorrect() {
 }
 
 export function playWrong() {
+  if (!soundEnabled()) return
   try {
     const c = ac()
     const now = c.currentTime
@@ -42,6 +57,7 @@ export function playWrong() {
 }
 
 export function playTap() {
+  if (!soundEnabled()) return
   try {
     const c = ac()
     const now = c.currentTime

@@ -9,7 +9,8 @@ import { ALL_LESSONS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
 import { LangSwitch } from '@/components/LangSwitch'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon } from 'lucide-react'
+import { SoundToggle } from '@/components/SoundToggle'
+import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2 } from 'lucide-react'
 import type { Lang } from '@/lib/i18n'
 
 type Profile = {
@@ -181,11 +182,18 @@ export default function ProfilePage() {
           <LangSwitch className="!shadow-none" onChange={changeLang} />
         </div>
 
-        {/* Dark theme */}
-        <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] px-5 py-4 flex items-center gap-3">
-          <Moon size={20} className="text-muted-foreground" />
-          <span className="font-semibold text-foreground text-sm flex-1">{t('theme_label', lang)}</span>
-          <ThemeToggle />
+        {/* Settings: theme + sound */}
+        <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] overflow-hidden">
+          <div className="px-5 py-4 flex items-center gap-3 border-b border-border/40">
+            <Moon size={20} className="text-muted-foreground" />
+            <span className="font-semibold text-foreground text-sm flex-1">{t('theme_label', lang)}</span>
+            <ThemeToggle />
+          </div>
+          <div className="px-5 py-4 flex items-center gap-3">
+            <Volume2 size={20} className="text-muted-foreground" />
+            <span className="font-semibold text-foreground text-sm flex-1">{t('sound_label', lang)}</span>
+            <SoundToggle />
+          </div>
         </div>
 
         {/* Actions */}

@@ -60,6 +60,7 @@ export const I18N = {
   edit_profile:       { ru: 'Редактировать профиль',      kk: 'Профильді өзгерту',          en: 'Edit profile' },
   sign_out:           { ru: 'Выйти из аккаунта',          kk: 'Шығу',                       en: 'Sign out' },
   theme_label:        { ru: 'Тёмная тема',                kk: 'Қараңғы тақырып',            en: 'Dark theme' },
+  sound_label:        { ru: 'Звуки',                      kk: 'Дыбыстар',                   en: 'Sounds' },
 
   // Leaderboard
   top_by_xp:          { ru: 'Топ по очкам опыта',         kk: 'Тәжірибе ұпайы бойынша үздіктер', en: 'Top by XP' },
