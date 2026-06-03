@@ -10,6 +10,8 @@ import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { speak } from '@/lib/speak'
+import { Check, X, ArrowRight, Volume2 } from 'lucide-react'
+import type { CSSProperties } from 'react'
 
 type Feedback = 'right' | 'wrong' | null
 
@@ -154,18 +156,20 @@ export default function LessonPage() {
     const final = correctCount
     const stars = final >= total ? 3 : final >= total - 2 ? 2 : 1
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-6 text-center">
-        <div className="text-6xl mb-4">{'⭐'.repeat(stars)}{'☆'.repeat(3 - stars)}</div>
-        <h2 className="text-2xl font-black text-gray-900 mb-1">{t('lesson_done', lang)}</h2>
-        <p className="text-gray-500 mb-2">{t('score_tmpl', lang).replace('[N]', String(final)).replace('[T]', String(total))}</p>
-        <p className="text-emerald-600 font-bold text-xl mb-10">+{15 + final * 5} XP</p>
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: 'var(--background)' }}>
+        <div className="text-6xl mb-4 animate-mk-pop-in">{'⭐'.repeat(stars)}{'☆'.repeat(3 - stars)}</div>
+        <h2 className="text-2xl font-display font-black text-foreground mb-1">{t('lesson_done', lang)}</h2>
+        <p className="text-muted-foreground mb-2 tabular">{t('score_tmpl', lang).replace('[N]', String(final)).replace('[T]', String(total))}</p>
+        <p className="font-black text-xl mb-10 tabular" style={{ color: 'var(--primary)' }}>+{15 + final * 5} XP</p>
         <div className="flex gap-3 w-full max-w-xs">
           <button onClick={() => router.push('/lessons')}
-            className="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-gray-600 font-bold">
+            className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] font-display font-black"
+            style={{ background: 'var(--card)', color: 'var(--foreground)', ['--pop-shadow' as string]: 'var(--border)' } as CSSProperties}>
             {t('lessons', lang)}
           </button>
           <button onClick={() => { setIdx(0); setCorrectCount(0); setFeedback(null); setSelected(null); setDone(false) }}
-            className="flex-1 py-3 rounded-2xl bg-gray-900 text-white font-bold">
+            className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] text-white font-display font-black"
+            style={{ background: 'var(--gradient-hero)', ['--pop-shadow' as string]: 'var(--primary-deep)' } as CSSProperties}>
             {t('again', lang)}
           </button>
         </div>
@@ -181,18 +185,22 @@ export default function LessonPage() {
         {opts.map((opt, i) => {
           const isSel = selected === opt
           const isRight = opt === correct
-          let cls = 'bg-white border-2 border-gray-200 text-gray-800'
-          if (feedback && isSel && isRight) cls = 'bg-emerald-500 border-emerald-500 text-white'
-          else if (feedback && isSel && !isRight) cls = 'bg-red-400 border-red-400 text-white'
-          else if (feedback && isRight) cls = 'bg-emerald-100 border-emerald-400 text-emerald-800'
+          let style: CSSProperties = { background: 'var(--card)', color: 'var(--foreground)', borderColor: 'var(--border)', ['--pop-shadow' as string]: 'var(--border)' }
+          let anim = ''
+          if (feedback && isSel && isRight) {
+            style = { background: 'var(--success)', color: 'white', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'var(--brand-deep)' }
+            anim = 'animate-mk-pop'
+          } else if (feedback && isSel && !isRight) {
+            style = { background: 'var(--destructive)', color: 'white', borderColor: 'var(--destructive)', ['--pop-shadow' as string]: 'oklch(0.45 0.2 25)' }
+            anim = 'animate-mk-shake'
+          } else if (feedback && isRight) {
+            style = { background: 'color-mix(in oklch, var(--success) 16%, white)', color: 'var(--success)', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'color-mix(in oklch, var(--success) 28%, white)' }
+          }
           return (
-            <button key={i} onClick={() => {
-              if (feedback) return
-              playTap()
-              setSelected(opt)
-              markResult(opt === correct)
-            }}
-              className={`${cls} rounded-2xl py-5 text-xl font-bold shadow-sm transition-all active:scale-95`}>
+            <button key={i} disabled={!!feedback}
+              onClick={() => { if (feedback) return; playTap(); setSelected(opt); markResult(opt === correct) }}
+              className={`pop-btn rounded-[var(--radius)] py-5 text-xl font-display font-extrabold border-2 min-h-[64px] ${anim}`}
+              style={style}>
               {opt}
             </button>
           )
@@ -220,15 +228,17 @@ export default function LessonPage() {
             onKeyDown={e => e.key === 'Enter' && !feedback && markResult(typeInput.trim() === String(q.answer))}
             disabled={!!feedback}
             placeholder="?"
-            className={`w-full bg-white shadow-sm border-2 rounded-2xl text-center text-4xl font-black py-5 focus:outline-none transition-colors
-              ${feedback === 'right' ? 'border-emerald-400 bg-emerald-50' :
-                feedback === 'wrong' ? 'border-red-300 bg-red-50' :
-                'border-gray-100 focus:border-emerald-400'}`}
+            className={`w-full bg-card border-2 rounded-[var(--radius)] text-center text-4xl font-display font-black py-5 focus:outline-none transition-colors ${feedback ? 'animate-mk-' + (feedback === 'right' ? 'pop' : 'shake') : ''}`}
+            style={{
+              borderColor: feedback === 'right' ? 'var(--success)' : feedback === 'wrong' ? 'var(--destructive)' : 'var(--border)',
+              background: feedback === 'right' ? 'color-mix(in oklch, var(--success) 10%, white)' : feedback === 'wrong' ? 'color-mix(in oklch, var(--destructive) 8%, white)' : 'var(--card)',
+            }}
           />
           {!feedback && (
             <button
               onClick={() => { playTap(); markResult(typeInput.trim() === String(q.answer)) }}
-              className="w-full bg-emerald-400 text-white font-black text-2xl rounded-2xl py-4 shadow-sm active:scale-95 transition-all">
+              className="pop-btn w-full font-display text-white font-black text-2xl rounded-[var(--radius)] py-4"
+              style={{ background: 'var(--gradient-success)', ['--pop-shadow' as string]: 'var(--brand-deep)' } as CSSProperties}>
               OK
             </button>
           )}
@@ -270,7 +280,8 @@ export default function LessonPage() {
                 const expected = q.correctIdxs ?? []
                 markResult(expected.length === tapSel.size && expected.every(i => tapSel.has(i)))
               }}
-              className="w-full py-4 rounded-2xl bg-gray-900 text-white font-bold text-lg">
+              className="pop-btn w-full py-4 rounded-[var(--radius)] text-white font-display font-black text-lg"
+              style={{ background: 'var(--primary)', ['--pop-shadow' as string]: 'var(--primary-deep)' } as CSSProperties}>
               {t('check', lang)}
             </button>
           )}
@@ -313,7 +324,8 @@ export default function LessonPage() {
           {!feedback && allAssigned && (
             <button
               onClick={() => markResult(items.every(it => matchMap[it.text] === it.group))}
-              className="w-full py-4 rounded-2xl bg-gray-900 text-white font-bold text-lg mt-1">
+              className="pop-btn w-full py-4 rounded-[var(--radius)] text-white font-display font-black text-lg mt-1"
+              style={{ background: 'var(--primary)', ['--pop-shadow' as string]: 'var(--primary-deep)' } as CSSProperties}>
               {t('check', lang)}
             </button>
           )}
@@ -330,46 +342,45 @@ export default function LessonPage() {
   const feedbackHeight = feedback ? (steps.length > 0 ? 320 : 160) : 0
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F5F4F0' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
 
       {/* ── Header ── */}
       <header className="px-4 pt-5 pb-3 bg-transparent lg:max-w-2xl lg:mx-auto lg:w-full">
         {/* Progress row */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push('/lessons')}
-            className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">
-            ✕
+            onClick={() => router.push('/lessons')} aria-label={t('lessons', lang)}
+            className="w-9 h-9 rounded-full bg-card shadow-[var(--shadow-sm)] flex items-center justify-center text-muted-foreground shrink-0">
+            <X size={18} />
           </button>
           <div className="flex-1 flex gap-1">
             {Array.from({ length: total }).map((_, i) => (
               <div key={i}
-                className={`h-2 flex-1 rounded-full transition-all duration-300 ${
-                  i < idx ? 'bg-emerald-500' : i === idx ? 'bg-emerald-400' : 'bg-gray-300'
-                }`} />
+                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i === idx ? 'animate-pulse' : ''}`}
+                style={{ background: i < idx ? 'var(--success)' : i === idx ? 'color-mix(in oklch, var(--primary) 35%, white)' : 'var(--muted)' }} />
             ))}
           </div>
-          <span className="text-sm font-bold text-gray-500 shrink-0">{idx + 1}/{total}</span>
+          <span className="text-sm font-bold text-muted-foreground shrink-0 tabular">{idx + 1}/{total}</span>
         </div>
 
         {/* Lesson identity row */}
         <div className="flex items-center gap-3 mt-4">
-          <div className="w-11 h-11 rounded-2xl bg-white shadow-sm flex items-center justify-center text-2xl shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-card shadow-[var(--shadow-sm)] flex items-center justify-center text-2xl shrink-0">
             {lesson.emoji ?? '📚'}
           </div>
           <div>
-            <div className="font-black text-gray-900 text-sm leading-tight">{lesson.titleByLang[lang] ?? lesson.titleByLang.ru}</div>
-            {lesson.subtitle && <div className="text-gray-400 text-xs mt-0.5">{lesson.subtitle}</div>}
+            <div className="font-display font-black text-foreground text-sm leading-tight">{lesson.titleByLang[lang] ?? lesson.titleByLang.ru}</div>
+            {lesson.subtitle && <div className="text-muted-foreground text-xs mt-0.5">{lesson.subtitle}</div>}
           </div>
         </div>
       </header>
 
       {/* ── Question card ── */}
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4 lg:max-w-2xl lg:mx-auto lg:w-full" style={{ paddingBottom: feedbackHeight + 24 }}>
-        <div className="bg-white rounded-3xl px-5 py-5 shadow-sm">
+        <div className="bg-card rounded-3xl px-5 py-5 shadow-[var(--shadow-md)]">
           {/* Label */}
-          <div className="inline-flex items-center mb-4 px-2.5 py-1 rounded-full bg-[#7B5CBF]/12">
-            <span className="text-[11px] font-black text-[#7B5CBF] tracking-[0.12em] uppercase leading-none">
+          <div className="inline-flex items-center mb-4 px-2.5 py-1 rounded-full" style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)' }}>
+            <span className="text-[11px] font-black tracking-[0.12em] uppercase leading-none" style={{ color: 'var(--primary)' }}>
               {t(LABEL_KEYS[q?.kind ?? 'mc'], lang)}
             </span>
           </div>
@@ -396,9 +407,10 @@ export default function LessonPage() {
                       {lesson.subjectId === 'kazakh' && (
                         <button
                           onClick={() => speak(prompt, 'kk-KZ')}
-                          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg active:scale-90 transition-all"
-                          aria-label="Произнести">
-                          🔊
+                          className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+                          style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)', color: 'var(--primary)' }}
+                          aria-label="Дыбыс">
+                          <Volume2 size={18} />
                         </button>
                       )}
                     </div>
@@ -426,53 +438,52 @@ export default function LessonPage() {
 
       {/* ── Feedback panel (fixed bottom) ── */}
       {feedback && (
-        <div className={`fixed bottom-0 left-0 right-0 px-4 pt-5 pb-10 rounded-t-3xl z-50 ${feedback === 'right' ? 'bg-emerald-400' : 'bg-amber-400'}`}>
+        <div className="fixed bottom-0 left-0 right-0 px-4 pt-5 pb-10 rounded-t-3xl z-50 animate-mk-pop-in"
+          style={{ background: feedback === 'right'
+            ? 'color-mix(in oklch, var(--success) 16%, white)'
+            : 'color-mix(in oklch, var(--destructive) 13%, white)' }}>
          <div className="lg:max-w-2xl lg:mx-auto">
 
-          {/* Title */}
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">✦</span>
-            <span className="font-black text-gray-900 text-lg leading-tight">
+          {/* Title with icon circle */}
+          <div className="flex items-center gap-3 mb-3">
+            <span className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white"
+              style={{ background: feedback === 'right' ? 'var(--success)' : 'var(--destructive)' }}>
+              {feedback === 'right' ? <Check size={20} strokeWidth={3} /> : <X size={20} strokeWidth={3} />}
+            </span>
+            <span className="font-display font-black text-foreground text-lg leading-tight">
               {feedback === 'right' ? t('correct_fb', lang) : t('wrong_fb', lang)}
             </span>
           </div>
 
           {/* Wrong: explanation steps */}
           {feedback === 'wrong' && steps.length > 0 && (
-            <>
-              <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-sm">✦</span>
-                <span className="text-sm font-semibold text-gray-800 opacity-80">{t('step_by_step', lang)}</span>
-              </div>
-              <div className="flex flex-col gap-2 mb-4">
-                {steps.map((step, i) => (
-                  <div key={i} className="flex items-center gap-3 bg-white/30 rounded-2xl px-4 py-3">
-                    <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-black flex items-center justify-center shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="text-gray-900 font-semibold text-sm">{step}</span>
-                  </div>
-                ))}
-                <div className="flex items-center gap-3 bg-white/60 rounded-2xl px-4 py-3">
-                  <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-black flex items-center justify-center shrink-0">
-                    {steps.length + 1}
-                  </span>
-                  <span className="text-gray-900 font-black text-sm">{t('answer_label', lang)} {correctStr()}</span>
+            <div className="flex flex-col gap-2 mb-4">
+              <span className="text-xs font-semibold text-foreground/70 mb-0.5">{t('step_by_step', lang)}</span>
+              {steps.map((step, i) => (
+                <div key={i} className="flex items-center gap-3 bg-white/50 rounded-2xl px-4 py-2.5">
+                  <span className="w-6 h-6 rounded-full text-white text-xs font-black flex items-center justify-center shrink-0 tabular"
+                    style={{ background: 'var(--foreground)' }}>{i + 1}</span>
+                  <span className="text-foreground font-semibold text-sm">{step}</span>
                 </div>
+              ))}
+              <div className="flex items-center gap-3 bg-white/75 rounded-2xl px-4 py-2.5">
+                <span className="w-6 h-6 rounded-full text-white text-xs font-black flex items-center justify-center shrink-0"
+                  style={{ background: 'var(--success)' }}>✓</span>
+                <span className="text-foreground font-black text-sm">{t('answer_label', lang)} {correctStr()}</span>
               </div>
-            </>
+            </div>
           )}
 
           {/* Wrong: no steps, just show answer */}
           {feedback === 'wrong' && steps.length === 0 && (
-            <p className="text-gray-900 font-semibold text-sm mb-4">
+            <p className="text-foreground font-semibold text-sm mb-4">
               {t('correct_answer', lang)} <span className="font-black">{correctStr()}</span>
             </p>
           )}
 
           {/* Right: show explain if available */}
           {feedback === 'right' && byLang(q?.explainByLang, lang) && (
-            <p className="text-gray-900/80 text-sm mb-4 whitespace-pre-line leading-relaxed">
+            <p className="text-foreground/80 text-sm mb-4 whitespace-pre-line leading-relaxed">
               {byLang(q.explainByLang, lang)}
             </p>
           )}
@@ -481,13 +492,15 @@ export default function LessonPage() {
           <div className="flex gap-3">
             {feedback === 'wrong' && q?.kind === 'type' && (
               <button onClick={retry}
-                className="flex-1 py-3.5 rounded-2xl bg-amber-200 text-gray-900 font-bold text-base active:scale-95 transition-all">
+                className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] font-display font-black text-base"
+                style={{ background: 'var(--card)', color: 'var(--foreground)', ['--pop-shadow' as string]: 'var(--border)' } as CSSProperties}>
                 {t('retry', lang)}
               </button>
             )}
             <button onClick={next}
-              className="flex-1 py-3.5 rounded-2xl bg-gray-900 text-white font-bold text-base active:scale-95 transition-all flex items-center justify-center gap-2">
-              {t('next', lang)} <span className="text-lg">→</span>
+              className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] text-white font-display font-black text-base flex items-center justify-center gap-2"
+              style={{ background: feedback === 'right' ? 'var(--success)' : 'var(--foreground)', ['--pop-shadow' as string]: feedback === 'right' ? 'var(--brand-deep)' : 'oklch(0.1 0.02 260)' } as CSSProperties}>
+              {t('next', lang)} <ArrowRight size={18} />
             </button>
           </div>
          </div>
