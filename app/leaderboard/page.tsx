@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { BottomNav } from '@/components/BottomNav'
+import { Trophy } from 'lucide-react'
 
 interface Entry {
   id: string
@@ -58,7 +59,7 @@ export default function LeaderboardPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-8 h-8 border-4 border-[#58CC02] border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
     </div>
   )
 
@@ -66,15 +67,18 @@ export default function LeaderboardPage() {
     <div className="min-h-screen flex flex-col bg-white pb-24 lg:pb-10 lg:pl-60">
 
       {/* Header */}
-      <header className="px-4 pt-5 pb-4 border-b-2 border-gray-50 flex items-center gap-3 lg:max-w-2xl lg:mx-auto lg:w-full">
+      <header className="px-4 pt-5 pb-4 border-b-2 border-border/50 flex items-center gap-3 lg:max-w-2xl lg:mx-auto lg:w-full">
         <div className="flex-1">
-          <h1 className="text-xl font-black text-gray-900 leading-tight">{t('nav_leaderboard', lang)}</h1>
-          <p className="text-xs text-gray-400">{t('top_by_xp', lang)}</p>
+          <h1 className="text-xl font-display font-black text-foreground leading-tight flex items-center gap-2">
+            <Trophy size={20} style={{ color: 'var(--accent)' }} />
+            {t('nav_leaderboard', lang)}
+          </h1>
+          <p className="text-xs text-muted-foreground">{t('top_by_xp', lang)}</p>
         </div>
         {myRank && (
-          <div className="bg-[#58CC02]/10 rounded-2xl px-3 py-1.5">
-            <p className="text-xs text-[#58CC02] leading-none font-semibold">{t('your_rank', lang)}</p>
-            <p className="text-lg font-black text-[#58CC02] leading-none">#{myRank}</p>
+          <div className="rounded-2xl px-3 py-1.5" style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)' }}>
+            <p className="text-xs leading-none font-semibold" style={{ color: 'var(--primary)' }}>{t('your_rank', lang)}</p>
+            <p className="text-lg font-black tabular leading-none" style={{ color: 'var(--primary)' }}>#{myRank}</p>
           </div>
         )}
       </header>
@@ -83,8 +87,8 @@ export default function LeaderboardPage() {
 
         {/* Podium — top 3 */}
         {top3.length > 0 && (
-          <div className="bg-white rounded-3xl px-4 pt-5 pb-6 shadow-sm">
-            <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-5 text-center">
+          <div className="bg-card rounded-[var(--radius-lg)] px-4 pt-5 pb-6 shadow-[var(--shadow-sm)]">
+            <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase mb-5 text-center">
               {t('top3', lang)}
             </p>
             <div className="flex items-end justify-center gap-3">
@@ -125,29 +129,31 @@ export default function LeaderboardPage() {
 
         {/* Rest of list */}
         {rest.length > 0 && (
-          <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
+          <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] overflow-hidden">
             {rest.map((entry, i) => {
               const rank = i + 4
               const isMe = entry.id === myId
               return (
                 <div
                   key={entry.id}
-                  className={`flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 last:border-0 ${isMe ? 'bg-[#58CC02]/5' : ''}`}>
-                  <span className="w-7 text-center text-sm font-black text-gray-400">{rank}</span>
+                  className="flex items-center gap-3 px-4 py-3.5 border-b border-border/50 last:border-0"
+                  style={isMe ? { background: 'color-mix(in oklch, var(--primary) 6%, white)' } : undefined}>
+                  <span className="w-7 text-center text-sm font-black tabular text-muted-foreground">{rank}</span>
                   <div
                     className="w-9 h-9 rounded-full flex items-center justify-center font-black text-white text-sm shrink-0"
                     style={{ background: avatarColor(entry.name) }}>
                     {entry.name?.[0]?.toUpperCase() ?? '?'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-bold text-sm truncate ${isMe ? 'text-[#58CC02]' : 'text-gray-900'}`}>
+                    <p className="font-bold text-sm truncate text-foreground"
+                      style={isMe ? { color: 'var(--primary)' } : undefined}>
                       {entry.name}{isMe ? ` (${lang === 'kk' ? 'сен' : 'ты'})` : ''}
                     </p>
-                    <p className="text-xs text-gray-400">{entry.grade} {t('grade', lang)} · 🔥 {entry.streak}</p>
+                    <p className="text-xs text-muted-foreground">{entry.grade} {t('grade', lang)} · 🔥 {entry.streak}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="font-black text-gray-900 text-sm">{entry.xp}</p>
-                    <p className="text-[10px] text-gray-400">XP</p>
+                    <p className="font-black text-foreground text-sm tabular">{entry.xp}</p>
+                    <p className="text-[10px] text-muted-foreground">XP</p>
                   </div>
                 </div>
               )
@@ -158,7 +164,7 @@ export default function LeaderboardPage() {
         {rows.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-16">
             <div className="text-5xl mb-3">🏆</div>
-            <p className="text-gray-400 text-sm">{t('no_users', lang)}</p>
+            <p className="text-muted-foreground text-sm">{t('no_users', lang)}</p>
           </div>
         )}
       </main>
@@ -184,12 +190,12 @@ function PodiumCard({
         style={{ background: color }}>
         {entry.name?.[0]?.toUpperCase() ?? '?'}
       </div>
-      <p className="text-xs font-bold text-gray-800 text-center truncate w-full px-1">
+      <p className="text-xs font-bold text-foreground text-center truncate w-full px-1">
         {isMe ? 'Ты' : entry.name}
       </p>
       <div className={`w-full ${height} ${bg} rounded-2xl flex flex-col items-center justify-center`}>
-        <p className="font-black text-gray-900 text-base leading-none">{entry.xp}</p>
-        <p className="text-[10px] text-gray-500">XP</p>
+        <p className="font-black text-foreground text-base tabular leading-none">{entry.xp}</p>
+        <p className="text-[10px] text-muted-foreground">XP</p>
       </div>
     </div>
   )

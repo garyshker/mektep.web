@@ -7,6 +7,7 @@ import { ALL_LESSONS, SUBJECTS, UPCOMING_SUBJECTS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
+import { ChevronRight, ChevronLeft, Lock } from 'lucide-react'
 import type { Lesson } from '@/lib/lessons'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -25,7 +26,7 @@ function StarDots({ stars, color }: { stars: number; color: string }) {
     <div className="flex gap-1">
       {[1, 2, 3].map(s => (
         <div key={s} className="w-2 h-2 rounded-full"
-          style={{ background: s <= stars ? color : '#e5e7eb' }} />
+          style={{ background: s <= stars ? color : 'var(--border)' }} />
       ))}
     </div>
   )
@@ -41,14 +42,16 @@ function LessonCard({ lesson, stars, onClick, locked, lang }: {
   return (
     <button
       onClick={locked ? undefined : onClick}
-      className={`relative overflow-hidden bg-white rounded-3xl p-4 text-left flex flex-col h-44 border-2 transition-all
-        ${locked ? 'opacity-50 cursor-default border-gray-100' : done ? 'border-[#58CC02]/30 shadow-sm active:scale-[0.97]' : 'border-gray-100 shadow-sm active:scale-[0.97]'}`}
+      className={`relative overflow-hidden bg-card rounded-[var(--radius-lg)] p-4 text-left flex flex-col h-44 border-2 transition-all
+        ${locked ? 'opacity-50 cursor-default border-border' : 'shadow-[var(--shadow-sm)] active:scale-[0.97]'}`}
+      style={done && !locked ? { borderColor: 'var(--success)' } : { borderColor: 'var(--border)' }}
     >
       <div className="absolute top-0 right-0 w-24 h-24 rounded-full pointer-events-none"
         style={{ backgroundColor: blob, transform: 'translate(35%, -35%)' }} />
 
       {done && (
-        <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-[#58CC02] flex items-center justify-center z-10">
+        <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center z-10"
+          style={{ background: 'var(--success)' }}>
           <svg width="10" height="10" viewBox="0 0 10 10" fill="white">
             <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
           </svg>
@@ -58,19 +61,19 @@ function LessonCard({ lesson, stars, onClick, locked, lang }: {
       <div className="text-3xl mb-1 relative z-10">{lesson.emoji ?? '📚'}</div>
 
       <div className="flex-1 relative z-10 min-w-0">
-        <div className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">
+        <div className="font-display font-black text-foreground text-sm leading-snug line-clamp-2">
           {lesson.titleByLang[lang] ?? lesson.titleByLang.ru}
         </div>
         {lesson.subtitle && (
-          <div className="text-gray-400 text-xs mt-0.5 line-clamp-1">{lesson.subtitle}</div>
+          <div className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{lesson.subtitle}</div>
         )}
       </div>
 
       <div className="flex items-center justify-between relative z-10 mt-2">
-        <span className="text-xs text-gray-400">{mins} {t('min', lang)} · {lesson.questions.length} {t('tasks', lang)}</span>
+        <span className="text-xs text-muted-foreground tabular">{mins} {t('min', lang)} · {lesson.questions.length} {t('tasks', lang)}</span>
         {locked
-          ? <span className="text-gray-400 text-sm">🔒</span>
-          : <StarDots stars={stars} color={done ? '#58CC02' : '#d1d5db'} />
+          ? <Lock size={14} className="text-muted-foreground" />
+          : <StarDots stars={stars} color={done ? 'var(--accent)' : 'var(--border)'} />
         }
       </div>
     </button>
@@ -124,7 +127,7 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
             return (
               <button key={subj.id}
                 onClick={() => router.push(`/lessons?subject=${subj.id}`)}
-                className="bg-white rounded-3xl p-4 text-left flex flex-col gap-3 shadow-sm active:scale-[0.97] transition-all border-2 border-transparent">
+                className="bg-card rounded-[var(--radius-lg)] p-4 text-left flex flex-col gap-3 shadow-[var(--shadow-sm)] active:scale-[0.97] transition-all border-2 border-transparent">
                 {/* Icon */}
                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl"
                   style={{ background: subj.bg }}>
@@ -132,22 +135,22 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
                 </div>
                 {/* Name + desc */}
                 <div>
-                  <p className="font-black text-[#1A1A2E] text-sm">{subj.labelKk}</p>
-                  <p className="text-[#6B7280] text-[10px] mt-0.5">{subj.descKk}</p>
+                  <p className="font-display font-black text-foreground text-sm">{subj.labelKk}</p>
+                  <p className="text-muted-foreground text-[10px] mt-0.5">{subj.descKk}</p>
                 </div>
                 {/* Progress bar */}
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all"
                     style={{ width: `${pct}%`, background: subj.color }} />
                 </div>
                 {/* Next lesson row */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[#6B7280] font-semibold truncate max-w-[80%]">
+                  <span className="text-[10px] text-muted-foreground font-semibold truncate max-w-[80%]">
                     {nextL
                       ? `Келесі: ${nextL.titleByLang[lang] ?? nextL.titleByLang.ru}`
                       : `${pct}% аяқталды`}
                   </span>
-                  <span className="text-xs font-black text-[#7B5CBF]">→</span>
+                  <ChevronRight size={15} style={{ color: 'var(--primary)' }} />
                 </div>
               </button>
             )
@@ -157,13 +160,13 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
 
       {/* Coming soon subjects */}
       <div>
-        <p className="text-xs font-black text-[#1A1A2E]/50 tracking-widest uppercase mb-2">Жақында</p>
+        <p className="text-xs font-black text-muted-foreground tracking-widest uppercase mb-2">Жақында</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {UPCOMING_SUBJECTS.map(subj => (
             <div key={subj.id}
-              className="bg-white rounded-3xl p-4 flex flex-col gap-3 border-2 border-dashed border-gray-200 opacity-75">
+              className="bg-card rounded-[var(--radius-lg)] p-4 flex flex-col gap-3 border-2 border-dashed border-border opacity-75">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl bg-gray-100">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl bg-muted">
                   {subj.emoji}
                 </div>
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full text-white"
@@ -172,13 +175,13 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
                 </span>
               </div>
               <div>
-                <p className="font-black text-[#1A1A2E] text-sm">{subj.labelKk}</p>
-                <p className="text-[#6B7280] text-[10px] mt-0.5">{subj.descKk}</p>
+                <p className="font-display font-black text-foreground text-sm">{subj.labelKk}</p>
+                <p className="text-muted-foreground text-[10px] mt-0.5">{subj.descKk}</p>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[#6B7280]">{countdown}</span>
+                <span className="text-[10px] font-mono text-muted-foreground tabular">{countdown}</span>
                 <button className="text-[10px] font-black rounded-full px-2.5 py-1"
-                  style={{ background: '#EDE8F8', color: '#7B5CBF' }}
+                  style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)', color: 'var(--primary)' }}
                   onClick={e => e.stopPropagation()}>
                   Хабарласам
                 </button>
@@ -213,8 +216,9 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
       <div className="flex items-center gap-3">
         <button
           onClick={() => router.push('/lessons')}
-          className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm font-black text-[#1A1A2E] text-lg">
-          ←
+          className="w-9 h-9 rounded-xl bg-card flex items-center justify-center shadow-[var(--shadow-sm)]"
+          style={{ color: 'var(--primary)' }}>
+          <ChevronLeft size={20} />
         </button>
         {subj && (
           <div className="flex items-center gap-2">
@@ -223,8 +227,8 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
               {subj.emoji}
             </div>
             <div>
-              <p className="font-black text-[#1A1A2E] text-base">{subj.labelKk}</p>
-              <p className="text-[#6B7280] text-[10px]">{subj.descKk}</p>
+              <p className="font-display font-black text-foreground text-base">{subj.labelKk}</p>
+              <p className="text-muted-foreground text-[10px]">{subj.descKk}</p>
             </div>
           </div>
         )}
@@ -233,17 +237,17 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
       {/* Progress */}
       {unlocked.length > 0 && (
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-3 bg-white rounded-full overflow-hidden shadow-sm">
+          <div className="flex-1 h-3 bg-card rounded-full overflow-hidden shadow-[var(--shadow-sm)]">
             <div className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${pct}%`, background: subj?.color ?? '#22C55E' }} />
+              style={{ width: `${pct}%`, background: 'var(--success)' }} />
           </div>
-          <span className="text-xs font-black text-[#1A1A2E]/60 shrink-0">{completed}/{unlocked.length}</span>
+          <span className="text-xs font-black text-muted-foreground tabular shrink-0">{completed}/{unlocked.length}</span>
         </div>
       )}
 
       {/* Lesson grid */}
       {unlocked.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-muted-foreground">
           <div className="text-5xl mb-3">🚧</div>
           <p className="font-semibold">{t('coming_soon_tmpl', lang).replace('[N]', String(grade))}</p>
         </div>
@@ -262,9 +266,9 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
       {locked.length > 0 && (
         <>
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs font-black text-gray-400 tracking-widest uppercase">{t('next_section', lang)}</span>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs font-black text-muted-foreground tracking-widest uppercase">{t('next_section', lang)}</span>
+            <div className="flex-1 h-px bg-border" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {locked.map(lesson => (
@@ -311,7 +315,7 @@ function LessonsContent() {
 
   if (!loaded) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#EDE8F8' }}>
-      <div className="w-8 h-8 border-4 border-[#7B5CBF] border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
     </div>
   )
 
@@ -321,12 +325,12 @@ function LessonsContent() {
       {/* Header */}
       <header className="px-4 pt-5 pb-3 sticky top-0 z-10" style={{ background: '#EDE8F8' }}>
         <div className="max-w-2xl lg:max-w-5xl mx-auto flex items-center justify-between">
-          <h1 className="font-black text-[#1A1A2E] text-xl">
+          <h1 className="font-display font-black text-foreground text-xl">
             {subjectParam
               ? (SUBJECTS.find(s => s.id === subjectParam)?.labelKk ?? t('lessons', lang))
               : 'Барлық пәндер'}
           </h1>
-          <span className="text-sm font-bold text-[#1A1A2E]/40">{grade} {t('grade', lang)}</span>
+          <span className="text-sm font-bold text-muted-foreground tabular">{grade} {t('grade', lang)}</span>
         </div>
       </header>
 
