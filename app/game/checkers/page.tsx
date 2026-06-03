@@ -337,7 +337,7 @@ export default function CheckersPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 py-5" style={{ background: '#2A2520' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-5" style={{ background: '#312E2B' }}>
       {/* Header */}
       <div className="w-full max-w-md flex items-center gap-3 mb-3">
         <button onClick={() => { resetState(); setMode(null) }}
@@ -365,8 +365,8 @@ export default function CheckersPage() {
       </p>
 
       {/* Board */}
-      <div className="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl select-none">
-        <div className="grid grid-cols-8 w-full h-full">
+      <div className="relative w-full max-w-md rounded-xl overflow-hidden shadow-2xl select-none ring-4 ring-black/20">
+        <div className="grid grid-cols-8 w-full">
           {Array.from({ length: 64 }).map((_, idx) => {
             const r = Math.floor(idx / 8), c = idx % 8
             const dark = isDark(r, c)
@@ -374,37 +374,49 @@ export default function CheckersPage() {
             const isSel = sel && sel[0] === r && sel[1] === c
             const isDest = destSet.has(key(r, c))
             const faded = chainSet.has(key(r, c))
+            const white = piece?.color === 'w'
             return (
               <div
                 key={idx}
                 onClick={() => dark && onCellClick(r, c)}
-                className="relative flex items-center justify-center"
-                style={{ background: dark ? '#8A5A3B' : '#E8D2B0', cursor: dark ? 'pointer' : 'default' }}
+                className="relative aspect-square flex items-center justify-center"
+                style={{ background: dark ? '#769656' : '#EEEED2', cursor: dark ? 'pointer' : 'default' }}
               >
-                {/* selection ring */}
-                {isSel && <div className="absolute inset-1 rounded-lg ring-4 ring-amber-300/80" />}
+                {/* selection highlight */}
+                {isSel && <div className="absolute inset-0" style={{ background: 'rgba(245,210,80,0.55)' }} />}
                 {/* move hint */}
                 {isDest && !piece && (
-                  <div className="absolute w-1/3 h-1/3 rounded-full bg-amber-300/70" />
+                  <div className="absolute w-1/3 h-1/3 rounded-full" style={{ background: 'rgba(30,30,30,0.28)' }} />
                 )}
                 {isDest && piece && (
-                  <div className="absolute inset-0.5 rounded-lg ring-4 ring-red-400/80" />
+                  <div className="absolute inset-0" style={{ background: 'rgba(220,60,50,0.45)' }} />
                 )}
                 {/* piece */}
                 {piece && (
                   <div
-                    className={`relative rounded-full flex items-center justify-center transition-opacity ${faded ? 'opacity-30' : ''}`}
+                    className={`relative rounded-full transition-opacity ${faded ? 'opacity-30' : ''}`}
                     style={{
-                      width: '74%', height: '74%',
-                      background: piece.color === 'w'
-                        ? 'radial-gradient(circle at 35% 30%, #ffffff, #d9d4cc)'
-                        : 'radial-gradient(circle at 35% 30%, #555, #1c1c1c)',
-                      boxShadow: 'inset 0 -3px 5px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.4)',
-                      border: piece.color === 'w' ? '2px solid #cdc7bd' : '2px solid #000',
+                      width: '78%', height: '78%',
+                      background: white
+                        ? 'radial-gradient(circle at 38% 32%, #fcfcf8, #d2cdbe)'
+                        : 'radial-gradient(circle at 38% 32%, #6c6c6c, #141414)',
+                      boxShadow: 'inset 0 -3px 6px rgba(0,0,0,0.4), 0 3px 5px rgba(0,0,0,0.45)',
+                      border: white ? '1px solid #b6b0a1' : '1px solid #000',
                     }}
                   >
+                    {/* concentric grooves — like a real checker */}
+                    <div className="absolute rounded-full" style={{
+                      inset: '13%',
+                      border: white ? '2px solid rgba(120,110,85,0.40)' : '2px solid rgba(255,255,255,0.20)',
+                    }} />
+                    <div className="absolute rounded-full" style={{
+                      inset: '26%',
+                      border: white ? '1.5px solid rgba(120,110,85,0.28)' : '1.5px solid rgba(255,255,255,0.13)',
+                    }} />
                     {piece.king && (
-                      <span style={{ color: piece.color === 'w' ? '#C99A2E' : '#F5C84B', fontSize: '90%', lineHeight: 1 }}>★</span>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span style={{ color: white ? '#C99A2E' : '#F5C84B', fontSize: '105%', lineHeight: 1 }}>★</span>
+                      </div>
                     )}
                   </div>
                 )}
