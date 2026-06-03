@@ -7,7 +7,31 @@ import { BottomNav } from '@/components/BottomNav'
 import { ALL_LESSONS, SUBJECTS } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
+import { Flame, Zap, Play, ChevronRight, Check } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
+
+// Kazakh "qośqar-muyiz" style ornament for the hero corner
+function HeroOrnament() {
+  return (
+    <svg className="absolute -top-2 -right-2 w-44 h-44 pointer-events-none" viewBox="0 0 100 100"
+      fill="none" style={{ opacity: 0.12 }} aria-hidden>
+      <g stroke="white" strokeWidth="2.5" strokeLinecap="round">
+        <path d="M66 18c16 4 16 26 0 31c-11 3-13-9-4-12" />
+        <path d="M84 34c16 4 16 26 0 31c-11 3-13-9-4-12" />
+        <path d="M50 14q12-6 22 3" />
+        <circle cx="80" cy="82" r="3.5" />
+        <circle cx="58" cy="40" r="2" />
+      </g>
+    </svg>
+  )
+}
+
+const WEEKDAYS: Record<string, string[]> = {
+  kk: ['Дс', 'Сс', 'Ср', 'Бс', 'Жм', 'Сб', 'Жс'],
+  ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+  en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+}
+const todayIdx = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1 }
 
 type Profile = { name: string; grade: number; xp: number; streak: number; language?: string }
 
@@ -146,29 +170,31 @@ export default function HomePage() {
   // Top 2 subjects for the subjects section
   const subjectList = SUBJECTS.filter(s => s.id !== 'russian')
 
+  const days = WEEKDAYS[lang] ?? WEEKDAYS.kk
+  const ti = todayIdx()
+
   return (
     <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60 lg:pt-8" style={{ background: '#EDE8F8' }}>
 
       {/* ── Header ── */}
       <header className="px-4 pt-5 pb-3 flex items-center justify-between max-w-lg lg:max-w-2xl mx-auto">
-        {/* Left: label + greeting */}
+        <p className="font-display font-black text-foreground text-lg leading-tight">{t('hello', lang)} {profile?.name}!</p>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-[#2A5E35]/10 rounded-full px-3 py-1.5">
-            <span className="text-[#2A5E35] text-sm font-black">✦</span>
+          {/* Streak */}
+          <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--warning) 14%, white)' }}>
+            <Flame size={16} fill="currentColor" style={{ color: 'var(--warning)' }} />
+            <span className="font-black text-xs tabular" style={{ color: 'var(--warning)' }}>{streak}</span>
           </div>
-          <p className="font-black text-[#1A1A2E] text-base leading-tight">{t('hello', lang)} {profile?.name}!</p>
-        </div>
-        {/* Right: streak, flag, avatar */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-full px-2.5 py-1" style={{ background: '#FF6B35' }}>
-            <span className="text-sm">🔥</span>
-            <span className="font-black text-white text-xs">{streak}</span>
+          {/* XP */}
+          <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--xp) 16%, white)' }}>
+            <Zap size={16} fill="currentColor" style={{ color: 'var(--xp)' }} />
+            <span className="font-black text-xs tabular" style={{ color: 'var(--xp)' }}>{xp}</span>
           </div>
-          <button onClick={() => router.push('/setup')}
+          <button onClick={() => router.push('/setup')} aria-label="Тіл / Язык"
             className="w-8 h-8 rounded-full flex items-center justify-center text-base bg-white shadow-sm">
             🇰🇿
           </button>
-          <button onClick={() => router.push('/profile')}
+          <button onClick={() => router.push('/profile')} aria-label="Профиль"
             className="w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-xs shrink-0 shadow-sm"
             style={{ background: avatarColor(profile?.name ?? 'A') }}>
             {profile?.name?.[0]?.toUpperCase() ?? '?'}
@@ -178,97 +204,95 @@ export default function HomePage() {
 
       <main className="max-w-lg lg:max-w-2xl mx-auto px-4 flex flex-col gap-4">
 
-        {/* ── Week progress ── */}
-        <div className="bg-white rounded-2xl px-4 py-3 shadow-sm flex items-center justify-between">
-          <span className="text-xs font-black text-[#1A1A2E]/60">Апта барысы {weekDoneCount}/7</span>
-          <div className="flex gap-1.5">
-            {weekDays.map((done, i) => (
-              <div key={i}
-                className="w-6 h-2.5 rounded-full transition-all"
-                style={{ background: done ? '#22C55E' : '#E5E7EB' }} />
-            ))}
+        {/* ── Weekly streak ── */}
+        <div className="bg-card rounded-[var(--radius-lg)] px-4 py-3 shadow-[var(--shadow-sm)] animate-mk-pop-in">
+          <div className="flex items-center justify-between">
+            {days.map((d, i) => {
+              const done = weekDays[i]
+              const isToday = i === ti
+              return (
+                <div key={i} className="flex flex-col items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-muted-foreground">{d}</span>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                    style={{
+                      background: done ? 'var(--gradient-gold)' : 'var(--muted)',
+                      boxShadow: isToday ? '0 0 0 3px color-mix(in oklch, var(--primary) 35%, transparent)' : 'none',
+                    }}>
+                    <Flame size={15} className={done ? 'text-white' : 'text-muted-foreground'} fill={done ? 'currentColor' : 'none'} />
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        {/* ── Daily lesson hero card ── */}
+        {/* ── Daily lesson hero (Kazakh blue + ornament) ── */}
         {nextLesson && (
-          <div className="rounded-3xl overflow-hidden shadow-md"
-            style={{ background: 'linear-gradient(160deg, #2A5E35 0%, #1B3D22 100%)' }}>
-            <div className="px-5 pt-5 pb-5">
-              {/* Top labels */}
+          <div className="relative rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-md)] animate-mk-pop-in"
+            style={{ background: 'var(--gradient-hero)', animationDelay: '40ms' }}>
+            <HeroOrnament />
+            <div className="relative px-5 pt-5 pb-5">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-white/50 text-[10px] font-black tracking-widest uppercase">КҮН САБАҒЫ</span>
-                <span className="text-white/50 text-[10px] font-black tracking-widest uppercase">
-                  ЖАЛҒАСТЫР · {nextSubject?.labelKk ?? nextLesson.subjectId.toUpperCase()}
+                <span className="text-white/55 text-[10px] font-black tracking-widest uppercase">КҮН САБАҒЫ</span>
+                <span className="text-white/55 text-[10px] font-black tracking-widest uppercase">
+                  {nextSubject?.labelKk ?? nextLesson.subjectId.toUpperCase()}
                 </span>
               </div>
 
-              {/* Title */}
-              <p className="text-white font-black text-xl leading-tight mb-1">
+              <h2 className="text-white text-xl leading-tight mb-1">
                 {nextLesson.titleByLang[lang] ?? nextLesson.titleByLang.ru}
-              </p>
-              <p className="text-white/60 text-xs mb-4">
-                {nextLesson.subtitle ?? 'Бүгінгі сабаққа уақыт бөл'}
-              </p>
+              </h2>
+              <p className="text-white/65 text-xs mb-4">{nextLesson.subtitle ?? 'Бүгінгі сабаққа уақыт бөл'}</p>
 
-              {/* Progress bar */}
-              <div className="h-1 bg-white/20 rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-white/70 rounded-full"
-                  style={{ width: `${lessonPct}%` }} />
+              <div className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-2">
+                <div className="h-full bg-white rounded-full transition-all" style={{ width: `${lessonPct}%` }} />
               </div>
-
-              {/* Stats row */}
               <div className="flex items-center justify-between mb-4">
-                <span className="text-white/60 text-xs font-bold">
-                  {lessonProgress.done}-сабақ / {lessonProgress.total}
+                <span className="text-white/65 text-xs font-bold tabular">{lessonProgress.done} / {lessonProgress.total} сабақ</span>
+                <span className="text-white text-xs font-black tabular flex items-center gap-1">
+                  <Zap size={13} fill="currentColor" style={{ color: 'var(--accent)' }} /> +{xp} XP
                 </span>
-                <span className="text-[#F5A623] text-xs font-black">+{xp} XP</span>
               </div>
 
-              {/* CTA button */}
-              <button
-                onClick={() => router.push(`/lesson/${nextLesson.id}`)}
-                className="w-full bg-white rounded-2xl py-3 flex items-center justify-center gap-2 font-black text-[#1B3D22] text-sm active:scale-[0.98] transition-all shadow-sm">
-                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-                  style={{ background: '#7B5CBF', color: 'white' }}>▶</span>
+              <button onClick={() => router.push(`/lesson/${nextLesson.id}`)}
+                className="w-full bg-white rounded-[var(--radius)] py-3.5 flex items-center justify-center gap-2 font-display font-black text-sm active:translate-y-[2px] transition-transform"
+                style={{ color: 'var(--primary)', boxShadow: '0 4px 0 color-mix(in oklch, var(--primary) 18%, white)' }}>
+                <span className="w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--primary)' }}>
+                  <Play size={13} className="text-white ml-0.5" fill="currentColor" />
+                </span>
                 Сабақты жалғастыру
               </button>
             </div>
           </div>
         )}
 
-        {/* ── Daily tasks ── */}
-        <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
-          <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-gray-50">
-            <span className="font-black text-[#1A1A2E] text-sm">Бүгінгі тапсырмалар</span>
-            <span className="text-xs font-black text-white px-2 py-0.5 rounded-full"
-              style={{ background: '#7B5CBF' }}>
+        {/* ── Daily quests ── */}
+        <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] overflow-hidden animate-mk-pop-in" style={{ animationDelay: '80ms' }}>
+          <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-border/50">
+            <h3 className="text-foreground text-sm">Бүгінгі тапсырмалар</h3>
+            <span className="text-xs font-black text-white px-2.5 py-0.5 rounded-full tabular" style={{ background: 'var(--primary)' }}>
               {dailyDoneCount}/4
             </span>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-border/40">
             {DAILY_TASKS.map(task => {
               const done = dailyDone.has(task.id)
               return (
-                <div key={task.id} className="px-4 py-3 flex items-center gap-3">
-                  {/* Checkbox */}
-                  <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center"
-                    style={{ background: done ? '#22C55E' : 'transparent', border: done ? 'none' : '2px solid #E5E7EB' }}>
-                    {done && (
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    )}
+                <div key={task.id} className="px-4 py-3 flex items-center gap-3 min-h-[56px]">
+                  <div className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center"
+                    style={done
+                      ? { background: 'var(--gradient-success)' }
+                      : { border: '2px solid var(--border)' }}>
+                    {done && <Check size={14} className="text-white" strokeWidth={3} />}
                   </div>
-                  {/* Text */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-bold ${done ? 'text-gray-400 line-through' : 'text-[#1A1A2E]'}`}>{task.label}</p>
-                    <p className="text-xs text-[#6B7280]">{task.sub}</p>
+                    <p className={`text-sm font-bold ${done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{task.label}</p>
+                    <p className="text-xs text-muted-foreground">{task.sub}</p>
                   </div>
-                  {/* XP badge */}
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full shrink-0"
-                    style={{ background: '#FFF3E8', color: '#FF6B35' }}>
-                    +{task.xp} XP
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 tabular flex items-center gap-0.5"
+                    style={{ background: 'color-mix(in oklch, var(--xp) 16%, white)', color: 'var(--xp)' }}>
+                    <Zap size={10} fill="currentColor" /> +{task.xp}
                   </span>
                 </div>
               )
@@ -276,72 +300,51 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ── Activities horizontal scroll ── */}
-        <div>
-          <p className="text-xs font-black text-[#1A1A2E]/50 tracking-widest uppercase mb-2">Ойындар мен тапсырмалар</p>
+        {/* ── Games & activities ── */}
+        <div className="animate-mk-pop-in" style={{ animationDelay: '120ms' }}>
+          <p className="text-xs font-black text-muted-foreground tracking-widest uppercase mb-2">Ойындар мен тапсырмалар</p>
           <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:overflow-visible" style={{ scrollbarWidth: 'none' }}>
             {ACTIVITIES.map(act => (
-              <button key={act.path}
-                onClick={() => router.push(act.path)}
-                className="shrink-0 w-36 lg:w-auto rounded-2xl p-3.5 flex flex-col gap-2 text-left border active:scale-[0.97] transition-all"
+              <button key={act.path} onClick={() => router.push(act.path)}
+                className="shrink-0 w-36 lg:w-auto rounded-[var(--radius)] p-3.5 flex flex-col gap-2 text-left border active:translate-y-[-2px] transition-transform"
                 style={{ background: act.color, borderColor: act.border }}>
                 <span className="text-2xl">{act.icon}</span>
                 <div>
-                  <p className="font-black text-[#1A1A2E] text-xs leading-tight">{act.name}</p>
-                  <p className="text-[#6B7280] text-[10px] mt-0.5">{act.sub}</p>
+                  <p className="font-display font-black text-foreground text-xs leading-tight">{act.name}</p>
+                  <p className="text-muted-foreground text-[10px] mt-0.5">{act.sub}</p>
                 </div>
-                <span className="text-[10px] font-black rounded-full px-2.5 py-0.5 self-start"
-                  style={{ background: '#7B5CBF', color: 'white' }}>
-                  Ойна →
+                <span className="text-[11px] font-black flex items-center gap-0.5 self-start" style={{ color: 'var(--primary)' }}>
+                  Ойна <ChevronRight size={13} />
                 </span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* ── Subjects section ── */}
-        <div>
+        {/* ── Subjects ── */}
+        <div className="animate-mk-pop-in" style={{ animationDelay: '160ms' }}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-black text-[#1A1A2E]/50 tracking-widest uppercase">Барлық пәндер</p>
-            <button onClick={() => router.push('/lessons')}
-              className="text-xs font-black text-[#7B5CBF]">
-              Барлығын көру →
+            <p className="text-xs font-black text-muted-foreground tracking-widest uppercase">Барлық пәндер</p>
+            <button onClick={() => router.push('/lessons')} className="text-xs font-black flex items-center gap-0.5" style={{ color: 'var(--primary)' }}>
+              Барлығын көру <ChevronRight size={13} />
             </button>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {subjectList.map(subj => {
-              const subjectLessons = ALL_LESSONS.filter(l => l.subjectId === subj.id && l.grade.includes(profile?.grade ?? 2))
-              const subjectDone = subjectLessons.filter(l => {
-                // We don't have starsMap here, use next lesson logic
-                return false
-              }).length
-              const subjectPct = 0 // simplified — full data is in lessons page
-              return (
-                <button key={subj.id}
-                  onClick={() => router.push(`/lessons?subject=${subj.id}`)}
-                  className="bg-white rounded-2xl p-3.5 flex flex-col gap-2 text-left shadow-sm active:scale-[0.97] transition-all border-2 border-transparent">
-                  {/* Icon */}
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl"
-                    style={{ background: subj.bg }}>
-                    {subj.emoji}
-                  </div>
-                  {/* Name + desc */}
-                  <div>
-                    <p className="font-black text-[#1A1A2E] text-sm">{subj.labelKk}</p>
-                    <p className="text-[#6B7280] text-[10px]">{subj.descKk}</p>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full"
-                      style={{ width: `${subjectPct}%`, background: subj.color }} />
-                  </div>
-                  {/* Arrow */}
-                  <div className="flex items-center justify-end">
-                    <span className="text-[10px] font-black text-[#7B5CBF]">→</span>
-                  </div>
-                </button>
-              )
-            })}
+            {subjectList.map(subj => (
+              <button key={subj.id} onClick={() => router.push(`/lessons?subject=${subj.id}`)}
+                className="bg-card rounded-[var(--radius)] p-3.5 flex flex-col gap-2 text-left shadow-[var(--shadow-sm)] active:translate-y-[-2px] transition-transform border border-transparent">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl" style={{ background: subj.bg }}>
+                  {subj.emoji}
+                </div>
+                <div>
+                  <p className="font-display font-black text-foreground text-sm">{subj.labelKk}</p>
+                  <p className="text-muted-foreground text-[10px]">{subj.descKk}</p>
+                </div>
+                <div className="flex items-center justify-end">
+                  <ChevronRight size={15} style={{ color: 'var(--primary)' }} />
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 

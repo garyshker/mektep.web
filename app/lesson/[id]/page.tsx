@@ -368,9 +368,11 @@ export default function LessonPage() {
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4 lg:max-w-2xl lg:mx-auto lg:w-full" style={{ paddingBottom: feedbackHeight + 24 }}>
         <div className="bg-white rounded-3xl px-5 py-5 shadow-sm">
           {/* Label */}
-          <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase mb-4">
-            {t(LABEL_KEYS[q?.kind ?? 'mc'], lang)}
-          </p>
+          <div className="inline-flex items-center mb-4 px-2.5 py-1 rounded-full bg-[#7B5CBF]/12">
+            <span className="text-[11px] font-black text-[#7B5CBF] tracking-[0.12em] uppercase leading-none">
+              {t(LABEL_KEYS[q?.kind ?? 'mc'], lang)}
+            </span>
+          </div>
 
           {/* Content */}
           {q?.kind === 'type' && (
