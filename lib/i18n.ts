@@ -162,6 +162,21 @@ export const I18N = {
   sudoku_erase:       { ru: 'Стереть',                     kk: 'Өшіру',                      en: 'Erase' },
   sudoku_rules:       { ru: 'Заполни сетку цифрами 1–9: в каждой строке, столбце и квадрате 3×3 цифры не повторяются.', kk: 'Торды 1–9 сандарымен толтыр: әр жолда, бағанда және 3×3 шаршыда сандар қайталанбауы керек.', en: 'Fill the grid with 1–9 so each row, column and 3×3 box has no repeats.' },
 
+  // Togyz Kumalak
+  togyz_title:        { ru: 'Тогызкумалак',                kk: 'Тоғыз құмалақ',              en: 'Togyz Kumalak' },
+  togyz_subtitle:     { ru: 'Казахская национальная игра', kk: 'Қазақтың ұлттық ойыны',      en: 'Kazakh national game' },
+  togyz_your_turn:    { ru: 'Твой ход',                    kk: 'Сенің кезегің',              en: 'Your turn' },
+  togyz_ai_turn:      { ru: 'Ход компьютера…',             kk: 'Компьютер ойлауда…',         en: 'Computer is thinking…' },
+  togyz_p1_turn:      { ru: 'Ход игрока 1',                kk: '1-ойыншының кезегі',         en: "Player 1's turn" },
+  togyz_p2_turn:      { ru: 'Ход игрока 2',                kk: '2-ойыншының кезегі',         en: "Player 2's turn" },
+  togyz_you_win:      { ru: 'Ты выиграл! 🎉',              kk: 'Сен жеңдің! 🎉',             en: 'You win! 🎉' },
+  togyz_you_lose:     { ru: 'Компьютер выиграл',           kk: 'Компьютер жеңді',            en: 'Computer wins' },
+  togyz_p1_win:       { ru: 'Игрок 1 победил!',            kk: '1-ойыншы жеңді!',            en: 'Player 1 wins!' },
+  togyz_p2_win:       { ru: 'Игрок 2 победил!',            kk: '2-ойыншы жеңді!',            en: 'Player 2 wins!' },
+  togyz_draw:         { ru: 'Ничья',                       kk: 'Тең ойын',                   en: 'Draw' },
+  togyz_kazan:        { ru: 'Казан',                       kk: 'Қазан',                      en: 'Kazan' },
+  togyz_rules:        { ru: 'Бери камешки из своей лунки и раскладывай по кругу. Если в чужой лунке стало чётное число — забираешь их в свой казан. Кто наберёт больше 81 — победил.', kk: 'Өз ұяңнан құмалақтарды алып, шеңбер бойымен тарат. Қарсыластың ұясында жұп сан болса — оларды қазаныңа аласың. 81-ден көп жинаған жеңеді.', en: 'Take pebbles from your hole and sow them around. If an opponent hole becomes even, you take them to your kazan. First past 81 wins.' },
+
   // Reset password page
   reset_title:        { ru: 'Новый пароль',               kk: 'Жаңа құпиясөз',              en: 'New password' },
   reset_subtitle:     { ru: 'Придумай новый пароль для входа', kk: 'Кіру үшін жаңа құпиясөз ойлап тап', en: 'Create a new password to sign in' },
