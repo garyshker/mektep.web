@@ -130,6 +130,16 @@ export const I18N = {
   too_many_req:       { ru: 'Слишком много запросов. Подожди немного и попробуй снова.', kk: 'Тым көп сұраныс. Сәл күтіп, қайта көр.', en: 'Too many requests. Wait a moment and try again.' },
   guest_unavailable:  { ru: 'Гостевой режим пока недоступен. Попробуй позже.', kk: 'Қонақ режимі әзірге қолжетімсіз. Кейінірек көр.', en: 'Guest mode is unavailable right now. Try later.' },
 
+  // Checkers
+  checkers_title:     { ru: 'Русские шашки',              kk: 'Орыс дойбысы',               en: 'Russian Checkers' },
+  checkers_subtitle:  { ru: 'Сыграй против компьютера',   kk: 'Компьютермен ойна',          en: 'Play against the computer' },
+  checkers_your_turn: { ru: 'Твой ход',                   kk: 'Сенің кезегің',              en: 'Your turn' },
+  checkers_ai_turn:   { ru: 'Ход компьютера…',            kk: 'Компьютер ойлауда…',         en: 'Computer is thinking…' },
+  checkers_you_win:   { ru: 'Ты выиграл! 🎉',             kk: 'Сен жеңдің! 🎉',             en: 'You win! 🎉' },
+  checkers_you_lose:  { ru: 'Компьютер выиграл',          kk: 'Компьютер жеңді',            en: 'Computer wins' },
+  checkers_must_cap:  { ru: 'Бить обязательно!',          kk: 'Алу міндетті!',              en: 'You must capture!' },
+  checkers_rules:     { ru: 'Бей по диагонали вперёд и назад. Бить обязательно. Дойдёшь до конца — станешь дамкой.', kk: 'Қиғаш алға да, артқа да ал. Алу міндетті. Соңғы қатарға жетсең — дамка боласың.', en: 'Capture diagonally forward and backward. Capturing is mandatory. Reach the far row to become a king.' },
+
   // Reset password page
   reset_title:        { ru: 'Новый пароль',               kk: 'Жаңа құпиясөз',              en: 'New password' },
   reset_subtitle:     { ru: 'Придумай новый пароль для входа', kk: 'Кіру үшін жаңа құпиясөз ойлап тап', en: 'Create a new password to sign in' },
