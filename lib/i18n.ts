@@ -149,6 +149,19 @@ export const I18N = {
   checkers_white_win: { ru: 'Белые победили! ⚪',          kk: 'Ақтар жеңді! ⚪',            en: 'White wins! ⚪' },
   checkers_black_win: { ru: 'Чёрные победили! ⚫',          kk: 'Қаралар жеңді! ⚫',           en: 'Black wins! ⚫' },
 
+  // Sudoku
+  sudoku_title:       { ru: 'Судоку',                      kk: 'Судоку',                     en: 'Sudoku' },
+  sudoku_pick:        { ru: 'Выбери сложность',            kk: 'Күрделілікті таңда',         en: 'Choose difficulty' },
+  sudoku_easy:        { ru: 'Лёгкий',                      kk: 'Жеңіл',                      en: 'Easy' },
+  sudoku_medium:      { ru: 'Средний',                     kk: 'Орташа',                     en: 'Medium' },
+  sudoku_hard:        { ru: 'Сложный',                     kk: 'Қиын',                       en: 'Hard' },
+  sudoku_expert:      { ru: 'Эксперт',                     kk: 'Сарапшы',                    en: 'Expert' },
+  sudoku_generating:  { ru: 'Готовим судоку…',             kk: 'Судоку дайындалуда…',        en: 'Preparing Sudoku…' },
+  sudoku_solved:      { ru: 'Решено! 🎉',                  kk: 'Шешілді! 🎉',                en: 'Solved! 🎉' },
+  sudoku_time:        { ru: 'Время',                       kk: 'Уақыт',                      en: 'Time' },
+  sudoku_erase:       { ru: 'Стереть',                     kk: 'Өшіру',                      en: 'Erase' },
+  sudoku_rules:       { ru: 'Заполни сетку цифрами 1–9: в каждой строке, столбце и квадрате 3×3 цифры не повторяются.', kk: 'Торды 1–9 сандарымен толтыр: әр жолда, бағанда және 3×3 шаршыда сандар қайталанбауы керек.', en: 'Fill the grid with 1–9 so each row, column and 3×3 box has no repeats.' },
+
   // Reset password page
   reset_title:        { ru: 'Новый пароль',               kk: 'Жаңа құпиясөз',              en: 'New password' },
   reset_subtitle:     { ru: 'Придумай новый пароль для входа', kk: 'Кіру үшін жаңа құпиясөз ойлап тап', en: 'Create a new password to sign in' },

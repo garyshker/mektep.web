@@ -23,6 +23,7 @@ const ACTIVITIES = [
   { icon: '🐍', name: 'Сандық жылан',  sub: 'Сандарды жина',           color: '#E8F5F0', border: '#A8DFCA', path: '/game/snake' },
   { icon: '🔢', name: '2048',           sub: 'Бірдей сандарды біріктір', color: '#FFF8E0', border: '#FFE08A', path: '/game/2048'  },
   { icon: '🔴', name: 'Дойбы',          sub: 'Орыс дойбысы',            color: '#F3E9E2', border: '#D9B89E', path: '/game/checkers' },
+  { icon: '🧩', name: 'Судоку',         sub: 'Логикалық басқатырғыш',   color: '#EDE7FB', border: '#C9B8F0', path: '/game/sudoku' },
 ]
 
 function getWeekStart(): Date {
