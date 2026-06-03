@@ -309,9 +309,11 @@ export default function CheckersPage() {
         </div>
       </div>
 
-      {mustCapture && !winner && (
-        <p className="text-amber-300 text-xs font-bold mb-2">{t('checkers_must_cap', lang)}</p>
-      )}
+      {/* Reserve a constant line so the board never shifts when this toggles */}
+      <p className="text-amber-300 text-xs font-bold mb-2 h-4 leading-4"
+        style={{ visibility: mustCapture && !winner ? 'visible' : 'hidden' }}>
+        {t('checkers_must_cap', lang)}
+      </p>
 
       {/* Board */}
       <div className="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl select-none">
