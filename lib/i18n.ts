@@ -49,6 +49,8 @@ export const I18N = {
   score_tmpl:         { ru: '[N] из [T] правильно',       kk: '[N] / [T] дұрыс',            en: '[N] of [T] correct' },
   again:              { ru: 'Ещё раз',                    kk: 'Қайтадан',                   en: 'Again' },
   not_found:          { ru: 'Урок не найден',             kk: 'Сабақ табылмады',            en: 'Lesson not found' },
+  complete_sub:       { ru: 'Отличная работа!',           kk: 'Тамаша жұмыс!',              en: 'Great job!' },
+  streak_days:        { ru: 'Серия дней',                 kk: 'Күндік серия',               en: 'Day streak' },
 
   // Profile
   days_streak:        { ru: 'Дней подряд',                kk: 'Күн қатарынан',              en: 'Day streak' },

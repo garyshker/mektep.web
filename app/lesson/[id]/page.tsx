@@ -11,9 +11,12 @@ import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { speak } from '@/lib/speak'
 import { Check, X, ArrowRight, Volume2 } from 'lucide-react'
+import { LessonComplete } from '@/components/LessonComplete'
 import type { CSSProperties } from 'react'
 
 type Feedback = 'right' | 'wrong' | null
+
+const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 function byLang(val: string | ByLang | undefined, lang: string): string {
   if (!val) return ''
@@ -85,6 +88,7 @@ export default function LessonPage() {
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [correctCount, setCorrectCount] = useState(0)
   const [done, setDone] = useState(false)
+  const [completion, setCompletion] = useState<{ earnedXp: number; streak: number; streakUp: boolean }>({ earnedXp: 0, streak: 0, streakUp: false })
 
   // per-type state
   const [selected, setSelected] = useState<string | null>(null)
@@ -134,17 +138,35 @@ export default function LessonPage() {
 
   const next = async () => {
     if (idx + 1 >= total) {
+      const final = correctCount
+      const earned = 15 + final * 5
+      const stars = final >= total ? 3 : final >= total - 2 ? 2 : 1
+      let newStreak = 0, streakUp = false
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const final = correctCount
-        const stars = final >= total ? 3 : final >= total - 2 ? 2 : 1
-        const xp = 15 + final * 5
+        // Keep the best stars on replays
+        const { data: existing } = await supabase.from('lesson_progress')
+          .select('stars').eq('user_id', user.id).eq('lesson_id', lesson.id).maybeSingle()
+        const bestStars = Math.max(existing?.stars ?? 0, stars)
         await supabase.from('lesson_progress').upsert({
           user_id: user.id, lesson_id: lesson.id, subject_id: lesson.subjectId,
-          stars, xp_earned: xp,
+          stars: bestStars, xp_earned: earned,
         })
-        await supabase.from('profiles').update({ xp }).eq('id', user.id)
+        // XP accumulates; streak bumps once per day
+        const { data: prof } = await supabase.from('profiles')
+          .select('xp, streak, last_active').eq('id', user.id).single()
+        const today = new Date(), yest = new Date(); yest.setDate(today.getDate() - 1)
+        const tStr = ymd(today), yStr = ymd(yest)
+        newStreak = prof?.streak ?? 0
+        if (prof?.last_active !== tStr) {
+          newStreak = prof?.last_active === yStr ? newStreak + 1 : 1
+          streakUp = true
+        }
+        await supabase.from('profiles')
+          .update({ xp: (prof?.xp ?? 0) + earned, streak: newStreak, last_active: tStr })
+          .eq('id', user.id)
       }
+      setCompletion({ earnedXp: earned, streak: newStreak, streakUp })
       setDone(true)
       return
     }
@@ -156,24 +178,16 @@ export default function LessonPage() {
     const final = correctCount
     const stars = final >= total ? 3 : final >= total - 2 ? 2 : 1
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: 'var(--background)' }}>
-        <div className="text-6xl mb-4 animate-mk-pop-in">{'⭐'.repeat(stars)}{'☆'.repeat(3 - stars)}</div>
-        <h2 className="text-2xl font-display font-black text-foreground mb-1">{t('lesson_done', lang)}</h2>
-        <p className="text-muted-foreground mb-2 tabular">{t('score_tmpl', lang).replace('[N]', String(final)).replace('[T]', String(total))}</p>
-        <p className="font-black text-xl mb-10 tabular" style={{ color: 'var(--primary)' }}>+{15 + final * 5} XP</p>
-        <div className="flex gap-3 w-full max-w-xs">
-          <button onClick={() => router.push('/lessons')}
-            className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] font-display font-black"
-            style={{ background: 'var(--card)', color: 'var(--foreground)', ['--pop-shadow' as string]: 'var(--border)' } as CSSProperties}>
-            {t('lessons', lang)}
-          </button>
-          <button onClick={() => { setIdx(0); setCorrectCount(0); setFeedback(null); setSelected(null); setDone(false) }}
-            className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] text-white font-display font-black"
-            style={{ background: 'var(--gradient-hero)', ['--pop-shadow' as string]: 'var(--primary-deep)' } as CSSProperties}>
-            {t('again', lang)}
-          </button>
-        </div>
-      </div>
+      <LessonComplete
+        stars={stars}
+        correct={final}
+        total={total}
+        xp={completion.earnedXp}
+        streak={completion.streak}
+        streakUp={completion.streakUp}
+        onLessons={() => router.push('/lessons')}
+        onAgain={() => { setIdx(0); setCorrectCount(0); setFeedback(null); setSelected(null); setDone(false) }}
+      />
     )
   }
 
