@@ -177,6 +177,18 @@ export const I18N = {
   togyz_kazan:        { ru: 'Казан',                       kk: 'Қазан',                      en: 'Kazan' },
   togyz_rules:        { ru: 'Бери камешки из своей лунки и раскладывай по кругу. Если в чужой лунке стало чётное число — забираешь их в свой казан. Кто наберёт больше 81 — победил.', kk: 'Өз ұяңнан құмалақтарды алып, шеңбер бойымен тарат. Қарсыластың ұясында жұп сан болса — оларды қазаныңа аласың. 81-ден көп жинаған жеңеді.', en: 'Take pebbles from your hole and sow them around. If an opponent hole becomes even, you take them to your kazan. First past 81 wins.' },
 
+  // Countries
+  countries_title:    { ru: 'Страны',                     kk: 'Елдер',                      en: 'Countries' },
+  countries_subtitle: { ru: 'Страны СНГ',                 kk: 'ТМД елдері',                 en: 'CIS countries' },
+  countries_capital:  { ru: 'Столица',                    kk: 'Астанасы',                   en: 'Capital' },
+  countries_pop:      { ru: 'Население',                  kk: 'Халық саны',                 en: 'Population' },
+  countries_mln:      { ru: 'млн',                        kk: 'млн',                        en: 'M' },
+  countries_start:    { ru: 'Начать викторину',           kk: 'Викторинаны бастау',         en: 'Start quiz' },
+  countries_q_flag:   { ru: 'Чей это флаг?',              kk: 'Бұл қай елдің туы?',         en: 'Whose flag is this?' },
+  countries_q_capital:{ ru: 'Какая столица?',             kk: 'Астанасы қандай?',           en: 'What is the capital?' },
+  countries_q_whose:  { ru: 'Чья это столица?',           kk: 'Бұл қай елдің астанасы?',    en: 'Whose capital is this?' },
+  countries_result:   { ru: 'Результат',                  kk: 'Нәтиже',                     en: 'Result' },
+
   // Reset password page
   reset_title:        { ru: 'Новый пароль',               kk: 'Жаңа құпиясөз',              en: 'New password' },
   reset_subtitle:     { ru: 'Придумай новый пароль для входа', kk: 'Кіру үшін жаңа құпиясөз ойлап тап', en: 'Create a new password to sign in' },

@@ -25,6 +25,7 @@ const ACTIVITIES = [
   { icon: '🔴', name: 'Дойбы',          sub: 'Орыс дойбысы',            color: '#F3E9E2', border: '#D9B89E', path: '/game/checkers' },
   { icon: '🧩', name: 'Судоку',         sub: 'Логикалық басқатырғыш',   color: '#EDE7FB', border: '#C9B8F0', path: '/game/sudoku' },
   { icon: '🪨', name: 'Тоғыз құмалақ',  sub: 'Ұлттық ойын',             color: '#F5E9D8', border: '#D9B98A', path: '/game/togyz' },
+  { icon: '🌍', name: 'Елдер',          sub: 'ТМД елдері',              color: '#E7F0FB', border: '#A9CBF0', path: '/game/countries' },
 ]
 
 function getWeekStart(): Date {
