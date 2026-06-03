@@ -1,33 +1,132 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* core — warm paper, near-black ink */
+  --background: oklch(0.99 0.005 95);
+  --foreground: oklch(0.18 0.02 260);
+  --card: oklch(1 0 0);
+  --border: oklch(0.92 0.01 95);
+  --muted: oklch(0.96 0.008 95);
+  --muted-foreground: oklch(0.52 0.015 260);
+
+  /* brand — kazakh blue (flag) + steppe gold, green kept (hybrid) */
+  --primary: oklch(0.62 0.18 240);
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: oklch(0.72 0.16 230);
+  --primary-deep: oklch(0.42 0.16 245);        /* pop-shadow for blue */
+
+  --accent: oklch(0.78 0.16 85);
+  --accent-foreground: oklch(0.18 0.02 260);
+  --accent-deep: oklch(0.60 0.16 70);
+
+  --brand: oklch(0.72 0.19 145);               /* current green identity */
+  --brand-foreground: oklch(1 0 0);
+  --brand-deep: oklch(0.55 0.17 145);
+
+  --success: oklch(0.68 0.18 145);
+  --success-foreground: oklch(1 0 0);
+  --destructive: oklch(0.62 0.22 25);
+  --destructive-foreground: oklch(1 0 0);
+  --warning: oklch(0.78 0.16 60);
+  --xp: oklch(0.74 0.17 85);
+
+  /* gradients */
+  --gradient-hero: linear-gradient(135deg, oklch(0.62 0.18 240), oklch(0.72 0.16 200));
+  --gradient-gold: linear-gradient(135deg, oklch(0.82 0.16 85), oklch(0.74 0.18 70));
+  --gradient-success: linear-gradient(135deg, oklch(0.72 0.18 150), oklch(0.65 0.18 140));
+
+  /* shadows — soft, plus duolingo-style pop */
+  --shadow-sm: 0 1px 2px oklch(0.18 0.02 260 / 0.04);
+  --shadow-md: 0 4px 12px oklch(0.18 0.02 260 / 0.06);
+  --shadow-pop: 0 4px 0 oklch(0.18 0.02 260 / 0.14);
+  --shadow-glow: 0 0 32px oklch(0.62 0.18 240 / 0.35);
+
+  /* radii */
+  --radius-sm: 12px;
+  --radius: 18px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  /* fonts (set by next/font in layout) */
+  --font-display: var(--font-nunito), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+}
+
+.dark {
+  --background: oklch(0.18 0.02 260);
+  --foreground: oklch(0.96 0.008 95);
+  --card: oklch(0.22 0.025 260);
+  --border: oklch(0.28 0.025 260);
+  --muted: oklch(0.24 0.02 260);
+  --muted-foreground: oklch(0.68 0.015 260);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand: var(--brand);
+  --color-success: var(--success);
+  --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+  --color-xp: var(--xp);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
 }
 
-@keyframes togyzPop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.16); }
-  100% { transform: scale(1); }
+h1, h2, h3, .display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* ── Duolingo-style "pop" button ─────────────────────────────────────────── */
+.pop-btn {
+  box-shadow: 0 4px 0 var(--pop-shadow, var(--border));
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+}
+.pop-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--pop-shadow, var(--border));
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────── */
+@keyframes togyzPop { 0% { transform: scale(1); } 40% { transform: scale(1.16); } 100% { transform: scale(1); } }
 .togyz-pop { animation: togyzPop 0.4s ease; }
+
+@keyframes mkPop { 0% { transform: scale(1); } 45% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.animate-mk-pop { animation: mkPop 0.35s ease; }
+
+@keyframes mkShake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+.animate-mk-shake { animation: mkShake 0.4s ease; }
+
+@keyframes mkPopIn { 0% { transform: scale(0.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.animate-mk-pop-in { animation: mkPopIn 0.22s ease; }
+
+@keyframes mkFloatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-32px); opacity: 0; } }
+.animate-mk-float { animation: mkFloatUp 0.8s ease forwards; }
+
+@keyframes mkShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
