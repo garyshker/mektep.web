@@ -7,7 +7,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { ALL_LESSONS, SUBJECTS } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
-import { Flame, Zap, Play, ChevronRight, Check } from 'lucide-react'
+import { Flame, Zap, Play, ChevronRight, Check, Target } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 
 // Kazakh "qośqar-muyiz" style ornament for the hero corner
@@ -299,6 +299,20 @@ export default function HomePage() {
             })}
           </div>
         </div>
+
+        {/* ── Trainers CTA ── */}
+        <button onClick={() => router.push('/train')}
+          className="animate-mk-pop-in rounded-[var(--radius-lg)] p-4 flex items-center gap-4 text-left shadow-[var(--shadow-md)] active:translate-y-[-2px] transition-transform"
+          style={{ background: 'var(--gradient-hero)', animationDelay: '100ms' }}>
+          <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+            <Target size={26} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-display font-black text-white text-base leading-tight">{t('train_title', lang)}</p>
+            <p className="text-white/70 text-xs">{t('train_subtitle', lang)}</p>
+          </div>
+          <ChevronRight size={20} className="text-white/80 shrink-0" />
+        </button>
 
         {/* ── Games & activities ── */}
         <div className="animate-mk-pop-in" style={{ animationDelay: '120ms' }}>

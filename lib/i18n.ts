@@ -99,6 +99,19 @@ export const I18N = {
   game_target:        { ru: 'Цель',                       kk: 'Мақсат',                     en: 'Target' },
   game_choose_answer: { ru: 'ВЫБЕРИ ОТВЕТ',               kk: 'ЖАУАПТЫ ТАҢДА',              en: 'CHOOSE ANSWER' },
 
+  // Trainers
+  train_title:        { ru: 'Тренажёры',                  kk: 'Жаттығулар',                 en: 'Trainers' },
+  train_subtitle:     { ru: 'Бесконечная практика',       kk: 'Шексіз жаттығу',             en: 'Endless practice' },
+  train_pick:         { ru: 'Выбери навык',               kk: 'Дағдыны таңда',              en: 'Choose a skill' },
+  train_add:          { ru: 'Сложение',                   kk: 'Қосу',                       en: 'Addition' },
+  train_sub:          { ru: 'Вычитание',                  kk: 'Алу',                        en: 'Subtraction' },
+  train_mul:          { ru: 'Умножение',                  kk: 'Көбейту',                    en: 'Multiplication' },
+  train_div:          { ru: 'Деление',                    kk: 'Бөлу',                       en: 'Division' },
+  train_mix:          { ru: 'Всё вместе',                 kk: 'Аралас',                     en: 'Mixed' },
+  train_streak:       { ru: 'Серия',                      kk: 'Серия',                      en: 'Streak' },
+  train_best:         { ru: 'Лучшая серия',               kk: 'Үздік серия',                en: 'Best streak' },
+  train_stop:         { ru: 'Стоп',                       kk: 'Тоқта',                      en: 'Stop' },
+
   // Login / Auth
   login_welcome:      { ru: 'Добро пожаловать в',         kk: 'Қош келдің,',                en: 'Welcome to' },
   login_tagline:      { ru: 'Школа, которая помещается в кармане. Учись, следи за оценками и не теряй вдохновения.', kk: 'Қалтаңа сыятын мектеп. Оқы, бағаңды бақыла және шабытыңды жоғалтпа.', en: 'A school that fits in your pocket. Learn, track your grades and stay inspired.' },
