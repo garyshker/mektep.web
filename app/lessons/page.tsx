@@ -8,6 +8,13 @@ import { BottomNav } from '@/components/BottomNav'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { ChevronRight, ChevronLeft, Lock } from 'lucide-react'
+import { SUBJECT_ICONS } from '@/components/GameIcons'
+
+function SubjIcon({ id, emoji, size = 24 }: { id: string; emoji?: string; size?: number }) {
+  const I = SUBJECT_ICONS[id]
+  if (!I) return <>{emoji}</>
+  return <span style={{ color: I.color }}><I.Comp size={size} /></span>
+}
 import type { Lesson } from '@/lib/lessons'
 import type { CSSProperties } from 'react'
 
@@ -76,7 +83,7 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
                 {/* Icon */}
                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl"
                   style={{ background: subj.bg }}>
-                  {subj.emoji}
+                  <SubjIcon id={subj.id} emoji={subj.emoji} size={26} />
                 </div>
                 {/* Name + desc */}
                 <div>
@@ -112,7 +119,7 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
               className="bg-card rounded-[var(--radius-lg)] p-4 flex flex-col gap-3 border-2 border-dashed border-border opacity-75">
               <div className="flex items-center justify-between">
                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl bg-muted">
-                  {subj.emoji}
+                  <SubjIcon id={subj.id} emoji={subj.emoji} size={26} />
                 </div>
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full text-white"
                   style={{ background: subj.color }}>
@@ -169,7 +176,7 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl"
               style={{ background: subj.bg }}>
-              {subj.emoji}
+              <SubjIcon id={subj.id} emoji={subj.emoji} size={24} />
             </div>
             <div>
               <p className="font-display font-black text-foreground text-base">{subjectLabel(subj, lang)}</p>

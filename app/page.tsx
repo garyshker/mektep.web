@@ -8,7 +8,7 @@ import { ALL_LESSONS, SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { Flame, Zap, Play, ChevronRight, Check, Target, UserPlus } from 'lucide-react'
-import { GAME_ICONS } from '@/components/GameIcons'
+import { GAME_ICONS, SUBJECT_ICONS } from '@/components/GameIcons'
 import type { User } from '@supabase/supabase-js'
 
 // Kazakh "qośqar-muyiz" style ornament for the hero corner
@@ -382,7 +382,9 @@ export default function HomePage() {
               <button key={subj.id} onClick={() => router.push(`/lessons?subject=${subj.id}`)}
                 className="bg-card rounded-[var(--radius)] p-3.5 flex flex-col gap-2 text-left shadow-[var(--shadow-sm)] active:translate-y-[-2px] transition-transform border border-transparent">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl" style={{ background: subj.bg }}>
-                  {subj.emoji}
+                  {SUBJECT_ICONS[subj.id]
+                    ? (() => { const I = SUBJECT_ICONS[subj.id]; return <span style={{ color: I.color }}><I.Comp size={24} /></span> })()
+                    : subj.emoji}
                 </div>
                 <div>
                   <p className="font-display font-black text-foreground text-sm">{subjectLabel(subj, lang)}</p>
