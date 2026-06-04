@@ -7,7 +7,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { ALL_LESSONS, SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
-import { Flame, Zap, Play, ChevronRight, Check, Target } from 'lucide-react'
+import { Flame, Zap, Play, ChevronRight, Check, Target, UserPlus } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 
 // Kazakh "qośqar-muyiz" style ornament for the hero corner
@@ -173,6 +173,7 @@ export default function HomePage() {
 
   const days = WEEKDAYS[lang] ?? WEEKDAYS.kk
   const ti = todayIdx()
+  const isGuest = user?.is_anonymous ?? false
 
   return (
     <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60 lg:pt-8" style={{ background: 'var(--background)' }}>
@@ -204,6 +205,21 @@ export default function HomePage() {
       </header>
 
       <main className="max-w-lg lg:max-w-2xl mx-auto px-4 flex flex-col gap-4">
+
+        {/* ── Guest banner ── */}
+        {isGuest && (
+          <div className="rounded-[var(--radius-lg)] p-4 flex items-center gap-3 animate-mk-pop-in"
+            style={{ background: 'color-mix(in oklch, var(--warning) 14%, white)' }}>
+            <p className="flex-1 text-xs font-semibold leading-snug" style={{ color: 'oklch(0.42 0.1 70)' }}>
+              {t('guest_banner', lang)}
+            </p>
+            <button onClick={() => router.push('/login')}
+              className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-[var(--radius)] text-white font-display font-black text-xs active:scale-95 transition-transform"
+              style={{ background: 'var(--primary)' }}>
+              <UserPlus size={14} /> {t('reg_heading', lang)}
+            </button>
+          </div>
+        )}
 
         {/* ── Weekly streak ── */}
         <div className="bg-card rounded-[var(--radius-lg)] px-4 py-3 shadow-[var(--shadow-sm)] animate-mk-pop-in">

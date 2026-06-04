@@ -1,28 +1,12 @@
 import type { I18NKey } from './i18n'
+import { smartOptions, type Op } from './distractors'
 
 export type Problem = { prompt: string; answer: number; options: string[] }
 
 const ri = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1))
-function sfl<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] }
-  return a
-}
 
-// 4 multiple-choice options around the answer
-function mcOptions(answer: number): string[] {
-  const set = new Set<number>([answer])
-  for (const d of sfl([1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 10, -10])) {
-    if (set.size >= 4) break
-    const c = answer + d
-    if (c >= 0) set.add(c)
-  }
-  while (set.size < 4) set.add(answer + set.size * 7)
-  return sfl([...set]).map(String)
-}
-
-const build = (a: number, op: string, b: number, answer: number): Problem => ({
-  prompt: `${a} ${op} ${b}`, answer, options: mcOptions(answer),
+const build = (a: number, op: Op, b: number, answer: number): Problem => ({
+  prompt: `${a} ${op} ${b}`, answer, options: smartOptions(a, op, b),
 })
 
 const genAdd = (): Problem => { const a = ri(2, 49), b = ri(2, 49); return build(a, '+', b, a + b) }

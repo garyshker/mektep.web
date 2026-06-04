@@ -196,8 +196,16 @@ export default function LoginPage() {
                 <button onClick={() => switchMode('login')} className="font-black" style={{ color: 'var(--primary)' }}>{t('back_to_login', lang)}</button>)}
             </p>
 
+            {/* Guest entry — explicit */}
+            {mode === 'login' && (
+              <button type="button" onClick={enterAsGuest} disabled={loading}
+                className="w-full mt-4 py-3 rounded-[var(--radius)] font-display font-bold border-2 border-border text-muted-foreground active:scale-[0.98] transition-transform disabled:opacity-50">
+                {t('login_as_guest', lang)}
+              </button>
+            )}
+
             {/* Safety badge */}
-            <div className="mt-5 flex items-center justify-center gap-2 rounded-[var(--radius)] py-2.5"
+            <div className="mt-4 flex items-center justify-center gap-2 rounded-[var(--radius)] py-2.5"
               style={{ background: 'color-mix(in oklch, var(--success) 12%, white)' }}>
               <ShieldCheck size={16} style={{ color: 'var(--success)' }} />
               <span className="text-sm font-bold" style={{ color: 'var(--success)' }}>{t('safe_for_kids', lang)}</span>

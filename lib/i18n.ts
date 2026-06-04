@@ -158,6 +158,8 @@ export const I18N = {
   reset_email_sent:   { ru: 'Письмо со ссылкой для сброса отправлено. Проверь почту (и папку «Спам»).', kk: 'Қалпына келтіру сілтемесі жіберілді. Поштаңды тексер («Спам» қалтасын да).', en: 'Reset link sent. Check your email (and Spam folder).' },
   too_many_req:       { ru: 'Слишком много запросов. Подожди немного и попробуй снова.', kk: 'Тым көп сұраныс. Сәл күтіп, қайта көр.', en: 'Too many requests. Wait a moment and try again.' },
   guest_unavailable:  { ru: 'Гостевой режим пока недоступен. Попробуй позже.', kk: 'Қонақ режимі әзірге қолжетімсіз. Кейінірек көр.', en: 'Guest mode is unavailable right now. Try later.' },
+  login_as_guest:     { ru: 'Войти как гость →',          kk: 'Қонақ ретінде кіру →',       en: 'Continue as guest →' },
+  guest_banner:       { ru: 'Ты вошёл как гость. Прогресс сохранится только на этом устройстве.', kk: 'Сен қонақ ретінде кірдің. Прогресс тек осы құрылғыда сақталады.', en: 'You are a guest. Progress is saved only on this device.' },
 
   // Checkers
   checkers_title:     { ru: 'Русские шашки',              kk: 'Орыс дойбысы',               en: 'Russian Checkers' },

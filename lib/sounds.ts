@@ -18,6 +18,10 @@ function ac(): AudioContext {
   return ctx
 }
 
+function vibrate(pattern: number | number[]) {
+  try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(pattern) } catch { /* ignore */ }
+}
+
 function tone(freq: number, type: OscillatorType, start: number, dur: number, vol = 0.25) {
   const c = ac()
   const osc = c.createOscillator()
@@ -35,6 +39,7 @@ function tone(freq: number, type: OscillatorType, start: number, dur: number, vo
 
 export function playCorrect() {
   if (!soundEnabled()) return
+  vibrate(30)
   try {
     const c = ac()
     const now = c.currentTime
@@ -47,6 +52,7 @@ export function playCorrect() {
 
 export function playWrong() {
   if (!soundEnabled()) return
+  vibrate([60, 40, 60])
   try {
     const c = ac()
     const now = c.currentTime

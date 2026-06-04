@@ -1,4 +1,5 @@
 import type { Lesson, Question } from './types'
+import { smartOptions } from '../distractors'
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -8,17 +9,6 @@ function _sfl<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) { const j = _ri(0, i);[a[i], a[j]] = [a[j], a[i]] }
   return a
-}
-
-function _mcOpts(answer: number): string[] {
-  const set = new Set<number>([answer])
-  for (const d of _sfl([1, -1, 2, -2, 3, -3, 5, -5, 7, -7, 10, -10])) {
-    if (set.size >= 4) break
-    const c = answer + d
-    if (c > 0) set.add(c)
-  }
-  while (set.size < 4) set.add(answer + set.size * 7)
-  return _sfl([...set]).map(String)
 }
 
 function _steps(a: number, op: '+' | '−', b: number): string {
@@ -58,7 +48,7 @@ export function generateAdditionLesson(): Lesson {
 
   const mc = Array.from({ length: 3 }, () => {
     const { a, b } = pair(15, 65, 10, 30)
-    const ans = a + b; const opts = _mcOpts(ans)
+    const ans = a + b; const opts = smartOptions(a, '+', b)
     return {
       kind: 'mc' as const, big: true, prompt: `${a} + ${b}`,
       options: opts, answer: opts.indexOf(String(ans)),
@@ -88,15 +78,15 @@ export function generateAdditionLesson(): Lesson {
 
   // Word problem — pick one of 3 templates
   const wordFns = [
-    () => { const { a, b } = pair(20, 55, 10, 40); const ans = a + b; const opts = _mcOpts(ans)
+    () => { const { a, b } = pair(20, 55, 10, 40); const ans = a + b; const opts = smartOptions(a, '+', b)
       return { kind: 'word' as const, image: '🍎',
         storyByLang: { kk: `Дүкенде ${a} алма мен ${b} алмұрт бар. Барлығы?`, ru: `В магазине ${a} яблок и ${b} груш. Сколько всего фруктов?`, en: `A shop has ${a} apples and ${b} pears. Total?` },
         options: opts, answer: opts.indexOf(String(ans)) } },
-    () => { const { a, b } = pair(25, 60, 10, 35); const ans = a + b; const opts = _mcOpts(ans)
+    () => { const { a, b } = pair(25, 60, 10, 35); const ans = a + b; const opts = smartOptions(a, '+', b)
       return { kind: 'word' as const, image: '✏️',
         storyByLang: { kk: `Болатта ${a} қалам болды, досы ${b} берді. Барлығы қанша?`, ru: `У Болата было ${a} карандашей, друг дал ${b}. Сколько стало?`, en: `Bolat had ${a} pencils, got ${b} more. Total?` },
         options: opts, answer: opts.indexOf(String(ans)) } },
-    () => { const { a, b } = pair(30, 55, 15, 40); const ans = a + b; const opts = _mcOpts(ans)
+    () => { const { a, b } = pair(30, 55, 15, 40); const ans = a + b; const opts = smartOptions(a, '+', b)
       return { kind: 'word' as const, image: '🚌',
         storyByLang: { kk: `Автобуста ${a} адам болды, аялдамада ${b} мінді. Барлығы қанша?`, ru: `В автобусе было ${a} человек, на остановке вошли ${b}. Сколько стало?`, en: `Bus had ${a} people, ${b} more got on. Total?` },
         options: opts, answer: opts.indexOf(String(ans)) } },
@@ -123,7 +113,7 @@ export function generateSubtractionLesson(): Lesson {
 
   const mc = Array.from({ length: 3 }, () => {
     const { a, b } = pair(30, 90, 10, 45)
-    const ans = a - b; const opts = _mcOpts(ans)
+    const ans = a - b; const opts = smartOptions(a, '−', b)
     return {
       kind: 'mc' as const, big: true, prompt: `${a} − ${b}`,
       options: opts, answer: opts.indexOf(String(ans)),
@@ -152,15 +142,15 @@ export function generateSubtractionLesson(): Lesson {
   )
 
   const wordFns = [
-    () => { const { a, b } = pair(40, 80, 15, 35); const ans = a - b; const opts = _mcOpts(ans)
+    () => { const { a, b } = pair(40, 80, 15, 35); const ans = a - b; const opts = smartOptions(a, '−', b)
       return { kind: 'word' as const, image: '🍭',
         storyByLang: { kk: `Айдада ${a} карамель болды. Ол ${b}-ін берді. Қанша қалды?`, ru: `У Айды было ${a} конфет. Она отдала ${b}. Сколько осталось?`, en: `Aida had ${a} sweets, gave away ${b}. How many left?` },
         options: opts, answer: opts.indexOf(String(ans)) } },
-    () => { const { a, b } = pair(50, 90, 20, 45); const ans = a - b; const opts = _mcOpts(ans)
+    () => { const { a, b } = pair(50, 90, 20, 45); const ans = a - b; const opts = smartOptions(a, '−', b)
       return { kind: 'word' as const, image: '📚',
         storyByLang: { kk: `Кітапхананың ${a} кітабы болды. ${b}-ін оқушылар алып кетті. Қанша қалды?`, ru: `В библиотеке было ${a} книг. Ученики взяли ${b}. Сколько осталось?`, en: `Library had ${a} books, students took ${b}. How many left?` },
         options: opts, answer: opts.indexOf(String(ans)) } },
-    () => { const { a, b } = pair(60, 100, 25, 55); const ans = a - b; const opts = _mcOpts(ans)
+    () => { const { a, b } = pair(60, 100, 25, 55); const ans = a - b; const opts = smartOptions(a, '−', b)
       return { kind: 'word' as const, image: '💰',
         storyByLang: { kk: `Болатта ${a} теңге болды. Ол ${b} теңгеге нан сатып алды. Қанша қалды?`, ru: `У Болата было ${a} тенге. Он купил хлеб за ${b} тенге. Сколько осталось?`, en: `Bolat had ${a} tenge, spent ${b}. How much left?` },
         options: opts, answer: opts.indexOf(String(ans)) } },
