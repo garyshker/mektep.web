@@ -9,17 +9,9 @@ import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { ChevronRight, ChevronLeft, Lock } from 'lucide-react'
 import type { Lesson } from '@/lib/lessons'
+import type { CSSProperties } from 'react'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-
-const BLOB_COLORS = [
-  '#D1FAE5', '#FCE7F3', '#FEF3C7', '#EDE9FE',
-  '#DBEAFE', '#FEE2E2', '#CCFBF1', '#FEF9C3',
-  '#F3E8FF', '#DCFCE7', '#FFE4E6', '#E0F2FE', '#FFF7ED',
-]
-function lessonColor(id: string) {
-  return BLOB_COLORS[parseInt(id.replace(/\D/g, '') || '0') % BLOB_COLORS.length]
-}
 
 function StarDots({ stars, color }: { stars: number; color: string }) {
   return (
@@ -32,53 +24,6 @@ function StarDots({ stars, color }: { stars: number; color: string }) {
   )
 }
 
-function LessonCard({ lesson, stars, onClick, locked, lang }: {
-  lesson: Lesson; stars: number; onClick: () => void; locked?: boolean; lang: 'ru' | 'kk' | 'en'
-}) {
-  const blob = lessonColor(lesson.id)
-  const mins = Math.max(3, Math.ceil(lesson.questions.length * 0.6))
-  const done = stars > 0
-
-  return (
-    <button
-      onClick={locked ? undefined : onClick}
-      className={`relative overflow-hidden bg-card rounded-[var(--radius-lg)] p-4 text-left flex flex-col h-44 border-2 transition-all
-        ${locked ? 'opacity-50 cursor-default border-border' : 'shadow-[var(--shadow-sm)] active:scale-[0.97]'}`}
-      style={done && !locked ? { borderColor: 'var(--success)' } : { borderColor: 'var(--border)' }}
-    >
-      <div className="absolute top-0 right-0 w-24 h-24 rounded-full pointer-events-none"
-        style={{ backgroundColor: blob, transform: 'translate(35%, -35%)' }} />
-
-      {done && (
-        <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center z-10"
-          style={{ background: 'var(--success)' }}>
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="white">
-            <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-          </svg>
-        </div>
-      )}
-
-      <div className="text-3xl mb-1 relative z-10">{lesson.emoji ?? '📚'}</div>
-
-      <div className="flex-1 relative z-10 min-w-0">
-        <div className="font-display font-black text-foreground text-sm leading-snug line-clamp-2">
-          {lesson.titleByLang[lang] ?? lesson.titleByLang.ru}
-        </div>
-        {lesson.subtitle && (
-          <div className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{lesson.subtitle}</div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between relative z-10 mt-2">
-        <span className="text-xs text-muted-foreground tabular">{mins} {t('min', lang)} · {lesson.questions.length} {t('tasks', lang)}</span>
-        {locked
-          ? <Lock size={14} className="text-muted-foreground" />
-          : <StarDots stars={stars} color={done ? 'var(--accent)' : 'var(--border)'} />
-        }
-      </div>
-    </button>
-  )
-}
 
 // ── countdown timer for upcoming subjects ─────────────────────────────────────
 
@@ -245,38 +190,72 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
         </div>
       )}
 
-      {/* Lesson grid */}
+      {/* Lesson path (Duolingo-style winding stack) */}
       {unlocked.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <div className="text-5xl mb-3">🚧</div>
           <p className="font-semibold">{t('coming_soon_tmpl', lang).replace('[N]', String(grade))}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-          {unlocked.map(lesson => (
-            <LessonCard key={lesson.id} lesson={lesson}
-              stars={starsMap[lesson.id] ?? 0}
-              lang={lang}
-              onClick={() => router.push(`/lesson/${lesson.id}`)} />
-          ))}
-        </div>
+        <LessonPath unlocked={unlocked} locked={locked} starsMap={starsMap} lang={lang}
+          onOpen={id => router.push(`/lesson/${id}`)} />
       )}
+    </div>
+  )
+}
 
-      {/* Locked section */}
-      {locked.length > 0 && (
-        <>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs font-black text-muted-foreground tracking-widest uppercase">{t('next_section', lang)}</span>
-            <div className="flex-1 h-px bg-border" />
+type NodeState = 'done' | 'current' | 'open' | 'locked'
+
+function LessonPath({ unlocked, locked, starsMap, lang, onOpen }: {
+  unlocked: Lesson[]; locked: Lesson[]; starsMap: Record<string, number>
+  lang: 'ru' | 'kk' | 'en'; onOpen: (id: string) => void
+}) {
+  const currentId = unlocked.find(l => (starsMap[l.id] ?? 0) === 0)?.id
+  const seq: { lesson: Lesson; stars: number; state: NodeState }[] = [
+    ...unlocked.map(l => {
+      const s = starsMap[l.id] ?? 0
+      return { lesson: l, stars: s, state: (s > 0 ? 'done' : l.id === currentId ? 'current' : 'open') as NodeState }
+    }),
+    ...locked.map(l => ({ lesson: l, stars: 0, state: 'locked' as NodeState })),
+  ]
+
+  return (
+    <div className="relative flex flex-col items-center gap-7 py-4 mx-auto w-full" style={{ maxWidth: 340 }}>
+      {/* central dotted path line */}
+      <div className="absolute top-6 bottom-6 w-1 rounded-full"
+        style={{ left: '50%', transform: 'translateX(-50%)', background: 'repeating-linear-gradient(var(--border) 0 6px, transparent 6px 14px)' }} />
+
+      {seq.map((n, i) => {
+        const offset = Math.round(Math.sin(i * 0.9) * 54)
+        const isCurrent = n.state === 'current'
+        const isLocked = n.state === 'locked'
+        const size = isCurrent ? 76 : 64
+        const bg = n.state === 'done' ? 'var(--gradient-success)'
+          : isCurrent ? 'var(--gradient-hero)'
+          : isLocked ? 'var(--muted)' : 'var(--card)'
+        const popShadow = n.state === 'done' ? 'var(--brand-deep)' : isCurrent ? 'var(--primary-deep)' : 'var(--border)'
+        return (
+          <div key={n.lesson.id} className="relative z-10 flex flex-col items-center gap-1.5"
+            style={{ transform: `translateX(${offset}px)` }}>
+            {isCurrent && (
+              <span className="text-[9px] font-black tracking-widest uppercase" style={{ color: 'var(--primary)' }}>
+                {t('start', lang)}
+              </span>
+            )}
+            <button disabled={isLocked} onClick={() => onOpen(n.lesson.id)}
+              className={`pop-btn rounded-full flex items-center justify-center ${isCurrent ? 'animate-pulse' : ''}`}
+              style={{ width: size, height: size, fontSize: 28, background: bg,
+                ['--pop-shadow' as string]: popShadow, opacity: isLocked ? 0.55 : 1,
+                cursor: isLocked ? 'default' : 'pointer' } as CSSProperties}>
+              {isLocked ? <Lock size={22} style={{ color: 'var(--muted-foreground)' }} /> : <span>{n.lesson.emoji ?? '📚'}</span>}
+            </button>
+            {n.state === 'done' && <StarDots stars={n.stars} color="var(--accent)" />}
+            <span className={`text-[11px] font-bold text-center leading-tight line-clamp-2 max-w-[130px] ${isLocked ? 'text-muted-foreground' : 'text-foreground'}`}>
+              {n.lesson.titleByLang[lang] ?? n.lesson.titleByLang.ru}
+            </span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-            {locked.map(lesson => (
-              <LessonCard key={lesson.id} lesson={lesson} stars={0} lang={lang} onClick={() => {}} locked />
-            ))}
-          </div>
-        </>
-      )}
+        )
+      })}
     </div>
   )
 }
