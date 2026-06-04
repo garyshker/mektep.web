@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { ALL_LESSONS, SUBJECTS, UPCOMING_SUBJECTS } from '@/lib/lessons'
+import { ALL_LESSONS, SUBJECTS, UPCOMING_SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
@@ -135,8 +135,8 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
                 </div>
                 {/* Name + desc */}
                 <div>
-                  <p className="font-display font-black text-foreground text-sm">{subj.labelKk}</p>
-                  <p className="text-muted-foreground text-[10px] mt-0.5">{subj.descKk}</p>
+                  <p className="font-display font-black text-foreground text-sm">{subjectLabel(subj, lang)}</p>
+                  <p className="text-muted-foreground text-[10px] mt-0.5">{subjectDesc(subj, lang)}</p>
                 </div>
                 {/* Progress bar */}
                 <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
@@ -147,8 +147,8 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-muted-foreground font-semibold truncate max-w-[80%]">
                     {nextL
-                      ? `Келесі: ${nextL.titleByLang[lang] ?? nextL.titleByLang.ru}`
-                      : `${pct}% аяқталды`}
+                      ? `${t('next_lesson_label', lang)} ${nextL.titleByLang[lang] ?? nextL.titleByLang.ru}`
+                      : `${pct}% ${t('pct_done', lang)}`}
                   </span>
                   <ChevronRight size={15} style={{ color: 'var(--primary)' }} />
                 </div>
@@ -160,7 +160,7 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
 
       {/* Coming soon subjects */}
       <div>
-        <p className="text-xs font-black text-muted-foreground tracking-widest uppercase mb-2">Жақында</p>
+        <p className="text-xs font-black text-muted-foreground tracking-widest uppercase mb-2">{t('soon_label', lang)}</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {UPCOMING_SUBJECTS.map(subj => (
             <div key={subj.id}
@@ -171,19 +171,19 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
                 </div>
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full text-white"
                   style={{ background: subj.color }}>
-                  ЖАҚЫНДА
+                  {t('soon_label', lang).toUpperCase()}
                 </span>
               </div>
               <div>
-                <p className="font-display font-black text-foreground text-sm">{subj.labelKk}</p>
-                <p className="text-muted-foreground text-[10px] mt-0.5">{subj.descKk}</p>
+                <p className="font-display font-black text-foreground text-sm">{subjectLabel(subj, lang)}</p>
+                <p className="text-muted-foreground text-[10px] mt-0.5">{subjectDesc(subj, lang)}</p>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono text-muted-foreground tabular">{countdown}</span>
                 <button className="text-[10px] font-black rounded-full px-2.5 py-1"
                   style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)', color: 'var(--primary)' }}
                   onClick={e => e.stopPropagation()}>
-                  Хабарласам
+                  {t('notify_me', lang)}
                 </button>
               </div>
             </div>
@@ -227,8 +227,8 @@ function LessonList({ subjectId, grade, starsMap, lang, router }: {
               {subj.emoji}
             </div>
             <div>
-              <p className="font-display font-black text-foreground text-base">{subj.labelKk}</p>
-              <p className="text-muted-foreground text-[10px]">{subj.descKk}</p>
+              <p className="font-display font-black text-foreground text-base">{subjectLabel(subj, lang)}</p>
+              <p className="text-muted-foreground text-[10px]">{subjectDesc(subj, lang)}</p>
             </div>
           </div>
         )}
@@ -327,8 +327,8 @@ function LessonsContent() {
         <div className="max-w-2xl lg:max-w-5xl mx-auto flex items-center justify-between">
           <h1 className="font-display font-black text-foreground text-xl">
             {subjectParam
-              ? (SUBJECTS.find(s => s.id === subjectParam)?.labelKk ?? t('lessons', lang))
-              : 'Барлық пәндер'}
+              ? (() => { const s = SUBJECTS.find(x => x.id === subjectParam); return s ? subjectLabel(s, lang) : t('lessons', lang) })()
+              : t('subjects_title', lang)}
           </h1>
           <span className="text-sm font-bold text-muted-foreground tabular">{grade} {t('grade', lang)}</span>
         </div>

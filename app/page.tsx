@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
-import { ALL_LESSONS, SUBJECTS } from '@/lib/lessons'
+import { ALL_LESSONS, SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { Flame, Zap, Play, ChevronRight, Check, Target } from 'lucide-react'
@@ -41,15 +41,16 @@ function avatarColor(name: string) {
   return AVATAR_COLORS[l.charCodeAt(0) % AVATAR_COLORS.length]
 }
 
-const ACTIVITIES = [
-  { icon: '⚡', name: 'Жылдам ойын',   sub: '× ÷ жылдамдық',          color: '#FFF3E0', border: '#FFD59E', path: '/game/quick' },
-  { icon: '⚔️', name: '1v1 Дуэль',     sub: 'Достарыңмен',             color: '#FFE8ED', border: '#FFC4CF', path: '/game/duel'  },
-  { icon: '🐍', name: 'Сандық жылан',  sub: 'Сандарды жина',           color: '#E8F5F0', border: '#A8DFCA', path: '/game/snake' },
-  { icon: '🔢', name: '2048',           sub: 'Бірдей сандарды біріктір', color: '#FFF8E0', border: '#FFE08A', path: '/game/2048'  },
-  { icon: '🔴', name: 'Дойбы',          sub: 'Орыс дойбысы',            color: '#F3E9E2', border: '#D9B89E', path: '/game/checkers' },
-  { icon: '🧩', name: 'Судоку',         sub: 'Логикалық басқатырғыш',   color: '#EDE7FB', border: '#C9B8F0', path: '/game/sudoku' },
-  { icon: '🪨', name: 'Тоғыз құмалақ',  sub: 'Ұлттық ойын',             color: '#F5E9D8', border: '#D9B98A', path: '/game/togyz' },
-  { icon: '🌍', name: 'Елдер',          sub: 'ТМД елдері',              color: '#E7F0FB', border: '#A9CBF0', path: '/game/countries' },
+type L3 = { kk: string; ru: string; en: string }
+const ACTIVITIES: { icon: string; name: L3; sub: L3; color: string; border: string; path: string }[] = [
+  { icon: '⚡', name: { kk: 'Жылдам ойын', ru: 'Быстрый счёт', en: 'Quick math' }, sub: { kk: '× ÷ жылдамдық', ru: '× ÷ на скорость', en: '× ÷ speed' }, color: '#FFF3E0', border: '#FFD59E', path: '/game/quick' },
+  { icon: '⚔️', name: { kk: '1v1 Дуэль', ru: '1v1 Дуэль', en: '1v1 Duel' }, sub: { kk: 'Достарыңмен', ru: 'С друзьями', en: 'With friends' }, color: '#FFE8ED', border: '#FFC4CF', path: '/game/duel' },
+  { icon: '🐍', name: { kk: 'Сандық жылан', ru: 'Змейка', en: 'Snake' }, sub: { kk: 'Сандарды жина', ru: 'Собери числа', en: 'Collect numbers' }, color: '#E8F5F0', border: '#A8DFCA', path: '/game/snake' },
+  { icon: '🔢', name: { kk: '2048', ru: '2048', en: '2048' }, sub: { kk: 'Сандарды біріктір', ru: 'Объединяй числа', en: 'Merge numbers' }, color: '#FFF8E0', border: '#FFE08A', path: '/game/2048' },
+  { icon: '🔴', name: { kk: 'Дойбы', ru: 'Шашки', en: 'Checkers' }, sub: { kk: 'Орыс дойбысы', ru: 'Русские шашки', en: 'Russian checkers' }, color: '#F3E9E2', border: '#D9B89E', path: '/game/checkers' },
+  { icon: '🧩', name: { kk: 'Судоку', ru: 'Судоку', en: 'Sudoku' }, sub: { kk: 'Логикалық', ru: 'Логика', en: 'Logic' }, color: '#EDE7FB', border: '#C9B8F0', path: '/game/sudoku' },
+  { icon: '🪨', name: { kk: 'Тоғыз құмалақ', ru: 'Тоғыз құмалақ', en: 'Togyz Kumalak' }, sub: { kk: 'Ұлттық ойын', ru: 'Нац. игра', en: 'National game' }, color: '#F5E9D8', border: '#D9B98A', path: '/game/togyz' },
+  { icon: '🌍', name: { kk: 'Елдер', ru: 'Страны', en: 'Countries' }, sub: { kk: 'ТМД елдері', ru: 'Страны СНГ', en: 'CIS countries' }, color: '#E7F0FB', border: '#A9CBF0', path: '/game/countries' },
 ]
 
 function getWeekStart(): Date {
@@ -73,11 +74,11 @@ function todayKey() {
   return `daily_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-const DAILY_TASKS = [
-  { id: 'lesson',  label: 'Бір сабақты аяқта',   sub: '≈ 8 мин',      xp: 10  },
-  { id: 'words',   label: '5 жаңа сөзді үйрен',  sub: 'Қазақ тілі',   xp: 15  },
-  { id: 'game',    label: 'Жылдам ойынды өт',    sub: '60 секунд',    xp: 20  },
-  { id: 'duel',    label: 'Достарыңмен ойна',    sub: '1v1 дуэль',    xp: 25  },
+const DAILY_TASKS: { id: string; label: L3; sub: L3; xp: number }[] = [
+  { id: 'lesson', label: { kk: 'Бір сабақты аяқта', ru: 'Пройди урок', en: 'Finish a lesson' }, sub: { kk: '≈ 8 мин', ru: '≈ 8 мин', en: '≈ 8 min' }, xp: 10 },
+  { id: 'words',  label: { kk: '5 жаңа сөзді үйрен', ru: 'Выучи 5 слов', en: 'Learn 5 words' }, sub: { kk: 'Қазақ тілі', ru: 'Казахский', en: 'Kazakh' }, xp: 15 },
+  { id: 'game',   label: { kk: 'Жылдам ойынды өт', ru: 'Сыграй в быстрый счёт', en: 'Play quick math' }, sub: { kk: '60 секунд', ru: '60 секунд', en: '60 seconds' }, xp: 20 },
+  { id: 'duel',   label: { kk: 'Достарыңмен ойна', ru: 'Сыграй 1v1', en: 'Play 1v1' }, sub: { kk: '1v1 дуэль', ru: '1v1 дуэль', en: '1v1 duel' }, xp: 25 },
 ]
 
 export default function HomePage() {
@@ -233,22 +234,22 @@ export default function HomePage() {
             <HeroOrnament />
             <div className="relative px-5 pt-5 pb-5">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-white/55 text-[10px] font-black tracking-widest uppercase">КҮН САБАҒЫ</span>
+                <span className="text-white/55 text-[10px] font-black tracking-widest uppercase">{t('day_lesson', lang)}</span>
                 <span className="text-white/55 text-[10px] font-black tracking-widest uppercase">
-                  {nextSubject?.labelKk ?? nextLesson.subjectId.toUpperCase()}
+                  {nextSubject ? subjectLabel(nextSubject, lang) : nextLesson.subjectId.toUpperCase()}
                 </span>
               </div>
 
               <h2 className="text-white text-xl leading-tight mb-1">
                 {nextLesson.titleByLang[lang] ?? nextLesson.titleByLang.ru}
               </h2>
-              <p className="text-white/65 text-xs mb-4">{nextLesson.subtitle ?? 'Бүгінгі сабаққа уақыт бөл'}</p>
+              <p className="text-white/65 text-xs mb-4">{nextLesson.subtitle ?? t('hero_default', lang)}</p>
 
               <div className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-2">
                 <div className="h-full bg-white rounded-full transition-all" style={{ width: `${lessonPct}%` }} />
               </div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-white/65 text-xs font-bold tabular">{lessonProgress.done} / {lessonProgress.total} сабақ</span>
+                <span className="text-white/65 text-xs font-bold tabular">{lessonProgress.done} / {lessonProgress.total} {t('lesson_unit', lang)}</span>
                 <span className="text-white text-xs font-black tabular flex items-center gap-1">
                   <Zap size={13} fill="currentColor" style={{ color: 'var(--accent)' }} /> +{xp} XP
                 </span>
@@ -261,7 +262,7 @@ export default function HomePage() {
                   style={{ background: 'var(--primary)' }}>
                   <Play size={13} className="text-white ml-0.5" fill="currentColor" />
                 </span>
-                Сабақты жалғастыру
+                {t('continue_lesson', lang)}
               </button>
             </div>
           </div>
@@ -270,7 +271,7 @@ export default function HomePage() {
         {/* ── Daily quests ── */}
         <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] overflow-hidden animate-mk-pop-in" style={{ animationDelay: '80ms' }}>
           <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-border/50">
-            <h3 className="text-foreground text-sm">Бүгінгі тапсырмалар</h3>
+            <h3 className="text-foreground text-sm">{t('daily_title', lang)}</h3>
             <span className="text-xs font-black text-white px-2.5 py-0.5 rounded-full tabular" style={{ background: 'var(--primary)' }}>
               {dailyDoneCount}/4
             </span>
@@ -287,8 +288,8 @@ export default function HomePage() {
                     {done && <Check size={14} className="text-white" strokeWidth={3} />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-bold ${done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{task.label}</p>
-                    <p className="text-xs text-muted-foreground">{task.sub}</p>
+                    <p className={`text-sm font-bold ${done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{task.label[lang]}</p>
+                    <p className="text-xs text-muted-foreground">{task.sub[lang]}</p>
                   </div>
                   <span className="text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 tabular flex items-center gap-0.5"
                     style={{ background: 'color-mix(in oklch, var(--xp) 16%, white)', color: 'var(--xp)' }}>
@@ -316,7 +317,7 @@ export default function HomePage() {
 
         {/* ── Games & activities ── */}
         <div className="animate-mk-pop-in" style={{ animationDelay: '120ms' }}>
-          <p className="text-xs font-black text-muted-foreground tracking-widest uppercase mb-2">Ойындар мен тапсырмалар</p>
+          <p className="text-xs font-black text-muted-foreground tracking-widest uppercase mb-2">{t('games_title', lang)}</p>
           <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:overflow-visible" style={{ scrollbarWidth: 'none' }}>
             {ACTIVITIES.map(act => (
               <button key={act.path} onClick={() => router.push(act.path)}
@@ -324,8 +325,8 @@ export default function HomePage() {
                 style={{ background: act.color, borderColor: act.border }}>
                 <span className="text-2xl">{act.icon}</span>
                 <div>
-                  <p className="font-display font-black text-foreground text-xs leading-tight">{act.name}</p>
-                  <p className="text-muted-foreground text-[10px] mt-0.5">{act.sub}</p>
+                  <p className="font-display font-black text-foreground text-xs leading-tight">{act.name[lang]}</p>
+                  <p className="text-muted-foreground text-[10px] mt-0.5">{act.sub[lang]}</p>
                 </div>
                 <span className="text-[11px] font-black flex items-center gap-0.5 self-start" style={{ color: 'var(--primary)' }}>
                   Ойна <ChevronRight size={13} />
@@ -338,9 +339,9 @@ export default function HomePage() {
         {/* ── Subjects ── */}
         <div className="animate-mk-pop-in" style={{ animationDelay: '160ms' }}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-black text-muted-foreground tracking-widest uppercase">Барлық пәндер</p>
+            <p className="text-xs font-black text-muted-foreground tracking-widest uppercase">{t('subjects_title', lang)}</p>
             <button onClick={() => router.push('/lessons')} className="text-xs font-black flex items-center gap-0.5" style={{ color: 'var(--primary)' }}>
-              Барлығын көру <ChevronRight size={13} />
+              {t('see_all', lang)} <ChevronRight size={13} />
             </button>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -351,8 +352,8 @@ export default function HomePage() {
                   {subj.emoji}
                 </div>
                 <div>
-                  <p className="font-display font-black text-foreground text-sm">{subj.labelKk}</p>
-                  <p className="text-muted-foreground text-[10px]">{subj.descKk}</p>
+                  <p className="font-display font-black text-foreground text-sm">{subjectLabel(subj, lang)}</p>
+                  <p className="text-muted-foreground text-[10px]">{subjectDesc(subj, lang)}</p>
                 </div>
                 <div className="flex items-center justify-end">
                   <ChevronRight size={15} style={{ color: 'var(--primary)' }} />

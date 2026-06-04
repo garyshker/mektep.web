@@ -32,14 +32,14 @@ function _steps(a: number, op: '+' | '−', b: number): string {
   return `${a} ${op} ${b} = ${r} ✓`
 }
 
-function _tapQ(promptRu: string, correct: string[], wrong: string[]): Question {
+function _tapQ(prompt: { kk: string; ru: string; en: string }, correct: string[], wrong: string[]): Question {
   const items = _sfl([
     ...correct.map(e => ({ e, ok: true })),
     ...wrong.map(e => ({ e, ok: false })),
   ])
   return {
     kind: 'tap',
-    promptByLang: { kk: promptRu, ru: promptRu, en: promptRu },
+    promptByLang: prompt,
     words: items.map(x => x.e),
     correctIdxs: items.map((x, i) => x.ok ? i : -1).filter(i => i >= 0),
   }
@@ -81,7 +81,7 @@ export function generateAdditionLesson(): Lesson {
     return { expr: `${a}+${b}`, correct: a + b > thr }
   })
   const tapQ = _tapQ(
-    `Найди примеры, где сумма больше ${thr}`,
+    { kk: `Қосындысы ${thr}-дан үлкен мысалдарды тап`, ru: `Найди примеры, где сумма больше ${thr}`, en: `Find sums greater than ${thr}` },
     _sfl(pool.filter(p => p.correct)).slice(0, 4).map(p => p.expr),
     _sfl(pool.filter(p => !p.correct)).slice(0, 4).map(p => p.expr),
   )
@@ -107,7 +107,6 @@ export function generateAdditionLesson(): Lesson {
     id: 'math-1', subjectId: 'math', emoji: '➕',
     titleByLang: { kk: 'Қосу · 100 ішінде', ru: 'Сложение до 100', en: 'Addition · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды қосуды үйренеміз!', ru: 'Учимся складывать числа в пределах 100!', en: "Let's practise adding numbers within 100!" },
-    subtitle: 'Двузначные числа',
     grade: [1, 2, 3, 4],
     questions: [...mc, ...typ, tapQ, wordQ],
   }
@@ -147,7 +146,7 @@ export function generateSubtractionLesson(): Lesson {
     return { expr: `${a}−${b}`, correct: a - b < thr }
   })
   const tapQ = _tapQ(
-    `Найди примеры, где разность меньше ${thr}`,
+    { kk: `Айырмасы ${thr}-дан кіші мысалдарды тап`, ru: `Найди примеры, где разность меньше ${thr}`, en: `Find results less than ${thr}` },
     _sfl(pool.filter(p => p.correct)).slice(0, 4).map(p => p.expr),
     _sfl(pool.filter(p => !p.correct)).slice(0, 4).map(p => p.expr),
   )
@@ -172,7 +171,6 @@ export function generateSubtractionLesson(): Lesson {
     id: 'math-2', subjectId: 'math', emoji: '➖',
     titleByLang: { kk: 'Алу · 100 ішінде', ru: 'Вычитание до 100', en: 'Subtraction · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды алуды үйренеміз!', ru: 'Учимся вычитать в пределах 100!', en: "Let's practise subtraction within 100!" },
-    subtitle: 'Учимся отнимать',
     grade: [1, 2, 3, 4],
     questions: [...mc, ...typ, tapQ, wordQ],
   }
@@ -274,7 +272,6 @@ export function generateClockLesson(): Lesson {
     id: 'math-time', subjectId: 'math', emoji: '🕐',
     titleByLang: { kk: 'Уақыт · сағат, минут', ru: 'Время · часы и минуты', en: 'Time · hours & minutes' },
     introByLang: { kk: 'Аналогтік сағатты оқуды үйренеміз!', ru: 'Учимся читать аналоговые часы!', en: "Let's learn to read analog clocks!" },
-    subtitle: 'Учимся читать часы',
     grade: [1, 2, 3, 4],
     questions: clocks,
   }
@@ -285,7 +282,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-1', subjectId: 'math', emoji: '➕',
     titleByLang: { kk: 'Қосу · 100 ішінде', ru: 'Сложение до 100', en: 'Addition · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды қосуды үйренеміз!', ru: 'Учимся складывать числа в пределах 100!', en: "Let's practise adding numbers within 100!" },
-    subtitle: 'Двузначные числа',
     grade: [1, 2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '36 + 24', options: ['58', '60', '62', '64'], answer: 1,
@@ -318,7 +314,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-2', subjectId: 'math', emoji: '➖',
     titleByLang: { kk: 'Алу · 100 ішінде', ru: 'Вычитание до 100', en: 'Subtraction · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды алуды үйренеміз!', ru: 'Учимся вычитать в пределах 100!', en: "Let's practise subtraction within 100!" },
-    subtitle: 'Учимся отнимать',
     grade: [1, 2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '45 − 18', options: ['23', '25', '27', '29'], answer: 2,
@@ -351,7 +346,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-3', subjectId: 'math', emoji: '✖️',
     titleByLang: { kk: 'Көбейту кестесі · 2-ге', ru: 'Таблица умножения', en: 'Times Tables · ×2' },
     introByLang: { kk: '2-ге көбейтуді үйренеміз!', ru: 'Учим умножение на 2!', en: "Let's learn the 2 times table!" },
-    subtitle: 'На 2 — проще простого',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '2 × 3', options: ['4', '5', '6', '8'], answer: 2 },
@@ -375,7 +369,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-4', subjectId: 'math', emoji: '✖️',
     titleByLang: { kk: 'Көбейту кестесі · 3-ке', ru: 'Таблица умножения', en: 'Times Tables · ×3' },
     introByLang: { kk: '3-ке көбейтуді үйренеміз!', ru: 'Учим умножение на 3!', en: "Let's learn the 3 times table!" },
-    subtitle: 'На 3 и выше',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '3 × 3', options: ['7', '8', '9', '12'], answer: 2 },
@@ -399,7 +392,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-5', subjectId: 'math', emoji: '✖️',
     titleByLang: { kk: 'Көбейту кестесі · 4-ке', ru: 'Таблица умножения', en: 'Times Tables · ×4' },
     introByLang: { kk: '4-ке көбейтуді үйренеміз!', ru: 'Учим умножение на 4!', en: "Let's learn the 4 times table!" },
-    subtitle: 'Ступень 4 — растём',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '4 × 2', options: ['6', '7', '8', '10'], answer: 2 },
@@ -423,7 +415,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-6', subjectId: 'math', emoji: '✖️',
     titleByLang: { kk: 'Көбейту кестесі · 5-ке', ru: 'Таблица умножения', en: 'Times Tables · ×5' },
     introByLang: { kk: '5-ке көбейтуді үйренеміз!', ru: 'Учим умножение на 5!', en: "Let's learn the 5 times table!" },
-    subtitle: 'На 5 — легко!',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '5 × 2', options: ['8', '9', '10', '12'], answer: 2 },
@@ -447,7 +438,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-7', subjectId: 'math', emoji: '✖️',
     titleByLang: { kk: 'Көбейту кестесі · 6-ға', ru: 'Таблица умножения', en: 'Times Tables · ×6' },
     introByLang: { kk: '6-ға көбейтуді үйренеміз!', ru: 'Учим умножение на 6!', en: "Let's learn the 6 times table!" },
-    subtitle: 'На 6 и выше',
     grade: [3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '6 × 2', options: ['10', '11', '12', '14'], answer: 2 },
@@ -471,7 +461,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-8', subjectId: 'math', emoji: '➗',
     titleByLang: { kk: 'Бөлу · 2-ге', ru: 'Деление на 2', en: 'Division · ÷2' },
     introByLang: { kk: '2-ге бөлуді үйренеміз!', ru: 'Учимся делить на 2!', en: "Let's practise dividing by 2!" },
-    subtitle: 'Делим пополам',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '10 ÷ 2', options: ['3', '4', '5', '6'], answer: 2 },
@@ -493,7 +482,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-9', subjectId: 'math', emoji: '⚖️',
     titleByLang: { kk: 'Сандарды салыстыру · < > =', ru: 'Больше / меньше', en: 'Comparing Numbers · < > =' },
     introByLang: { kk: 'Екі таңбалы сандарды салыстыруды үйренеміз!', ru: 'Учимся сравнивать двузначные числа!', en: "Let's learn to compare two-digit numbers!" },
-    subtitle: 'Сравниваем числа',
     grade: [1, 2, 3, 4],
     questions: [
       { kind: 'mc', big: true, image: '🔢',
@@ -535,7 +523,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-10', subjectId: 'math', emoji: '📏',
     titleByLang: { kk: 'Ұзындық · см, дм, м', ru: 'Длина · см, дм, м', en: 'Length · cm, dm, m' },
     introByLang: { kk: 'Сантиметр, дециметр және метрді үйренеміз!', ru: 'Изучаем сантиметры, дециметры и метры!', en: "Let's learn centimetres, decimetres and metres!" },
-    subtitle: 'Сантиметры и метры',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', image: '📏',
@@ -575,7 +562,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-11', subjectId: 'math', emoji: '🧪',
     titleByLang: { kk: 'Көлем мен масса · литр, кг', ru: 'Объём и масса', en: 'Volume & Mass · litre, kg' },
     introByLang: { kk: 'Литр мен килограммды үйренеміз!', ru: 'Изучаем литры и килограммы!', en: "Let's learn litres and kilograms!" },
-    subtitle: 'Литры и килограммы',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc', image: '🥛',
@@ -617,7 +603,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-12', subjectId: 'math', emoji: '➗',
     titleByLang: { kk: 'Бөлу · 3-ке, 4-ке, 5-ке', ru: 'Деление', en: 'Division · ÷3, ÷4, ÷5' },
     introByLang: { kk: '3-ке, 4-ке, 5-ке бөлуді үйренеміз!', ru: 'Учимся делить на 3, 4 и 5!', en: "Let's practise dividing by 3, 4 and 5!" },
-    subtitle: 'Делим на 3, 4 и 5',
     grade: [3, 4],
     questions: [
       { kind: 'mc', big: true, image: '➗',
@@ -653,7 +638,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-13', subjectId: 'math', emoji: '7️⃣',
     titleByLang: { kk: 'Көбейту кестесі · 7, 8, 9', ru: 'Таблица умножения · 7, 8, 9', en: 'Times Tables · ×7, ×8, ×9' },
     introByLang: { kk: '7, 8, 9-ға көбейтуді үйренеміз!', ru: 'Учим умножение на 7, 8 и 9!', en: "Let's learn the 7, 8 and 9 times tables!" },
-    subtitle: 'Сложные множители',
     grade: [3, 4],
     questions: [
       { kind: 'mc', big: true, prompt: '7 × 6', options: ['38', '40', '42', '44'], answer: 2,
@@ -681,7 +665,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-14', subjectId: 'math', emoji: '½',
     titleByLang: { kk: 'Бөлшектер · ½, ¼, ⅓', ru: 'Дроби · ½, ¼, ⅓', en: 'Fractions · ½, ¼, ⅓' },
     introByLang: { kk: 'Бөліктерді үйренеміз!', ru: 'Учимся работать с дробями!', en: "Let's learn fractions!" },
-    subtitle: 'Половины и четверти',
     grade: [3, 4],
     questions: [
       { kind: 'mc',
@@ -720,7 +703,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-15', subjectId: 'math', emoji: '📐',
     titleByLang: { kk: 'Геометрия · аудан мен периметр', ru: 'Геометрия · площадь и периметр', en: 'Geometry · area & perimeter' },
     introByLang: { kk: 'Геометриялық фигуралармен таныс болайық!', ru: 'Знакомимся с площадью и периметром!', en: "Let's explore area and perimeter!" },
-    subtitle: 'Фигуры и измерения',
     grade: [3, 4],
     questions: [
       { kind: 'mc',
@@ -766,7 +748,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-16', subjectId: 'math', emoji: '🔢',
     titleByLang: { kk: '1000-ға дейінгі сандар', ru: 'Числа до 1000', en: 'Numbers up to 1000' },
     introByLang: { kk: 'Үш таңбалы сандармен жұмыс жасаймыз!', ru: 'Работаем с трёхзначными числами!', en: "Let's work with three-digit numbers!" },
-    subtitle: 'Сотни, десятки, единицы',
     grade: [2, 3, 4],
     questions: [
       { kind: 'mc',
@@ -812,7 +793,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-17', subjectId: 'math', emoji: '🔄',
     titleByLang: { kk: 'Жұп, тақ сандар және дөңгелектеу', ru: 'Чётные, нечётные и округление', en: 'Even, odd & rounding' },
     introByLang: { kk: 'Сандарды зерттейміз!', ru: 'Исследуем числа!', en: "Let's explore numbers!" },
-    subtitle: 'Чётные, нечётные, округление',
     grade: [2, 3, 4],
     questions: [
       { kind: 'tap',
@@ -852,7 +832,6 @@ export const mathLessons: Lesson[] = [
     id: 'math-18', subjectId: 'math', emoji: '⚡',
     titleByLang: { kk: 'Аралас есептеулер · + − × ÷', ru: 'Смешанные вычисления', en: 'Mixed operations · + − × ÷' },
     introByLang: { kk: 'Барлық амалдарды қолданамыз!', ru: 'Используем все четыре действия!', en: "Let's use all four operations!" },
-    subtitle: 'Все 4 действия вместе',
     grade: [3, 4],
     questions: [
       { kind: 'type', prompt: '(4 + 6) × 3 = ?', answer: 30,

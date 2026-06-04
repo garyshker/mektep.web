@@ -18,6 +18,14 @@ export const I18N = {
   games:              { ru: 'Игры',                       kk: 'Ойындар',                    en: 'Games' },
   all_lessons:        { ru: '📚 Все уроки →',             kk: '📚 Барлық сабақтар →',       en: '📚 All lessons →' },
   streak_remind:      { ru: 'дн. подряд — не прерывай!', kk: 'күн қатарынан — үзбе!',      en: 'days in a row — keep going!' },
+  day_lesson:         { ru: 'УРОК ДНЯ',                   kk: 'КҮН САБАҒЫ',                 en: 'DAILY LESSON' },
+  continue_lesson:    { ru: 'Продолжить урок',            kk: 'Сабақты жалғастыру',         en: 'Continue lesson' },
+  lesson_unit:        { ru: 'урок',                       kk: 'сабақ',                      en: 'lesson' },
+  hero_default:       { ru: 'Удели время уроку сегодня',  kk: 'Бүгінгі сабаққа уақыт бөл',  en: 'Make time to learn today' },
+  daily_title:        { ru: 'Задания на сегодня',         kk: 'Бүгінгі тапсырмалар',        en: "Today's tasks" },
+  games_title:        { ru: 'Игры и задания',             kk: 'Ойындар мен тапсырмалар',    en: 'Games & activities' },
+  subjects_title:     { ru: 'Все предметы',               kk: 'Барлық пәндер',              en: 'All subjects' },
+  see_all:            { ru: 'Все',                        kk: 'Барлығын көру',              en: 'See all' },
 
   // Lessons page
   lessons:            { ru: 'Уроки',                      kk: 'Сабақтар',                   en: 'Lessons' },
@@ -25,6 +33,10 @@ export const I18N = {
   tasks:              { ru: 'зад.',                       kk: 'тапс.',                      en: 'tasks' },
   coming_soon_tmpl:   { ru: 'Уроки для [N] класса скоро появятся', kk: '[N] сыныпқа арналған сабақтар жақында пайда болады', en: 'Lessons for grade [N] coming soon' },
   next_section:       { ru: 'Дальше',                     kk: 'Кейінгі',                    en: 'Next' },
+  next_lesson_label:  { ru: 'Далее:',                     kk: 'Келесі:',                    en: 'Next:' },
+  pct_done:           { ru: 'выполнено',                  kk: 'аяқталды',                   en: 'done' },
+  soon_label:         { ru: 'Скоро',                      kk: 'Жақында',                    en: 'Soon' },
+  notify_me:          { ru: 'Уведомить',                  kk: 'Хабарласам',                 en: 'Notify me' },
 
   // Lesson runner labels
   label_mc:           { ru: 'ВЫБЕРИ ОТВЕТ',               kk: 'ЖАУАПТЫ ТАҢДА',              en: 'CHOOSE ANSWER' },
