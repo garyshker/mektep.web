@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
@@ -93,6 +93,8 @@ export default function HomePage() {
   const supabase = createClient()
   const router = useRouter()
   const lang = useLang()
+  const gamesRef = useRef<HTMLDivElement>(null)
+  const [gameDot, setGameDot] = useState(0)
 
   useEffect(() => {
     const init = async () => {
@@ -334,10 +336,12 @@ export default function HomePage() {
         {/* ── Games & activities ── */}
         <div className="animate-mk-pop-in" style={{ animationDelay: '120ms' }}>
           <p className="text-xs font-black text-muted-foreground tracking-widest uppercase mb-2">{t('games_title', lang)}</p>
-          <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:overflow-visible" style={{ scrollbarWidth: 'none' }}>
+          <div ref={gamesRef}
+            onScroll={e => { const el = e.currentTarget; setGameDot(Math.round(el.scrollLeft / (el.scrollWidth / ACTIVITIES.length))) }}
+            className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:overflow-visible lg:snap-none" style={{ scrollbarWidth: 'none' }}>
             {ACTIVITIES.map(act => (
               <button key={act.path} onClick={() => router.push(act.path)}
-                className="shrink-0 w-36 lg:w-auto rounded-[var(--radius)] p-3.5 flex flex-col gap-2 text-left border active:translate-y-[-2px] transition-transform"
+                className="shrink-0 w-36 lg:w-auto snap-start rounded-[var(--radius)] p-3.5 flex flex-col gap-2 text-left border active:translate-y-[-2px] transition-transform"
                 style={{ background: act.color, borderColor: act.border }}>
                 <span className="text-2xl">{act.icon}</span>
                 <div>
@@ -348,6 +352,13 @@ export default function HomePage() {
                   Ойна <ChevronRight size={13} />
                 </span>
               </button>
+            ))}
+          </div>
+          {/* dots indicator (mobile only) */}
+          <div className="flex justify-center gap-1.5 mt-2 lg:hidden">
+            {ACTIVITIES.map((_, i) => (
+              <span key={i} className="h-1.5 rounded-full transition-all"
+                style={{ width: i === gameDot ? 16 : 6, background: i === gameDot ? 'var(--primary)' : 'var(--border)' }} />
             ))}
           </div>
         </div>

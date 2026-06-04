@@ -84,9 +84,10 @@ function SpeakButton({ text }: { text: string }) {
   )
 }
 
-const LABEL_KEYS: Record<string, 'label_mc' | 'label_type' | 'label_tap' | 'label_word' | 'label_match' | 'label_clock'> = {
+const LABEL_KEYS: Record<string, 'label_mc' | 'label_type' | 'label_tap' | 'label_word' | 'label_match' | 'label_clock' | 'label_tf' | 'label_pairs'> = {
   mc: 'label_mc', type: 'label_type', tap: 'label_tap',
   word: 'label_word', match: 'label_match', clock: 'label_clock',
+  tf: 'label_tf', pairs: 'label_pairs',
 }
 
 export default function LessonPage() {
@@ -106,6 +107,11 @@ export default function LessonPage() {
   const [typeInput, setTypeInput] = useState('')
   const [tapSel, setTapSel] = useState<Set<number>>(new Set())
   const [matchMap, setMatchMap] = useState<Record<string, number | null>>({})
+  // pairs state
+  const [pairCols, setPairCols] = useState<{ left: number[]; right: number[] }>({ left: [], right: [] })
+  const [pairSel, setPairSel] = useState<number | null>(null)
+  const [pairMatched, setPairMatched] = useState<Set<number>>(new Set())
+  const [pairWrong, setPairWrong] = useState<number | null>(null)
   const lang = useLang()
 
   const q: Question | undefined = lesson?.questions[idx]
@@ -117,6 +123,13 @@ export default function LessonPage() {
     setTypeInput('')
     setTapSel(new Set())
     setMatchMap(Object.fromEntries((q.items ?? []).map(it => [it.text, null])))
+    // pairs: independently shuffle the two columns
+    const shuf = (n: number) => { const a = Array.from({ length: n }, (_, i) => i); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
+    const np = q.pairs?.length ?? 0
+    setPairCols({ left: shuf(np), right: shuf(np) })
+    setPairSel(null)
+    setPairMatched(new Set())
+    setPairWrong(null)
   }, [idx])
 
   if (!lesson) return (
@@ -358,6 +371,88 @@ export default function LessonPage() {
       )
     }
 
+    // ── True / False ──
+    if (q.kind === 'tf') {
+      const correctVal = String(q.answer)
+      return (
+        <div className="grid grid-cols-2 gap-3">
+          {[true, false].map(val => {
+            const v = String(val)
+            const isSel = selected === v
+            const isRight = v === correctVal
+            let style: CSSProperties = { background: 'var(--card)', color: 'var(--foreground)', borderColor: 'var(--border)', ['--pop-shadow' as string]: 'var(--border)' }
+            let anim = ''
+            if (feedback && isSel && isRight) { style = { background: 'var(--success)', color: 'white', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'var(--brand-deep)' }; anim = 'animate-mk-pop' }
+            else if (feedback && isSel && !isRight) { style = { background: 'var(--destructive)', color: 'white', borderColor: 'var(--destructive)', ['--pop-shadow' as string]: 'oklch(0.45 0.2 25)' }; anim = 'animate-mk-shake' }
+            else if (feedback && isRight) { style = { background: 'color-mix(in oklch, var(--success) 16%, white)', color: 'var(--success)', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'color-mix(in oklch, var(--success) 28%, white)' } }
+            return (
+              <button key={v} disabled={!!feedback}
+                onClick={() => { if (feedback) return; playTap(); setSelected(v); markResult(v === correctVal) }}
+                className={`pop-btn rounded-[var(--radius)] py-6 text-xl font-display font-black border-2 flex items-center justify-center gap-2 ${anim}`}
+                style={style}>
+                {val ? <Check size={22} strokeWidth={3} /> : <X size={22} strokeWidth={3} />}
+                {val ? t('tf_true', lang) : t('tf_false', lang)}
+              </button>
+            )
+          })}
+        </div>
+      )
+    }
+
+    // ── Connect pairs (tap-to-match) ──
+    if (q.kind === 'pairs') {
+      const pairs = q.pairs ?? []
+      const nPairs = pairs.length
+      const tapRight = (pi: number) => {
+        if (feedback || pairMatched.has(pi) || pairSel === null) return
+        if (pairSel === pi) {
+          playCorrect()
+          const nm = new Set(pairMatched); nm.add(pi)
+          setPairMatched(nm); setPairSel(null)
+          if (nm.size === nPairs) markResult(true)
+        } else {
+          playWrong()
+          setPairWrong(pi); setPairSel(null)
+          setTimeout(() => setPairWrong(null), 400)
+        }
+      }
+      const cell = (pi: number, side: 'l' | 'r') => {
+        const matched = pairMatched.has(pi)
+        let style: CSSProperties = { background: 'var(--card)', color: 'var(--foreground)', borderColor: 'var(--border)' }
+        let cls = ''
+        if (matched) style = { background: 'color-mix(in oklch, var(--success) 16%, white)', color: 'var(--success)', borderColor: 'var(--success)' }
+        else if (side === 'l' && pairSel === pi) style = { background: 'var(--primary)', color: 'white', borderColor: 'var(--primary)' }
+        else if (side === 'r' && pairWrong === pi) { style = { background: 'var(--destructive)', color: 'white', borderColor: 'var(--destructive)' }; cls = 'animate-mk-shake' }
+        return { cls, style, matched }
+      }
+      return (
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-2">
+            {pairCols.left.map(pi => {
+              const { cls, style, matched } = cell(pi, 'l')
+              return (
+                <button key={pi} disabled={!!feedback || matched}
+                  onClick={() => { playTap(); setPairSel(pi) }}
+                  className={`rounded-[var(--radius)] py-3.5 px-2 text-base font-bold border-2 transition-all ${cls}`}
+                  style={style}>{pairs[pi].a}</button>
+              )
+            })}
+          </div>
+          <div className="flex flex-col gap-2">
+            {pairCols.right.map(pi => {
+              const { cls, style, matched } = cell(pi, 'r')
+              return (
+                <button key={pi} disabled={!!feedback || matched}
+                  onClick={() => tapRight(pi)}
+                  className={`rounded-[var(--radius)] py-3.5 px-2 text-base font-bold border-2 transition-all ${cls}`}
+                  style={style}>{pairs[pi].b}</button>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+
     return null
   }
 
@@ -446,12 +541,16 @@ export default function LessonPage() {
             <ClockFace h={q.clockH!} m={q.clockM!} />
           )}
 
-          {(q?.kind === 'tap' || q?.kind === 'match') && (
+          {(q?.kind === 'tap' || q?.kind === 'match' || q?.kind === 'pairs') && (
             <>
               {q.image && <div className="text-4xl text-center mb-3">{q.image}</div>}
               <p className="text-base font-bold text-foreground text-center leading-snug">{prompt}</p>
               {q.audio && <div className="flex justify-center mt-2"><SpeakButton text={q.audio} /></div>}
             </>
+          )}
+
+          {q?.kind === 'tf' && (
+            <div className="text-3xl font-display font-black text-center py-3 text-foreground">{prompt}</div>
           )}
         </div>
 

@@ -1,4 +1,4 @@
-export type QuestionKind = 'mc' | 'type' | 'tap' | 'word' | 'match' | 'clock'
+export type QuestionKind = 'mc' | 'type' | 'tap' | 'word' | 'match' | 'clock' | 'tf' | 'pairs'
 
 export interface ByLang { kk: string; ru: string; en: string }
 
@@ -29,6 +29,9 @@ export interface Question {
   clockH?: number
   clockM?: number
   stepsByLang?: { kk: string[]; ru: string[]; en: string[] }
+  // tf — `answer` is 'true' | 'false'
+  // pairs — connect a↔b
+  pairs?: { a: string; b: string }[]
 }
 
 export interface Lesson {

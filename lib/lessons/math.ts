@@ -93,12 +93,17 @@ export function generateAdditionLesson(): Lesson {
   ]
   const wordQ = _sfl(wordFns)[0]()
 
+  // True / False statement
+  const tfA = _ri(15, 60), tfB = _ri(10, 35), tfWrong = _ri(0, 1) === 1
+  const tfShown = tfA + tfB + (tfWrong ? (_ri(0, 1) ? 10 : -10) : 0)
+  const tfQ: Question = { kind: 'tf', prompt: `${tfA} + ${tfB} = ${tfShown}`, answer: String(tfShown === tfA + tfB) }
+
   return {
     id: 'math-1', subjectId: 'math', emoji: '➕',
     titleByLang: { kk: 'Қосу · 100 ішінде', ru: 'Сложение до 100', en: 'Addition · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды қосуды үйренеміз!', ru: 'Учимся складывать числа в пределах 100!', en: "Let's practise adding numbers within 100!" },
     grade: [1, 2, 3, 4],
-    questions: [...mc, ...typ, tapQ, wordQ],
+    questions: [...mc, ...typ, tapQ, tfQ, wordQ],
   }
 }
 
@@ -157,12 +162,17 @@ export function generateSubtractionLesson(): Lesson {
   ]
   const wordQ = _sfl(wordFns)[0]()
 
+  // True / False statement
+  const tfA = _ri(30, 90), tfB = _ri(10, tfA - 5), tfWrong = _ri(0, 1) === 1
+  const tfShown = tfA - tfB + (tfWrong ? (_ri(0, 1) ? 10 : -10) : 0)
+  const tfQ: Question = { kind: 'tf', prompt: `${tfA} − ${tfB} = ${tfShown}`, answer: String(tfShown === tfA - tfB) }
+
   return {
     id: 'math-2', subjectId: 'math', emoji: '➖',
     titleByLang: { kk: 'Алу · 100 ішінде', ru: 'Вычитание до 100', en: 'Subtraction · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды алуды үйренеміз!', ru: 'Учимся вычитать в пределах 100!', en: "Let's practise subtraction within 100!" },
     grade: [1, 2, 3, 4],
-    questions: [...mc, ...typ, tapQ, wordQ],
+    questions: [...mc, ...typ, tapQ, tfQ, wordQ],
   }
 }
 

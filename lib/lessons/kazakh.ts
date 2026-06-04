@@ -22,6 +22,11 @@ function _mcPhrase(kk: string, ru: string, wrong: [string, string, string]): Que
   return { kind: 'mc', prompt: kk, options: opts, answer: opts.indexOf(ru), audio: kk }
 }
 
+// Connect Kazakh words with their translations
+function _pairs(ru: string, kk: string, pairs: { a: string; b: string }[]): Question {
+  return { kind: 'pairs', promptByLang: { kk, ru, en: ru }, pairs }
+}
+
 // Sort Kazakh words into two groups
 function _match(ru: string, kk: string, groupsRu: [string, string], groupsKk: [string, string],
   items: { text: string; group: number }[]): Question {
@@ -76,6 +81,8 @@ export const kazakhLessons: Lesson[] = [
       _tap('Найди слова прощания', 'Қоштасу сөздерін тап',
         ['Сау бол', 'Кездескенше', 'Қош бол'],
         ['Сәлем', 'Рахмет', 'Иә', 'Жоқ']),
+      _pairs('Соедини пары', 'Жұптарды қос',
+        [{ a: 'Сәлем', b: 'Привет' }, { a: 'Рахмет', b: 'Спасибо' }, { a: 'Сау бол', b: 'Пока' }, { a: 'Иә', b: 'Да' }]),
     ],
   },
 
@@ -148,6 +155,8 @@ export const kazakhLessons: Lesson[] = [
       _match('Раздели на домашних и диких', 'Үй және жабайы жануарларға бөл',
         ['Домашние', 'Дикие'], ['Үй', 'Жабайы'],
         [{ text: 'Ит', group: 0 }, { text: 'Мысық', group: 0 }, { text: 'Сиыр', group: 0 }, { text: 'Аю', group: 1 }, { text: 'Қасқыр', group: 1 }, { text: 'Түлкі', group: 1 }]),
+      _pairs('Соедини пары', 'Жұптарды қос',
+        [{ a: 'Мысық', b: 'Кошка' }, { a: 'Ит', b: 'Собака' }, { a: 'Ат', b: 'Лошадь' }, { a: 'Аю', b: 'Медведь' }]),
     ],
   },
 

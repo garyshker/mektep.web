@@ -45,6 +45,10 @@ export const I18N = {
   label_word:         { ru: 'РЕШИ ЗАДАЧУ',                kk: 'ЕСЕПТІ ШЕШ',                 en: 'SOLVE THE PROBLEM' },
   label_match:        { ru: 'РАЗДЕЛИ НА ГРУППЫ',          kk: 'ТОПТАРҒА БӨЛ',               en: 'SORT INTO GROUPS' },
   label_clock:        { ru: 'КОТОРЫЙ ЧАС?',               kk: 'САҒАТ НЕШЕДЕ?',              en: 'WHAT TIME IS IT?' },
+  label_tf:           { ru: 'ВЕРНО ИЛИ НЕТ?',             kk: 'ДҰРЫС ПА?',                  en: 'TRUE OR FALSE?' },
+  label_pairs:        { ru: 'СОЕДИНИ ПАРЫ',               kk: 'ЖҰПТАРДЫ ҚОС',               en: 'MATCH THE PAIRS' },
+  tf_true:            { ru: 'Верно',                      kk: 'Дұрыс',                      en: 'True' },
+  tf_false:           { ru: 'Неверно',                    kk: 'Қате',                       en: 'False' },
 
   // Lesson runner UI
   check:              { ru: 'Проверить',                  kk: 'Тексеру',                    en: 'Check' },
