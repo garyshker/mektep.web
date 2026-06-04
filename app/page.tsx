@@ -8,6 +8,7 @@ import { ALL_LESSONS, SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { Flame, Zap, Play, ChevronRight, Check, Target, UserPlus } from 'lucide-react'
+import { GAME_ICONS } from '@/components/GameIcons'
 import type { User } from '@supabase/supabase-js'
 
 // Kazakh "qośqar-muyiz" style ornament for the hero corner
@@ -339,11 +340,15 @@ export default function HomePage() {
           <div ref={gamesRef}
             onScroll={e => { const el = e.currentTarget; setGameDot(Math.round(el.scrollLeft / (el.scrollWidth / ACTIVITIES.length))) }}
             className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:overflow-visible lg:snap-none" style={{ scrollbarWidth: 'none' }}>
-            {ACTIVITIES.map(act => (
+            {ACTIVITIES.map(act => {
+              const custom = GAME_ICONS[act.path]
+              return (
               <button key={act.path} onClick={() => router.push(act.path)}
                 className="shrink-0 w-36 lg:w-auto snap-start rounded-[var(--radius)] p-3.5 flex flex-col gap-2 text-left border active:translate-y-[-2px] transition-transform"
                 style={{ background: act.color, borderColor: act.border }}>
-                <span className="text-2xl">{act.icon}</span>
+                {custom
+                  ? <span style={{ color: custom.color }}><custom.Comp size={30} /></span>
+                  : <span className="text-2xl">{act.icon}</span>}
                 <div>
                   <p className="font-display font-black text-foreground text-xs leading-tight">{act.name[lang]}</p>
                   <p className="text-muted-foreground text-[10px] mt-0.5">{act.sub[lang]}</p>
@@ -352,7 +357,8 @@ export default function HomePage() {
                   Ойна <ChevronRight size={13} />
                 </span>
               </button>
-            ))}
+              )
+            })}
           </div>
           {/* dots indicator (mobile only) */}
           <div className="flex justify-center gap-1.5 mt-2 lg:hidden">
