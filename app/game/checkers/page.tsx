@@ -145,19 +145,60 @@ function applyMove(b: Board, m: Move): Board {
 }
 
 // ── Simple AI for black ──────────────────────────────────────────────────────
-function pickAiMove(b: Board): Move | null {
+type Level = 'easy' | 'medium' | 'hard'
+
+// Board value from black's (AI) perspective
+function evaluate(b: Board): number {
+  let s = 0
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const p = b[r][c]; if (!p) continue
+    let v = p.king ? 60 : 34
+    if (!p.king) v += (p.color === 'b' ? r : 7 - r) * 1.2   // advancement toward promotion
+    s += p.color === 'b' ? v : -v
+  }
+  return s
+}
+
+function minimax(b: Board, color: Color, depth: number, alpha: number, beta: number): number {
+  const moves = legalMoves(b, color)
+  if (moves.length === 0) return color === 'b' ? -100000 + depth : 100000 - depth  // side to move has lost
+  if (depth === 0) return evaluate(b)
+  if (color === 'b') {
+    let best = -Infinity
+    for (const m of moves) { best = Math.max(best, minimax(applyMove(b, m), 'w', depth - 1, alpha, beta)); alpha = Math.max(alpha, best); if (alpha >= beta) break }
+    return best
+  }
+  let best = Infinity
+  for (const m of moves) { best = Math.min(best, minimax(applyMove(b, m), 'b', depth - 1, alpha, beta)); beta = Math.min(beta, best); if (alpha >= beta) break }
+  return best
+}
+
+function pickAiMove(b: Board, level: Level): Move | null {
   const moves = legalMoves(b, 'b')
   if (!moves.length) return null
+
+  // Easy — any legal move at random (captures are still forced by the rules)
+  if (level === 'easy') return moves[Math.floor(Math.random() * moves.length)]
+
+  // Hard — minimax with alpha-beta lookahead
+  if (level === 'hard') {
+    let best = moves[0], bestScore = -Infinity
+    for (const m of [...moves].sort(() => Math.random() - 0.5)) {
+      const s = minimax(applyMove(b, m), 'w', 5, -Infinity, Infinity)
+      if (s > bestScore) { bestScore = s; best = m }
+    }
+    return best
+  }
+
+  // Medium — greedy: max capture, else safe + advance
   const captures = moves.filter(m => m.captured.length > 0)
   if (captures.length) {
     const max = Math.max(...captures.map(m => m.captured.length))
     const best = captures.filter(m => m.captured.length === max)
     return best[Math.floor(Math.random() * best.length)]
   }
-  // Prefer moves that don't hand the opponent a capture; else advance.
   const safe = moves.filter(m => !sideHasCapture(applyMove(b, m), 'w'))
   const pool = safe.length ? safe : moves
-  // advance toward promotion (higher row) and lean to promotions
   const score = (m: Move) => (m.king ? 100 : 0) + m.to[0]
   const maxS = Math.max(...pool.map(score))
   const top = pool.filter(m => score(m) === maxS)
@@ -174,6 +215,7 @@ export default function CheckersPage() {
   const lang = useLang()
 
   const [mode, setMode] = useState<'ai' | 'local' | null>(null)
+  const [level, setLevel] = useState<Level>('medium')
   const [board, setBoard] = useState<Board>(initBoard)
   const [turn, setTurn] = useState<Color>('w')
   const [sel, setSel] = useState<Pt | null>(null)
@@ -182,6 +224,8 @@ export default function CheckersPage() {
   const [winner, setWinner] = useState<Color | null>(null)
   const boardRef = useRef(board)
   boardRef.current = board
+  const levelRef = useRef(level)
+  levelRef.current = level
 
   // Whose turn is controlled by a human right now
   const humanTurn = mode === 'local' || (mode === 'ai' && turn === 'w')
@@ -199,7 +243,7 @@ export default function CheckersPage() {
   useEffect(() => {
     if (winner || mode !== 'ai' || turn !== 'b') return
     const id = setTimeout(() => {
-      const m = pickAiMove(boardRef.current)
+      const m = pickAiMove(boardRef.current, levelRef.current)
       if (!m) { setWinner('w'); return }
       m.captured.length ? playTap() : playTap()
       setBoard(applyMove(boardRef.current, m))
@@ -282,7 +326,7 @@ export default function CheckersPage() {
     savedRef.current = false
     setBoard(initBoard()); setTurn('w'); setSel(null); setDests([]); setChain([]); setWinner(null)
   }
-  const startGame = (m: 'ai' | 'local') => { resetState(); setMode(m) }
+  const startGame = (m: 'ai' | 'local', lv?: Level) => { resetState(); if (lv) setLevel(lv); setMode(m) }
   const restart = () => resetState()
 
   const destSet = new Set(dests.map(m => key(m.to[0], m.to[1])))
@@ -311,16 +355,26 @@ export default function CheckersPage() {
         <p className="text-white/50 text-sm mb-8">{t('checkers_pick_mode', lang)}</p>
 
         <div className="w-full max-w-xs flex flex-col gap-3">
-          <button onClick={() => startGame('ai')}
-            className="w-full bg-white/10 hover:bg-white/15 rounded-2xl px-5 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-all">
-            <span className="text-3xl">🤖</span>
-            <div>
-              <p className="font-black text-white text-base">{t('checkers_vs_ai', lang)}</p>
-              <p className="text-white/50 text-xs">{t('checkers_vs_ai_sub', lang)}</p>
-            </div>
-          </button>
+          {/* vs computer — pick difficulty */}
+          <p className="text-white/40 text-[11px] font-black tracking-widest uppercase flex items-center gap-2">
+            🤖 {t('checkers_vs_ai', lang)}
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { lv: 'easy' as Level,   key: 'sudoku_easy' as const,   emoji: '🟢' },
+              { lv: 'medium' as Level, key: 'sudoku_medium' as const, emoji: '🟡' },
+              { lv: 'hard' as Level,   key: 'sudoku_hard' as const,   emoji: '🔴' },
+            ]).map(d => (
+              <button key={d.lv} onClick={() => startGame('ai', d.lv)}
+                className="bg-white/10 hover:bg-white/15 rounded-2xl py-3 flex flex-col items-center gap-1 active:scale-95 transition-all">
+                <span className="text-xl">{d.emoji}</span>
+                <span className="font-black text-white text-xs">{t(d.key, lang)}</span>
+              </button>
+            ))}
+          </div>
+          {/* local 2-player */}
           <button onClick={() => startGame('local')}
-            className="w-full bg-amber-400 hover:brightness-105 rounded-2xl px-5 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-all">
+            className="w-full bg-amber-400 hover:brightness-105 rounded-2xl px-5 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-all mt-1">
             <span className="text-3xl">👥</span>
             <div>
               <p className="font-black text-gray-900 text-base">{t('checkers_vs_local', lang)}</p>
@@ -344,7 +398,10 @@ export default function CheckersPage() {
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">✕</button>
         <div className="flex-1">
           <h1 className="text-lg font-black text-white leading-tight">{t('checkers_title', lang)}</h1>
-          <p className="text-xs text-white/50">{status}</p>
+          <p className="text-xs text-white/50">
+            {status}
+            {mode === 'ai' && <span className="text-white/35"> · {t(level === 'easy' ? 'sudoku_easy' : level === 'hard' ? 'sudoku_hard' : 'sudoku_medium', lang)}</span>}
+          </p>
         </div>
         <div className="flex gap-2">
           <div className="bg-white/10 rounded-xl px-3 py-1.5 text-center">
