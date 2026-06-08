@@ -33,12 +33,13 @@ function BigMath({ text }: { text: string }) {
   const clean = fmtExpr(text)
   const parts = clean.split(/(\s*[+\-−×÷]\s*)/)
   return (
-    <div className="text-5xl font-black text-center leading-none tracking-tight py-3 select-none">
+    <div className="font-black text-center leading-none tracking-tight py-3 select-none flex items-center justify-center flex-nowrap max-w-full overflow-hidden tabular-nums"
+      style={{ fontSize: 'clamp(26px, 9vw, 52px)' }}>
       {parts.map((p, i) => {
         const t = p.trim()
         const isOp = /^[+\-−×÷]$/.test(t)
         return (
-          <span key={i} className={isOp ? 'text-orange-500 mx-1' : 'text-foreground'}>
+          <span key={i} className={isOp ? 'text-orange-500 mx-1.5 shrink-0' : 'text-foreground shrink-0'}>
             {t === '-' ? '−' : p}
           </span>
         )
@@ -462,7 +463,7 @@ export default function LessonPage() {
   const feedbackHeight = feedback ? (steps.length > 0 ? 320 : 160) : 0
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ background: 'var(--background)' }}>
 
       {/* ── Header ── */}
       <header className="px-4 pt-5 pb-3 bg-transparent lg:max-w-2xl lg:mx-auto lg:w-full">

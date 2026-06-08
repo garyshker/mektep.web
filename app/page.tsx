@@ -177,9 +177,11 @@ export default function HomePage() {
   const days = WEEKDAYS[lang] ?? WEEKDAYS.kk
   const ti = todayIdx()
   const isGuest = user?.is_anonymous ?? false
+  const weekMonday = getWeekStart()
+  const weekDates = Array.from({ length: 7 }, (_, i) => { const d = new Date(weekMonday); d.setDate(weekMonday.getDate() + i); return d.getDate() })
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-10 lg:pl-60 lg:pt-8" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-10 lg:pl-60 lg:pt-8" style={{ background: 'var(--background)' }}>
 
       {/* ── Header ── */}
       <header className="px-4 pt-5 pb-3 flex items-center justify-between max-w-lg lg:max-w-2xl mx-auto">
@@ -230,16 +232,19 @@ export default function HomePage() {
             {days.map((d, i) => {
               const done = weekDays[i]
               const isToday = i === ti
+              const future = i > ti
               return (
-                <div key={i} className="flex flex-col items-center gap-1.5">
+                <div key={i} className={`flex flex-col items-center gap-1 ${future ? 'opacity-40' : ''}`}>
                   <span className="text-[10px] font-bold text-muted-foreground">{d}</span>
                   <div className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
                     style={{
                       background: done ? 'var(--gradient-gold)' : 'var(--muted)',
-                      boxShadow: isToday ? '0 0 0 3px color-mix(in oklch, var(--primary) 35%, transparent)' : 'none',
+                      boxShadow: isToday ? '0 0 0 3px color-mix(in oklch, var(--primary) 45%, transparent)' : 'none',
                     }}>
                     <Flame size={15} className={done ? 'text-white' : 'text-muted-foreground'} fill={done ? 'currentColor' : 'none'} />
                   </div>
+                  <span className={`text-[9px] tabular ${isToday ? 'font-black' : 'text-muted-foreground/70'}`}
+                    style={isToday ? { color: 'var(--primary)' } : undefined}>{weekDates[i]}</span>
                 </div>
               )
             })}
@@ -270,7 +275,7 @@ export default function HomePage() {
               <div className="flex items-center justify-between mb-4">
                 <span className="text-white/65 text-xs font-bold tabular">{lessonProgress.done} / {lessonProgress.total} {t('lesson_unit', lang)}</span>
                 <span className="text-white text-xs font-black tabular flex items-center gap-1">
-                  <Zap size={13} fill="currentColor" style={{ color: 'var(--accent)' }} /> +{xp} XP
+                  <Zap size={13} fill="currentColor" style={{ color: 'var(--accent)' }} /> +{15 + nextLesson.questions.length * 5} XP
                 </span>
               </div>
 
