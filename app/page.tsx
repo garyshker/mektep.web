@@ -349,18 +349,20 @@ export default function HomePage() {
             className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:overflow-visible lg:snap-none" style={{ scrollbarWidth: 'none' }}>
             {ACTIVITIES.map(act => {
               const custom = GAME_ICONS[act.path]
+              const accent = custom?.color ?? act.border
               return (
               <button key={act.path} onClick={() => router.push(act.path)}
-                className="shrink-0 w-36 lg:w-auto snap-start rounded-[var(--radius)] p-3.5 flex flex-col gap-2 text-left border active:translate-y-[-2px] transition-transform"
-                style={{ background: act.color, borderColor: act.border }}>
-                {custom
-                  ? <span style={{ color: custom.color }}><custom.Comp size={30} /></span>
-                  : <span className="text-2xl">{act.icon}</span>}
+                className="shrink-0 w-36 lg:w-auto snap-start rounded-[var(--radius)] p-3.5 flex flex-col gap-2 text-left border-2 active:translate-y-[-2px] transition-transform"
+                style={{ background: `color-mix(in oklch, ${accent} 12%, var(--card))`, borderColor: `color-mix(in oklch, ${accent} 28%, var(--card))` }}>
+                <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `color-mix(in oklch, ${accent} 22%, transparent)`, color: accent }}>
+                  {custom ? <custom.Comp size={26} /> : <span className="text-xl">{act.icon}</span>}
+                </span>
                 <div>
-                  <p className="font-display font-black text-xs leading-tight" style={{ color: '#1e293b' }}>{act.name[lang]}</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: '#64748b' }}>{act.sub[lang]}</p>
+                  <p className="font-display font-black text-foreground text-xs leading-tight">{act.name[lang]}</p>
+                  <p className="text-muted-foreground text-[10px] mt-0.5">{act.sub[lang]}</p>
                 </div>
-                <span className="text-[11px] font-black flex items-center gap-0.5 self-start" style={{ color: '#2563eb' }}>
+                <span className="text-[11px] font-black flex items-center gap-0.5 self-start" style={{ color: accent }}>
                   Ойна <ChevronRight size={13} />
                 </span>
               </button>
