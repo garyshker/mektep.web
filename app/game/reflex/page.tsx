@@ -318,7 +318,7 @@ export default function ReflexGame() {
 
           {/* Idle overlay */}
           {status === 'idle' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center"
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center leading-normal"
               style={{ background: 'rgba(11,18,32,0.72)', backdropFilter: 'blur(2px)' }}>
               <button onClick={start}
                 className="w-16 h-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
@@ -331,7 +331,7 @@ export default function ReflexGame() {
 
           {/* Game over overlay */}
           {status === 'over' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center"
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center leading-normal"
               style={{ background: 'rgba(11,18,32,0.82)', backdropFilter: 'blur(2px)' }}>
               <div className="text-5xl">💥</div>
               <h2 className="text-2xl font-display font-black text-white">{t('reflex_over', lang)}</h2>
