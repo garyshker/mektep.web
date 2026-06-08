@@ -140,6 +140,18 @@ export const I18N = {
   sm_adaptive:        { ru: 'Подстраивается под тебя',    kk: 'Саған бейімделеді',          en: 'Adapts to you' },
   sm_mastery:         { ru: 'Усвоение',                   kk: 'Меңгеру',                    en: 'Mastery' },
   sm_help_carry:      { ru: 'Смотри, как переносить десяток:', kk: 'Ондықты қалай көшіруді қара:', en: 'See how to carry the ten:' },
+
+  // Parent progress dashboard
+  dash_title:         { ru: 'Прогресс ребёнка',            kk: 'Бала прогресі',              en: "Child's progress" },
+  dash_open:          { ru: 'Прогресс ребёнка',            kk: 'Бала прогресі',              en: "Child's progress" },
+  dash_radar:         { ru: 'Карта навыков',               kk: 'Дағдылар картасы',           en: 'Skill map' },
+  dash_focus:         { ru: 'Над чем работаем сейчас',     kk: 'Қазір немен айналысамыз',    en: 'What we focus on now' },
+  dash_focus_good:    { ru: 'Отличная база! Двигаемся к новым темам.', kk: 'Тамаша негіз! Жаңа тақырыптарға көшеміз.', en: 'Great base! Moving on to new topics.' },
+  dash_stat_solved:   { ru: 'Решено',                      kk: 'Шешілді',                    en: 'Solved' },
+  dash_stat_acc:      { ru: 'Точность',                    kk: 'Дәлдік',                     en: 'Accuracy' },
+  dash_stat_streak:   { ru: 'Дней подряд',                 kk: 'Күн қатарынан',              en: 'Day streak' },
+  dash_empty:         { ru: 'Пока нет данных. Пусть ребёнок попробует «Умное сложение» — и здесь появится карта его навыков.', kk: 'Әзірге дерек жоқ. Бала «Ақылды қосуды» байқап көрсін — осында оның дағдылар картасы пайда болады.', en: 'No data yet. Have your child try “Smart addition” and a skill map will appear here.' },
+  dash_try:           { ru: 'Открыть тренажёр',            kk: 'Жаттықтырғышты ашу',         en: 'Open the trainer' },
   train_streak:       { ru: 'Серия',                      kk: 'Серия',                      en: 'Streak' },
   train_best:         { ru: 'Лучшая серия',               kk: 'Үздік серия',                en: 'Best streak' },
   train_stop:         { ru: 'Стоп',                       kk: 'Тоқта',                      en: 'Stop' },

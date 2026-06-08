@@ -11,7 +11,7 @@ import { LangSwitch } from '@/components/LangSwitch'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SoundToggle } from '@/components/SoundToggle'
 import { SUBJECT_ICONS } from '@/components/GameIcons'
-import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2, Star, UserPlus } from 'lucide-react'
+import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2, Star, UserPlus, LineChart } from 'lucide-react'
 import type { Lang } from '@/lib/i18n'
 
 type Profile = {
@@ -207,6 +207,20 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Parent progress dashboard */}
+        <button onClick={() => router.push('/progress')}
+          className="rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] px-5 py-4 flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
+          style={{ background: 'color-mix(in oklch, var(--primary) 10%, var(--card))' }}>
+          <span className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ background: 'color-mix(in oklch, var(--primary) 18%, transparent)', color: 'var(--primary)' }}>
+            <LineChart size={20} />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="font-display font-black text-foreground text-sm">{t('dash_open', lang)}</p>
+            <p className="text-muted-foreground text-xs">{t('dash_radar', lang)}</p>
+          </div>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </button>
 
         {/* Language */}
         <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] px-5 py-4 flex items-center gap-3">

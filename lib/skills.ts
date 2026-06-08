@@ -17,6 +17,25 @@ export const ADD_SKILL_LABEL: Record<AddSkill, ByLang> = {
 const ri = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1))
 const carries = (a: number, b: number) => (a % 10) + (b % 10) >= 10
 
+// Parent-facing, "the system heals" copy for each mistake type
+export const ERROR_TAG_LABEL: Record<string, ByLang> = {
+  forgot_carry:    { ru: 'Спотыкается на переходе через десяток (например, 27 + 15). Делаем упор на разбор таких примеров.', kk: 'Ондыққа ауысуда қателеседі (мысалы, 27 + 15). Осындай мысалдарды талдауға баса назар аударамыз.', en: 'Stumbles on carrying over ten (e.g. 27 + 15). We focus on these.' },
+  wrong_operation: { ru: 'Иногда путает сложение и вычитание.', kk: 'Кейде қосу мен алуды шатастырады.', en: 'Sometimes mixes up adding and subtracting.' },
+  off_by_one:      { ru: 'Небольшие промахи в счёте на единицу.', kk: 'Санауда бір санға қателеседі.', en: 'Small off-by-one counting slips.' },
+  extra_ten:       { ru: 'Иногда прибавляет лишний десяток.', kk: 'Кейде артық ондық қосады.', en: 'Sometimes adds an extra ten.' },
+  random_guess:    { ru: 'Пока угадывает — нужно закрепить счёт.', kk: 'Әзірге болжайды — санауды бекіту керек.', en: 'Still guessing — needs to cement counting.' },
+}
+
+// Diagnose a free-typed answer (cleaner signal than MC — almost no lucky guesses)
+export function diagnoseAddition(a: number, b: number, typed: number): string | null {
+  const ans = a + b
+  if (typed === ans) return null
+  if (carries(a, b) && typed === ans - 10) return 'forgot_carry'
+  if (typed === Math.abs(a - b)) return 'wrong_operation'
+  if (typed === ans - 1 || typed === ans + 1) return 'off_by_one'
+  return 'random_guess'
+}
+
 export function additionSkillOf(a: number, b: number): AddSkill {
   if (a < 10 && b < 10) return 'add_1d'
   return carries(a, b) ? 'add_2d_carry' : 'add_2d_no_carry'
