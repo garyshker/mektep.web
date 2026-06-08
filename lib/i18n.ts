@@ -208,6 +208,7 @@ export const I18N = {
   reflex_over:        { ru: 'Задел! 💥',                   kk: 'Тиіп кеттің! 💥',            en: 'You hit it! 💥' },
   reflex_hint:        { ru: 'Чем дольше держишься — тем быстрее летают фигуры.', kk: 'Неғұрлым ұзақ шыдасаң — фигуралар соғұрлым жылдам ұшады.', en: 'The longer you survive, the faster the shapes move.' },
   reflex_sec:         { ru: 'сек',                         kk: 'сек',                        en: 's' },
+  reflex_pad_hint:    { ru: 'Веди пальцем здесь',          kk: 'Саусақпен осы жерде жүргіз',  en: 'Drag your finger here' },
 
   // Simon (repeat the sequence — memory)
   simon_title:        { ru: 'Саймон',                      kk: 'Саймон',                     en: 'Simon' },

@@ -22,7 +22,6 @@ const P = 18          // player square size
 const WALL = 7        // wall band thickness
 const ENEMY_COUNT = 4 // fixed — like the classic "Escapa!" / "Hold On"
 const MAX_V = 8.5     // speed cap (px / frame) to keep collisions fair
-const TOUCH_OFFSET = 72 // on touch, draw the square above the finger so it isn't hidden
 
 export default function ReflexGame() {
   const router = useRouter()
@@ -31,18 +30,21 @@ export default function ReflexGame() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const timeElRef = useRef<HTMLSpanElement | null>(null)
+  const padRef = useRef<HTMLDivElement | null>(null)
+  const padDotRef = useRef<HTMLDivElement | null>(null)
+  const padDownRef = useRef(false)
 
   const [status, setStatus] = useState<Status>('idle')
   const [best, setBest] = useState(0)
   const [finalTime, setFinalTime] = useState(0)
   const [xpAward, setXpAward] = useState(0)
+  const [coarse, setCoarse] = useState(false)   // touch device → show the trackpad
 
   // mutable game state (refs — no re-render in the loop)
   const sizeRef = useRef(340)
   const playerRef = useRef({ x: 160, y: 160 })   // top-left
   const pointerRef = useRef({ x: 170, y: 170 })  // target centre
   const enemiesRef = useRef<Enemy[]>([])
-  const fingerRef = useRef({ x: 0, y: 0, touch: false })  // raw touch point (for the tether)
   const startRef = useRef(0)
   const lastRampRef = useRef(0)
   const rafRef = useRef(0)
@@ -53,6 +55,7 @@ export default function ReflexGame() {
   useEffect(() => {
     const b = Number(localStorage.getItem('reflex-best') || 0)
     if (b) { setBest(b); bestRef.current = b }
+    setCoarse(typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches)
   }, [])
 
   // ── helpers ──────────────────────────────────────────────────────────────
@@ -89,20 +92,6 @@ export default function ReflexGame() {
     ctx.lineWidth = WALL
     ctx.strokeStyle = WALL_COLOR
     ctx.strokeRect(WALL / 2, WALL / 2, S - WALL, S - WALL)
-    // touch tether — show the link between finger and the (offset) square
-    const f = fingerRef.current
-    if (statusRef.current === 'playing' && f.touch) {
-      const pc = playerRef.current
-      ctx.save()
-      ctx.strokeStyle = 'rgba(255,255,255,0.22)'
-      ctx.lineWidth = 2
-      ctx.setLineDash([4, 5])
-      ctx.beginPath(); ctx.moveTo(pc.x + P / 2, pc.y + P / 2); ctx.lineTo(f.x, f.y); ctx.stroke()
-      ctx.setLineDash([])
-      ctx.beginPath(); ctx.arc(f.x, f.y, 12, 0, Math.PI * 2)
-      ctx.strokeStyle = 'rgba(255,255,255,0.30)'; ctx.stroke()
-      ctx.restore()
-    }
     // enemies
     ctx.fillStyle = ENEMY_COLOR
     for (const e of enemiesRef.current) ctx.fillRect(e.x, e.y, e.s, e.s)
@@ -211,31 +200,45 @@ export default function ReflexGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── pointer tracking (drag follows the square) ─────────────────────────────
-  const posFromEvent = (e: { clientX: number; clientY: number; pointerType: string }) => {
+  // ── controls ───────────────────────────────────────────────────────────────
+  // Desktop: mouse moves directly over the arena. Touch: a trackpad below the
+  // arena (finger never covers the play field). Both feed the same pointerRef.
+  const mapArena = (clientX: number, clientY: number) => {
     const c = canvasRef.current; if (!c) return
     const r = c.getBoundingClientRect()
-    const touch = e.pointerType === 'touch'
-    const fx = e.clientX - r.left
-    const fy = e.clientY - r.top
-    fingerRef.current = { x: fx, y: fy, touch }
-    // lift the controlled square above the finger so it's never hidden
-    pointerRef.current = { x: fx, y: fy - (touch ? TOUCH_OFFSET : 0) }
+    pointerRef.current = { x: clientX - r.left, y: clientY - r.top }
+  }
+
+  const mapPad = (clientX: number, clientY: number) => {
+    const pad = padRef.current; if (!pad) return
+    const r = pad.getBoundingClientRect()
+    const nx = Math.max(0, Math.min(1, (clientX - r.left) / r.width))
+    const ny = Math.max(0, Math.min(1, (clientY - r.top) / r.height))
+    pointerRef.current = { x: nx * sizeRef.current, y: ny * sizeRef.current }
+    if (padDotRef.current) padDotRef.current.style.transform = `translate(${nx * r.width}px, ${ny * r.height}px)`
   }
 
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
-      if (statusRef.current !== 'playing') return
-      posFromEvent(e)
+      if (statusRef.current !== 'playing' || e.pointerType === 'touch') return
+      mapArena(e.clientX, e.clientY)
     }
     window.addEventListener('pointermove', onMove)
     return () => window.removeEventListener('pointermove', onMove)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const onCanvasPointerDown = (e: React.PointerEvent) => {
-    if (statusRef.current === 'playing') posFromEvent(e)
+  const onPadDown = (e: React.PointerEvent) => {
+    if (statusRef.current !== 'playing') return
+    padDownRef.current = true
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* ignore */ }
+    mapPad(e.clientX, e.clientY)
   }
+  const onPadMove = (e: React.PointerEvent) => {
+    if (statusRef.current !== 'playing' || !padDownRef.current) return
+    mapPad(e.clientX, e.clientY)
+  }
+  const onPadUp = () => { padDownRef.current = false }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-5 py-6">
@@ -265,8 +268,8 @@ export default function ReflexGame() {
 
       {/* Arena */}
       <div className="relative w-full max-w-md flex justify-center">
-        <div className="relative rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-md)]" style={{ lineHeight: 0 }}>
-          <canvas ref={canvasRef} onPointerDown={onCanvasPointerDown} style={{ touchAction: 'none', display: 'block' }} />
+        <div className="relative rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-md)]">
+          <canvas ref={canvasRef} style={{ touchAction: 'none', display: 'block' }} />
 
           {/* Idle overlay */}
           {status === 'idle' && (
@@ -306,6 +309,21 @@ export default function ReflexGame() {
           )}
         </div>
       </div>
+
+      {/* Trackpad (touch devices) — drag here so your finger is off the arena */}
+      {coarse && (
+        <div ref={padRef}
+          onPointerDown={onPadDown} onPointerMove={onPadMove} onPointerUp={onPadUp} onPointerCancel={onPadUp}
+          className="relative mt-4 rounded-[var(--radius-lg)] border-2 border-dashed border-border bg-card shadow-[var(--shadow-sm)] overflow-hidden select-none flex items-center justify-center"
+          style={{ touchAction: 'none', width: 'min(82vw, 230px)', height: 'min(82vw, 230px)' }}>
+          <span className="text-xs font-display font-black uppercase tracking-wider text-muted-foreground/70 pointer-events-none px-6 text-center">
+            {t('reflex_pad_hint', lang)}
+          </span>
+          <div ref={padDotRef}
+            className="absolute top-0 left-0 w-7 h-7 -ml-3.5 -mt-3.5 rounded-full pointer-events-none"
+            style={{ background: 'color-mix(in oklch, var(--primary) 30%, transparent)', border: '2px solid var(--primary)' }} />
+        </div>
+      )}
 
       <p className="w-full max-w-md text-muted-foreground/70 text-xs leading-relaxed mt-5 text-center">
         {t('reflex_hint', lang)}
