@@ -72,6 +72,7 @@ export const I18N = {
   days_streak:        { ru: 'Дней подряд',                kk: 'Күн қатарынан',              en: 'Day streak' },
   lessons_count:      { ru: 'Уроков',                     kk: 'Сабақтар',                   en: 'Lessons' },
   stars_earned:       { ru: 'Заработано звёзд:',          kk: 'Жұлдыз жиналды:',            en: 'Stars earned:' },
+  stars_label:        { ru: 'Звёзды',                     kk: 'Жұлдыздар',                  en: 'Stars' },
   completed_lessons:  { ru: 'Пройденные уроки',           kk: 'Өткен сабақтар',             en: 'Completed lessons' },
   edit_profile:       { ru: 'Редактировать профиль',      kk: 'Профильді өзгерту',          en: 'Edit profile' },
   sign_out:           { ru: 'Выйти из аккаунта',          kk: 'Шығу',                       en: 'Sign out' },

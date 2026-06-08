@@ -10,7 +10,8 @@ import { BottomNav } from '@/components/BottomNav'
 import { LangSwitch } from '@/components/LangSwitch'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SoundToggle } from '@/components/SoundToggle'
-import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2 } from 'lucide-react'
+import { SUBJECT_ICONS } from '@/components/GameIcons'
+import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2, Star, UserPlus } from 'lucide-react'
 import type { Lang } from '@/lib/i18n'
 
 type Profile = {
@@ -33,8 +34,8 @@ function Avatar({ name, size = 'lg' }: { name: string; size?: 'sm' | 'lg' }) {
   const color = colors[letter.charCodeAt(0) % colors.length]
   const dim = size === 'lg' ? 'w-20 h-20 text-3xl' : 'w-9 h-9 text-base'
   return (
-    <div className={`${dim} rounded-full flex items-center justify-center font-black text-white shrink-0`}
-      style={{ background: color }}>
+    <div className={`${dim} rounded-full flex items-center justify-center font-display font-black text-white shrink-0`}
+      style={{ background: color, boxShadow: `0 0 0 ${size === 'lg' ? 5 : 3}px color-mix(in oklch, ${color} 20%, transparent)` }}>
       {letter}
     </div>
   )
@@ -46,6 +47,7 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [progress, setProgress] = useState<LessonProgress[]>([])
+  const [isGuest, setIsGuest] = useState(false)
   const [loading, setLoading] = useState(true)
   const lang = useLang()
 
@@ -53,6 +55,7 @@ export default function ProfilePage() {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+      setIsGuest(user.is_anonymous ?? false)
 
       const [{ data: prof }, { data: prog }] = await Promise.all([
         supabase.from('profiles').select('name, grade, xp, streak, language').eq('id', user.id).single(),
@@ -87,6 +90,8 @@ export default function ProfilePage() {
   const totalXP = profile?.xp ?? 0
   const completedCount = progress.length
   const totalLessons = ALL_LESSONS.filter(l => l.grade.includes(profile?.grade ?? 2)).length
+  const maxStars = Math.max(completedCount * 3, 1)
+  const starsPct = Math.round((totalStars / maxStars) * 100)
 
   const LANG_LABELS: Record<string, string> = { ru: '🇷🇺 Русский', kk: '🇰🇿 Қазақша', en: '🇬🇧 English' }
 
@@ -102,6 +107,19 @@ export default function ProfilePage() {
 
       <main className="flex-1 px-4 flex flex-col gap-4 pt-4 pb-6 max-w-lg lg:max-w-2xl mx-auto w-full">
 
+        {/* Guest — save-progress nudge */}
+        {isGuest && (
+          <div className="rounded-[var(--radius-lg)] p-4 flex items-center gap-3 animate-mk-pop-in"
+            style={{ background: 'color-mix(in oklch, var(--warning) 14%, var(--card))' }}>
+            <p className="flex-1 text-xs font-semibold leading-snug text-foreground/80">{t('guest_banner', lang)}</p>
+            <button onClick={() => router.push('/login')}
+              className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-[var(--radius)] text-white font-display font-black text-xs active:scale-95 transition-transform"
+              style={{ background: 'var(--primary)' }}>
+              <UserPlus size={14} /> {t('btn_register', lang)}
+            </button>
+          </div>
+        )}
+
         {/* Profile card */}
         <div className="bg-card rounded-[var(--radius-lg)] px-5 py-5 shadow-[var(--shadow-sm)] flex items-center gap-4">
           <Avatar name={profile?.name ?? '?'} size="lg" />
@@ -113,32 +131,42 @@ export default function ProfilePage() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-card rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-sm)] flex flex-col items-center gap-1">
-            <Zap size={24} fill="currentColor" style={{ color: 'var(--xp)' }} />
+          <div className="bg-card rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-sm)] flex flex-col items-center gap-1.5">
+            <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'color-mix(in oklch, var(--xp) 16%, transparent)' }}>
+              <Zap size={22} fill="currentColor" style={{ color: 'var(--xp)' }} />
+            </span>
             <span className="font-display font-black text-foreground text-xl tabular">{totalXP}</span>
             <span className="text-[11px] text-muted-foreground font-semibold">XP</span>
           </div>
-          <div className="bg-card rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-sm)] flex flex-col items-center gap-1">
-            <Flame size={24} fill="currentColor" style={{ color: 'var(--warning)' }} />
+          <div className="bg-card rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-sm)] flex flex-col items-center gap-1.5">
+            <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'color-mix(in oklch, var(--warning) 16%, transparent)' }}>
+              <Flame size={22} fill="currentColor" style={{ color: 'var(--warning)' }} />
+            </span>
             <span className="font-display font-black text-foreground text-xl tabular">{profile?.streak ?? 0}</span>
             <span className="text-[11px] text-muted-foreground font-semibold">{t('days_streak', lang)}</span>
           </div>
-          <div className="bg-card rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-sm)] flex flex-col items-center gap-1">
-            <CheckCircle2 size={24} style={{ color: 'var(--success)' }} />
+          <div className="bg-card rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-sm)] flex flex-col items-center gap-1.5">
+            <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'color-mix(in oklch, var(--success) 16%, transparent)' }}>
+              <CheckCircle2 size={22} style={{ color: 'var(--success)' }} />
+            </span>
             <span className="font-display font-black text-foreground text-xl tabular">{completedCount}/{totalLessons}</span>
             <span className="text-[11px] text-muted-foreground font-semibold">{t('lessons_count', lang)}</span>
           </div>
         </div>
 
-        {/* Stars row */}
+        {/* Stars / trophy — earned vs possible */}
         {totalStars > 0 && (
-          <div className="rounded-[var(--radius-lg)] px-5 py-4 shadow-[var(--shadow-sm)] flex items-center justify-between"
+          <div className="rounded-[var(--radius-lg)] px-5 py-4 shadow-[var(--shadow-sm)] flex items-center gap-4"
             style={{ background: 'var(--gradient-gold)' }}>
-            <div>
-              <p className="font-black text-foreground text-lg">{'⭐'.repeat(Math.min(totalStars, 5))}</p>
-              <p className="text-foreground text-sm font-semibold mt-0.5 tabular">{t('stars_earned', lang)} {totalStars}</p>
+            <div className="w-14 h-14 rounded-full bg-white/25 flex items-center justify-center text-3xl shrink-0">🏆</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-black text-foreground text-lg leading-tight">{t('stars_label', lang)}</p>
+              <p className="text-foreground/75 text-sm font-bold tabular mt-0.5">{totalStars} / {maxStars}</p>
+              <div className="mt-2 h-2 rounded-full bg-white/35 overflow-hidden">
+                <div className="h-full rounded-full bg-white transition-all" style={{ width: `${starsPct}%` }} />
+              </div>
             </div>
-            <span className="text-4xl">🏆</span>
+            <p className="font-display font-black text-foreground text-3xl tabular shrink-0">{totalStars}</p>
           </div>
         )}
 
@@ -150,14 +178,18 @@ export default function ProfilePage() {
               {progress.map(p => {
                 const lesson = ALL_LESSONS.find(l => l.id === p.lesson_id)
                 if (!lesson) return null
+                const subj = SUBJECT_ICONS[lesson.subjectId]
                 return (
                   <button
                     key={p.lesson_id}
                     onClick={() => router.push(`/lesson/${p.lesson_id}`)}
-                    className="flex items-center gap-3 active:opacity-70 transition-opacity"
+                    className="flex items-center gap-3 active:opacity-70 transition-opacity text-left"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xl shrink-0">
-                      {lesson.emoji ?? '📚'}
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: subj ? `color-mix(in oklch, ${subj.color} 14%, transparent)` : 'var(--muted)' }}>
+                      {subj
+                        ? <span style={{ color: subj.color }}><subj.Comp size={22} /></span>
+                        : <span className="text-xl">{lesson.emoji ?? '📚'}</span>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-display font-black text-foreground text-sm truncate">{lesson.titleByLang[lang] ?? lesson.titleByLang.ru}</p>
@@ -165,7 +197,8 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex gap-0.5 shrink-0">
                       {[1, 2, 3].map(s => (
-                        <span key={s} className={`text-sm ${s <= p.stars ? 'opacity-100' : 'opacity-20'}`}>⭐</span>
+                        <Star key={s} size={15} fill="currentColor"
+                          style={{ color: s <= p.stars ? 'var(--xp)' : 'var(--border)' }} />
                       ))}
                     </div>
                   </button>
