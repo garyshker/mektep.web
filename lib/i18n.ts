@@ -132,6 +132,7 @@ export const I18N = {
   train_mul:          { ru: 'Умножение',                  kk: 'Көбейту',                    en: 'Multiplication' },
   train_div:          { ru: 'Деление',                    kk: 'Бөлу',                       en: 'Division' },
   train_mix:          { ru: 'Всё вместе',                 kk: 'Аралас',                     en: 'Mixed' },
+  train_eq:           { ru: 'Уравнения',                  kk: 'Теңдеулер',                  en: 'Equations' },
   train_streak:       { ru: 'Серия',                      kk: 'Серия',                      en: 'Streak' },
   train_best:         { ru: 'Лучшая серия',               kk: 'Үздік серия',                en: 'Best streak' },
   train_stop:         { ru: 'Стоп',                       kk: 'Тоқта',                      en: 'Stop' },

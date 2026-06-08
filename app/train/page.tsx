@@ -19,6 +19,23 @@ export default function TrainPage() {
       </header>
 
       <main className="max-w-lg lg:max-w-2xl mx-auto px-4 grid grid-cols-2 gap-3">
+        {/* Equations — its own page with the animated solver */}
+        <button onClick={() => router.push('/train/equations')}
+          className="col-span-2 rounded-[var(--radius)] p-4 flex items-center gap-4 text-left border-2 active:translate-y-[-2px] transition-transform"
+          style={{ background: 'color-mix(in oklch, var(--primary) 10%, var(--card))', borderColor: 'color-mix(in oklch, var(--primary) 28%, var(--card))' }}>
+          <span className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0"
+            style={{ background: 'color-mix(in oklch, var(--primary) 18%, transparent)' }}>🟰</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-display font-black text-foreground text-base">{t('train_eq', lang)}</p>
+            <p className="text-muted-foreground text-xs flex items-center gap-1">
+              <InfinityIcon size={12} /> {t('train_subtitle', lang)} · x
+            </p>
+          </div>
+          <span className="text-xs font-black flex items-center gap-0.5 shrink-0" style={{ color: 'var(--primary)' }}>
+            {t('game_go', lang)} <ChevronRight size={14} />
+          </span>
+        </button>
+
         {TRAINERS.map(tr => (
           <button key={tr.id} onClick={() => router.push(`/train/${tr.id}`)}
             className="rounded-[var(--radius)] p-4 flex flex-col gap-2 text-left border active:translate-y-[-2px] transition-transform"
