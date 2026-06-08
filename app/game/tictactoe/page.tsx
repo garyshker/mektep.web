@@ -307,13 +307,13 @@ export default function TicTacToePage() {
 
       {/* Board */}
       <div className="relative w-full max-w-md">
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-3 grid-rows-3 gap-2.5 aspect-square">
           {board.map((cell, i) => {
             const win = line?.includes(i)
             const clickable = !winner && !cell && humanTurn
             return (
               <button key={i} onClick={() => place(i)} disabled={!clickable}
-                className="aspect-square rounded-[var(--radius-lg)] border-2 flex items-center justify-center p-[18%] transition-colors shadow-[var(--shadow-sm)]"
+                className="w-full h-full rounded-[var(--radius-lg)] border-2 flex items-center justify-center p-[18%] transition-colors shadow-[var(--shadow-sm)]"
                 style={{
                   background: win
                     ? (cell === 'X' ? 'color-mix(in oklch, var(--primary) 16%, var(--card))' : 'color-mix(in oklch, var(--accent) 18%, var(--card))')
