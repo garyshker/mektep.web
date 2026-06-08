@@ -64,6 +64,7 @@ export default function DuelPage() {
   const [duel, setDuel] = useState<Duel | null>(null)
   const [joinCode, setJoinCode] = useState('')
   const [joinError, setJoinError] = useState('')
+  const [lobbyError, setLobbyError] = useState('')
   const [countdown, setCountdown] = useState(3)
   const [problems, setProblems] = useState<Problem[]>([])
   const [probIdx, setProbIdx] = useState(0)
@@ -167,13 +168,22 @@ export default function DuelPage() {
 
   const createRoom = async () => {
     if (!myId) return
+    setLobbyError('')
     const code = genCode()
     const seed = Math.floor(Math.random() * 999999) + 1
     const { data, error } = await supabase.from('duels').insert({
       id: code, host_id: myId, host_name: myName,
       grade: myGrade, seed, host_score: 0, guest_score: 0,
     }).select().single()
-    if (error || !data) return
+    if (error || !data) {
+      console.error('createRoom error:', error)
+      setLobbyError(
+        error?.code === '42P01'
+          ? 'Дуэли ещё не настроены на сервере (нет таблицы duels).'
+          : `Не удалось создать игру${error?.message ? `: ${error.message}` : ''}`
+      )
+      return
+    }
     setDuel(data)
     setIsHost(true)
     setPhase('waiting')
@@ -188,7 +198,11 @@ export default function DuelPage() {
       .eq('id', code)
       .is('guest_id', null)
       .select().single()
-    if (error || !data) { setJoinError('Комната не найдена или уже занята'); return }
+    if (error || !data) {
+      console.error('joinRoom error:', error)
+      setJoinError(error?.code === '42P01' ? 'Дуэли ещё не настроены на сервере' : 'Комната не найдена или уже занята')
+      return
+    }
     setDuel(data)
     setIsHost(false)
     subscribeRoom(code)
@@ -227,6 +241,11 @@ export default function DuelPage() {
           className="w-full py-4 rounded-2xl bg-gray-900 text-white font-black text-lg active:scale-95 transition-all">
           Создать игру
         </button>
+        {lobbyError && (
+          <div className="rounded-2xl px-4 py-3 bg-red-50 border border-red-200">
+            <p className="text-red-600 text-sm font-semibold text-center">{lobbyError}</p>
+          </div>
+        )}
         <div className="bg-white rounded-3xl p-4 shadow-sm flex flex-col gap-3">
           <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase">Войти по коду</p>
           <input value={joinCode}
