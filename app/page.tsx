@@ -51,6 +51,7 @@ const ACTIVITIES: { icon: string; name: L3; sub: L3; color: string; border: stri
   { icon: '🔴', name: { kk: 'Дойбы', ru: 'Шашки', en: 'Checkers' }, sub: { kk: 'Орыс дойбысы', ru: 'Русские шашки', en: 'Russian checkers' }, color: '#F3E9E2', border: '#D9B89E', path: '/game/checkers' },
   { icon: '🧩', name: { kk: 'Судоку', ru: 'Судоку', en: 'Sudoku' }, sub: { kk: 'Логикалық', ru: 'Логика', en: 'Logic' }, color: '#EDE7FB', border: '#C9B8F0', path: '/game/sudoku' },
   { icon: '⭕', name: { kk: 'Айқыш-дөңгелек', ru: 'Крестики-нолики', en: 'Tic-Tac-Toe' }, sub: { kk: 'Үшеуін қатарға', ru: 'Три в ряд', en: 'Three in a row' }, color: '#E7F0FB', border: '#A9CBF0', path: '/game/tictactoe' },
+  { icon: '🎯', name: { kk: 'Рефлекс', ru: 'Реакция', en: 'Reflex' }, sub: { kk: 'Ұшқыш сынағы', ru: 'Тест пилота', en: 'Pilot test' }, color: '#FDE7EF', border: '#F6B6CE', path: '/game/reflex' },
   { icon: '🪨', name: { kk: 'Тоғыз құмалақ', ru: 'Тоғыз құмалақ', en: 'Togyz Kumalak' }, sub: { kk: 'Ұлттық ойын', ru: 'Нац. игра', en: 'National game' }, color: '#F5E9D8', border: '#D9B98A', path: '/game/togyz' },
   { icon: '🌍', name: { kk: 'Елдер', ru: 'Страны', en: 'Countries' }, sub: { kk: 'ТМД елдері', ru: 'Страны СНГ', en: 'CIS countries' }, color: '#E7F0FB', border: '#A9CBF0', path: '/game/countries' },
 ]

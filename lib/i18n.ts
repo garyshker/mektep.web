@@ -199,6 +199,16 @@ export const I18N = {
   ttt_o_win:          { ru: 'Нолики победили! ◯',          kk: 'Дөңгелек жеңді! ◯',          en: 'O wins! ◯' },
   ttt_rules:          { ru: 'Собери три в ряд — по горизонтали, вертикали или диагонали.', kk: 'Үшеуін қатарға жина — көлденең, тік немесе қиғаш.', en: 'Get three in a row — horizontally, vertically or diagonally.' },
 
+  // Reflex (pilot reaction test)
+  reflex_title:       { ru: 'Реакция',                     kk: 'Рефлекс',                    en: 'Reflex' },
+  reflex_sub:         { ru: 'Тест пилота',                 kk: 'Ұшқыш сынағы',               en: 'Pilot test' },
+  reflex_time:        { ru: 'Время',                       kk: 'Уақыт',                      en: 'Time' },
+  reflex_best:        { ru: 'Рекорд',                      kk: 'Рекорд',                     en: 'Best' },
+  reflex_start_hint:  { ru: 'Нажми и веди квадрат. Не задевай стены и фигуры!', kk: 'Шаршыны басып жүргіз. Қабырға мен фигураларға тиме!', en: 'Press and drag the square. Avoid the walls and shapes!' },
+  reflex_over:        { ru: 'Задел! 💥',                   kk: 'Тиіп кеттің! 💥',            en: 'You hit it! 💥' },
+  reflex_hint:        { ru: 'Чем дольше держишься — тем быстрее летают фигуры.', kk: 'Неғұрлым ұзақ шыдасаң — фигуралар соғұрлым жылдам ұшады.', en: 'The longer you survive, the faster the shapes move.' },
+  reflex_sec:         { ru: 'сек',                         kk: 'сек',                        en: 's' },
+
   // Sudoku
   sudoku_title:       { ru: 'Судоку',                      kk: 'Судоку',                     en: 'Sudoku' },
   sudoku_pick:        { ru: 'Выбери сложность',            kk: 'Күрделілікті таңда',         en: 'Choose difficulty' },

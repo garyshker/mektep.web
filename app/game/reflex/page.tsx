@@ -1,0 +1,295 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { X, Play } from 'lucide-react'
+import { createClient } from '@/lib/supabase'
+import { playWrong, playTap } from '@/lib/sounds'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
+
+type Enemy = { x: number; y: number; vx: number; vy: number; s: number }
+type Status = 'idle' | 'playing' | 'over'
+
+// ── Arena palette (self-contained dark "screen", looks the same in both themes) ─
+const BG = '#0B1220'
+const WALL_COLOR = '#EF4444'
+const ENEMY_COLOR = '#FBBF24'
+const PLAYER_COLOR = '#FFFFFF'
+const PLAYER_GLOW = '#3B82F6'
+
+const P = 18          // player square size
+const WALL = 7        // wall band thickness
+const MAX_V = 5.6     // speed cap (px / frame) to keep collisions fair
+
+export default function ReflexGame() {
+  const router = useRouter()
+  const supabase = createClient()
+  const lang = useLang()
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const timeElRef = useRef<HTMLSpanElement | null>(null)
+
+  const [status, setStatus] = useState<Status>('idle')
+  const [best, setBest] = useState(0)
+  const [finalTime, setFinalTime] = useState(0)
+  const [xpAward, setXpAward] = useState(0)
+
+  // mutable game state (refs — no re-render in the loop)
+  const sizeRef = useRef(340)
+  const playerRef = useRef({ x: 160, y: 160 })   // top-left
+  const pointerRef = useRef({ x: 170, y: 170 })  // target centre
+  const enemiesRef = useRef<Enemy[]>([])
+  const startRef = useRef(0)
+  const lastRampRef = useRef(0)
+  const rafRef = useRef(0)
+  const statusRef = useRef<Status>('idle')
+  const bestRef = useRef(0)
+  statusRef.current = status
+
+  useEffect(() => {
+    const b = Number(localStorage.getItem('reflex-best') || 0)
+    if (b) { setBest(b); bestRef.current = b }
+  }, [])
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+  const spawnEnemy = () => {
+    const S = sizeRef.current
+    const s = 16 + Math.random() * 8
+    let x = 0, y = 0
+    do {
+      x = WALL + Math.random() * (S - 2 * WALL - s)
+      y = WALL + Math.random() * (S - 2 * WALL - s)
+    } while (Math.hypot(x + s / 2 - S / 2, y + s / 2 - S / 2) < S * 0.24)
+    const speed = 1.5 + Math.random() * 0.9
+    const ang = Math.random() * Math.PI * 2
+    enemiesRef.current.push({ x, y, s, vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed })
+  }
+
+  const reset = () => {
+    const S = sizeRef.current
+    playerRef.current = { x: S / 2 - P / 2, y: S / 2 - P / 2 }
+    pointerRef.current = { x: S / 2, y: S / 2 }
+    enemiesRef.current = []
+    for (let i = 0; i < 4; i++) spawnEnemy()
+    startRef.current = performance.now()
+    lastRampRef.current = performance.now()
+  }
+
+  const draw = () => {
+    const c = canvasRef.current; if (!c) return
+    const ctx = c.getContext('2d'); if (!ctx) return
+    const S = sizeRef.current
+    ctx.fillStyle = BG
+    ctx.fillRect(0, 0, S, S)
+    // danger wall frame
+    ctx.lineWidth = WALL
+    ctx.strokeStyle = WALL_COLOR
+    ctx.strokeRect(WALL / 2, WALL / 2, S - WALL, S - WALL)
+    // enemies
+    ctx.fillStyle = ENEMY_COLOR
+    for (const e of enemiesRef.current) ctx.fillRect(e.x, e.y, e.s, e.s)
+    // player
+    const p = playerRef.current
+    ctx.save()
+    ctx.shadowColor = PLAYER_GLOW
+    ctx.shadowBlur = 14
+    ctx.fillStyle = PLAYER_COLOR
+    ctx.fillRect(p.x, p.y, P, P)
+    ctx.restore()
+  }
+
+  const endGame = () => {
+    if (statusRef.current === 'over') return
+    statusRef.current = 'over'
+    cancelAnimationFrame(rafRef.current)
+    playWrong()
+    const tsec = (performance.now() - startRef.current) / 1000
+    setFinalTime(tsec)
+    if (tsec > bestRef.current) {
+      bestRef.current = tsec
+      setBest(tsec)
+      localStorage.setItem('reflex-best', String(tsec))
+    }
+    const xp = Math.min(Math.round(tsec * 2), 30)
+    setXpAward(xp)
+    if (xp > 0) {
+      ;(async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
+        await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + xp }).eq('id', user.id)
+      })()
+    }
+    setStatus('over')
+    draw()
+  }
+
+  const step = () => {
+    const S = sizeRef.current
+    const p = playerRef.current
+    p.x = pointerRef.current.x - P / 2
+    p.y = pointerRef.current.y - P / 2
+    // wall hit — player rect must stay inside the safe band
+    if (p.x < WALL || p.y < WALL || p.x + P > S - WALL || p.y + P > S - WALL) { endGame(); return }
+
+    const now = performance.now()
+    if (now - lastRampRef.current > 2600) {
+      lastRampRef.current = now
+      for (const e of enemiesRef.current) {
+        e.vx = Math.max(-MAX_V, Math.min(MAX_V, e.vx * 1.1))
+        e.vy = Math.max(-MAX_V, Math.min(MAX_V, e.vy * 1.1))
+      }
+      if (enemiesRef.current.length < 9) spawnEnemy()
+    }
+
+    for (const e of enemiesRef.current) {
+      e.x += e.vx; e.y += e.vy
+      if (e.x < WALL) { e.x = WALL; e.vx = Math.abs(e.vx) }
+      if (e.x + e.s > S - WALL) { e.x = S - WALL - e.s; e.vx = -Math.abs(e.vx) }
+      if (e.y < WALL) { e.y = WALL; e.vy = Math.abs(e.vy) }
+      if (e.y + e.s > S - WALL) { e.y = S - WALL - e.s; e.vy = -Math.abs(e.vy) }
+      if (p.x < e.x + e.s && p.x + P > e.x && p.y < e.y + e.s && p.y + P > e.y) { endGame(); return }
+    }
+  }
+
+  const loop = () => {
+    if (statusRef.current !== 'playing') return
+    step()
+    if (statusRef.current !== 'playing') return
+    const tsec = (performance.now() - startRef.current) / 1000
+    if (timeElRef.current) timeElRef.current.textContent = tsec.toFixed(1)
+    draw()
+    rafRef.current = requestAnimationFrame(loop)
+  }
+
+  const start = () => {
+    reset()
+    statusRef.current = 'playing'
+    setStatus('playing')
+    playTap()
+    cancelAnimationFrame(rafRef.current)
+    rafRef.current = requestAnimationFrame(loop)
+  }
+
+  // ── canvas sizing + DPR ────────────────────────────────────────────────────
+  useEffect(() => {
+    const c = canvasRef.current; if (!c) return
+    const parent = c.parentElement
+    const measure = () => {
+      const avail = parent ? parent.clientWidth : 340
+      const s = Math.max(260, Math.min(avail, 380))
+      sizeRef.current = s
+      const dpr = window.devicePixelRatio || 1
+      c.width = Math.round(s * dpr); c.height = Math.round(s * dpr)
+      c.style.width = s + 'px'; c.style.height = s + 'px'
+      const ctx = c.getContext('2d')
+      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      if (statusRef.current === 'idle') reset()
+      draw()
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => { window.removeEventListener('resize', measure); cancelAnimationFrame(rafRef.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ── pointer tracking (drag follows the square) ─────────────────────────────
+  const posFromEvent = (clientX: number, clientY: number) => {
+    const c = canvasRef.current; if (!c) return
+    const r = c.getBoundingClientRect()
+    pointerRef.current = { x: clientX - r.left, y: clientY - r.top }
+  }
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (statusRef.current !== 'playing') return
+      posFromEvent(e.clientX, e.clientY)
+    }
+    window.addEventListener('pointermove', onMove)
+    return () => window.removeEventListener('pointermove', onMove)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const onCanvasPointerDown = (e: React.PointerEvent) => {
+    if (statusRef.current === 'over') return
+    posFromEvent(e.clientX, e.clientY)
+    if (statusRef.current === 'idle') start()
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col items-center px-5 py-6">
+      {/* Header */}
+      <div className="w-full max-w-md flex items-center gap-3 mb-4">
+        <button onClick={() => router.push('/')} aria-label={t('game_home', lang)}
+          className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground active:scale-90 transition-transform shrink-0">
+          <X size={20} />
+        </button>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-display font-black text-foreground leading-tight">{t('reflex_title', lang)}</h1>
+          <p className="text-xs text-muted-foreground truncate">{t('reflex_sub', lang)}</p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <div className="bg-card border-2 border-border rounded-[var(--radius)] px-3 py-1 text-center shadow-[var(--shadow-sm)] min-w-[64px]">
+            <p className="text-[9px] font-black tracking-wider uppercase text-muted-foreground">{t('reflex_time', lang)}</p>
+            <p className="text-base font-display font-black text-foreground leading-none tabular">
+              <span ref={timeElRef}>0.0</span>
+            </p>
+          </div>
+          <div className="bg-card border-2 border-border rounded-[var(--radius)] px-3 py-1 text-center shadow-[var(--shadow-sm)] min-w-[64px]">
+            <p className="text-[9px] font-black tracking-wider uppercase" style={{ color: 'var(--accent)' }}>{t('reflex_best', lang)}</p>
+            <p className="text-base font-display font-black text-foreground leading-none tabular">{best.toFixed(1)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Arena */}
+      <div className="relative w-full max-w-md flex justify-center">
+        <div className="relative rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-md)]" style={{ lineHeight: 0 }}>
+          <canvas ref={canvasRef} onPointerDown={onCanvasPointerDown} style={{ touchAction: 'none', display: 'block' }} />
+
+          {/* Idle overlay */}
+          {status === 'idle' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center"
+              style={{ background: 'rgba(11,18,32,0.72)', backdropFilter: 'blur(2px)' }}>
+              <button onClick={start}
+                className="w-16 h-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+                style={{ background: 'var(--primary)' }}>
+                <Play size={28} className="text-white ml-1" fill="currentColor" />
+              </button>
+              <p className="text-white/85 text-sm font-semibold max-w-[240px] leading-snug">{t('reflex_start_hint', lang)}</p>
+            </div>
+          )}
+
+          {/* Game over overlay */}
+          {status === 'over' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center"
+              style={{ background: 'rgba(11,18,32,0.82)', backdropFilter: 'blur(2px)' }}>
+              <div className="text-5xl">💥</div>
+              <h2 className="text-2xl font-display font-black text-white">{t('reflex_over', lang)}</h2>
+              <p className="text-white text-lg font-display font-black tabular">
+                {finalTime.toFixed(1)} <span className="text-white/60 text-sm">{t('reflex_sec', lang)}</span>
+              </p>
+              {xpAward > 0 && <p className="font-display font-black" style={{ color: 'var(--xp)' }}>+{xpAward} XP</p>}
+              <div className="flex gap-3 mt-1">
+                <button onClick={() => router.push('/')}
+                  className="px-5 py-2.5 rounded-[var(--radius)] bg-white/15 text-white font-display font-black active:scale-95 transition-transform">
+                  {t('game_home', lang)}
+                </button>
+                <button onClick={start}
+                  className="px-6 py-2.5 rounded-[var(--radius)] font-display font-black text-white active:scale-95 transition-transform"
+                  style={{ background: 'var(--primary)' }}>
+                  {t('game_again', lang)}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p className="w-full max-w-md text-muted-foreground/70 text-xs leading-relaxed mt-5 text-center">
+        {t('reflex_hint', lang)}
+      </p>
+    </div>
+  )
+}

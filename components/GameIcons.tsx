@@ -107,6 +107,16 @@ export const MathIcon: FC<IconProps> = ({ size = 30 }) => (
   </svg>
 )
 
+// Реакция — arena with a player square dodging shapes
+export const ReflexIcon: FC<IconProps> = ({ size = 30 }) => (
+  <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
+    <rect x="6" y="6" width="36" height="36" rx="8" stroke="currentColor" strokeWidth="2.6" fill="none" strokeOpacity="0.5" />
+    <rect x="20" y="20" width="9" height="9" rx="2" fill="currentColor" />
+    <rect x="12" y="12" width="6" height="6" rx="1.5" fill="currentColor" fillOpacity="0.65" />
+    <rect x="30" y="31" width="6" height="6" rx="1.5" fill="currentColor" fillOpacity="0.65" />
+  </svg>
+)
+
 // Крестики-нолики — grid with an X and an O
 export const TicTacToeIcon: FC<IconProps> = ({ size = 30 }) => (
   <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
@@ -144,6 +154,7 @@ export const GAME_ICONS: Record<string, { Comp: FC<IconProps>; color: string }> 
   '/game/togyz':    { Comp: TogyzIcon,     color: '#8E5E30' },
   '/game/countries':{ Comp: GlobeIcon,     color: '#3B82F6' },
   '/game/tictactoe':{ Comp: TicTacToeIcon, color: '#5B8DEF' },
+  '/game/reflex':   { Comp: ReflexIcon,    color: '#E0457B' },
 }
 
 export const SUBJECT_ICONS: Record<string, { Comp: FC<IconProps>; color: string }> = {
