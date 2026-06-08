@@ -107,6 +107,15 @@ export const MathIcon: FC<IconProps> = ({ size = 30 }) => (
   </svg>
 )
 
+// Крестики-нолики — grid with an X and an O
+export const TicTacToeIcon: FC<IconProps> = ({ size = 30 }) => (
+  <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
+    <path d="M19 7 V41 M29 7 V41 M7 19 H41 M7 29 H41" stroke="currentColor" strokeWidth="2.4" strokeOpacity="0.5" strokeLinecap="round" />
+    <path d="M9.5 9.5 L16.5 16.5 M16.5 9.5 L9.5 16.5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    <circle cx="37" cy="37" r="3.8" fill="none" stroke="currentColor" strokeWidth="3" />
+  </svg>
+)
+
 const Book: FC<IconProps & { letter: string }> = ({ size = 30, letter }) => (
   <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
     <path d="M24 13 C 18 10, 11 10, 7 12 V36 C 11 34, 18 34, 24 37 C 30 34, 37 34, 41 36 V12 C 37 10, 30 10, 24 13 Z"
@@ -134,6 +143,7 @@ export const GAME_ICONS: Record<string, { Comp: FC<IconProps>; color: string }> 
   '/game/sudoku':   { Comp: SudokuIcon,    color: '#7B5CBF' },
   '/game/togyz':    { Comp: TogyzIcon,     color: '#8E5E30' },
   '/game/countries':{ Comp: GlobeIcon,     color: '#3B82F6' },
+  '/game/tictactoe':{ Comp: TicTacToeIcon, color: '#5B8DEF' },
 }
 
 export const SUBJECT_ICONS: Record<string, { Comp: FC<IconProps>; color: string }> = {

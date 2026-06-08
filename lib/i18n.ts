@@ -189,6 +189,15 @@ export const I18N = {
   checkers_puzzles_sub:{ ru: 'Комбинации и тактика',       kk: 'Комбинациялар мен тактика',  en: 'Combinations & tactics' },
   checkers_puzzles_soon:{ ru: 'Скоро здесь появятся шашечные задачи — реши комбинацию и выиграй в несколько ходов.', kk: 'Жақында мұнда дойбы есептері пайда болады — комбинацияны шешіп, бірнеше жүрісте жең.', en: 'Checkers puzzles are coming soon — solve a combination and win in a few moves.' },
 
+  // Tic-Tac-Toe
+  ttt_title:          { ru: 'Крестики-нолики',             kk: 'Айқыш-дөңгелек',             en: 'Tic-Tac-Toe' },
+  ttt_draw:           { ru: 'Ничья',                       kk: 'Тең',                        en: 'Draw' },
+  ttt_x_turn:         { ru: 'Ход крестиков ✕',             kk: 'Айқыштың кезегі ✕',          en: 'X to move ✕' },
+  ttt_o_turn:         { ru: 'Ход ноликов ◯',               kk: 'Дөңгелектің кезегі ◯',       en: 'O to move ◯' },
+  ttt_x_win:          { ru: 'Крестики победили! ✕',        kk: 'Айқыш жеңді! ✕',             en: 'X wins! ✕' },
+  ttt_o_win:          { ru: 'Нолики победили! ◯',          kk: 'Дөңгелек жеңді! ◯',          en: 'O wins! ◯' },
+  ttt_rules:          { ru: 'Собери три в ряд — по горизонтали, вертикали или диагонали.', kk: 'Үшеуін қатарға жина — көлденең, тік немесе қиғаш.', en: 'Get three in a row — horizontally, vertically or diagonally.' },
+
   // Sudoku
   sudoku_title:       { ru: 'Судоку',                      kk: 'Судоку',                     en: 'Sudoku' },
   sudoku_pick:        { ru: 'Выбери сложность',            kk: 'Күрделілікті таңда',         en: 'Choose difficulty' },
