@@ -13,6 +13,7 @@ import { speak } from '@/lib/speak'
 import { Check, X, ArrowRight, Volume2 } from 'lucide-react'
 import { LessonComplete } from '@/components/LessonComplete'
 import { EquationSolver } from '@/components/EquationSolver'
+import { NumberLineSolver } from '@/components/NumberLineSolver'
 import type { CSSProperties } from 'react'
 
 type Feedback = 'right' | 'wrong' | null
@@ -86,10 +87,10 @@ function SpeakButton({ text }: { text: string }) {
   )
 }
 
-const LABEL_KEYS: Record<string, 'label_mc' | 'label_type' | 'label_tap' | 'label_word' | 'label_match' | 'label_clock' | 'label_tf' | 'label_pairs' | 'label_equation'> = {
+const LABEL_KEYS: Record<string, 'label_mc' | 'label_type' | 'label_tap' | 'label_word' | 'label_match' | 'label_clock' | 'label_tf' | 'label_pairs' | 'label_equation' | 'label_addsub'> = {
   mc: 'label_mc', type: 'label_type', tap: 'label_tap',
   word: 'label_word', match: 'label_match', clock: 'label_clock',
-  tf: 'label_tf', pairs: 'label_pairs', equation: 'label_equation',
+  tf: 'label_tf', pairs: 'label_pairs', equation: 'label_equation', addsub: 'label_addsub',
 }
 
 export default function LessonPage() {
@@ -257,7 +258,7 @@ export default function LessonPage() {
     if (q.kind === 'word') return renderOptions(q.options ?? [])
     if (q.kind === 'clock') return renderOptions(q.options ?? [])
 
-    if (q.kind === 'type' || q.kind === 'equation') {
+    if (q.kind === 'type' || q.kind === 'equation' || q.kind === 'addsub') {
       return (
         <div className="flex flex-col gap-3">
           <input
@@ -517,6 +518,10 @@ export default function LessonPage() {
 
           {q?.kind === 'equation' && q.eq && (
             <EquationSolver key={idx} a={q.eq.a} op={q.eq.op} b={q.eq.b} />
+          )}
+
+          {q?.kind === 'addsub' && q.nl && (
+            <NumberLineSolver key={idx} a={q.nl.a} op={q.nl.op} b={q.nl.b} />
           )}
 
           {(q?.kind === 'mc' || q?.kind === 'word') && (

@@ -1,4 +1,4 @@
-export type QuestionKind = 'mc' | 'type' | 'tap' | 'word' | 'match' | 'clock' | 'tf' | 'pairs' | 'equation'
+export type QuestionKind = 'mc' | 'type' | 'tap' | 'word' | 'match' | 'clock' | 'tf' | 'pairs' | 'equation' | 'addsub'
 
 export interface ByLang { kk: string; ru: string; en: string }
 
@@ -34,6 +34,8 @@ export interface Question {
   pairs?: { a: string; b: string }[]
   // equation — `x op a = b`, `answer` is x; drives the animated transposition solver
   eq?: { a: number; op: '+' | '-'; b: number }
+  // addsub — `a ± b`, `answer` is the result; drives the animated number-line explainer
+  nl?: { a: number; op: '+' | '-'; b: number }
 }
 
 export interface Lesson {
