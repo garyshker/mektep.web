@@ -22,6 +22,7 @@ const P = 18          // player square size
 const WALL = 7        // wall band thickness
 const ENEMY_COUNT = 4 // fixed — like the classic "Escapa!" / "Hold On"
 const MAX_V = 8.5     // speed cap (px / frame) to keep collisions fair
+const TOUCH_OFFSET = 72 // on touch, draw the square above the finger so it isn't hidden
 
 export default function ReflexGame() {
   const router = useRouter()
@@ -41,6 +42,7 @@ export default function ReflexGame() {
   const playerRef = useRef({ x: 160, y: 160 })   // top-left
   const pointerRef = useRef({ x: 170, y: 170 })  // target centre
   const enemiesRef = useRef<Enemy[]>([])
+  const fingerRef = useRef({ x: 0, y: 0, touch: false })  // raw touch point (for the tether)
   const startRef = useRef(0)
   const lastRampRef = useRef(0)
   const rafRef = useRef(0)
@@ -87,6 +89,20 @@ export default function ReflexGame() {
     ctx.lineWidth = WALL
     ctx.strokeStyle = WALL_COLOR
     ctx.strokeRect(WALL / 2, WALL / 2, S - WALL, S - WALL)
+    // touch tether — show the link between finger and the (offset) square
+    const f = fingerRef.current
+    if (statusRef.current === 'playing' && f.touch) {
+      const pc = playerRef.current
+      ctx.save()
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)'
+      ctx.lineWidth = 2
+      ctx.setLineDash([4, 5])
+      ctx.beginPath(); ctx.moveTo(pc.x + P / 2, pc.y + P / 2); ctx.lineTo(f.x, f.y); ctx.stroke()
+      ctx.setLineDash([])
+      ctx.beginPath(); ctx.arc(f.x, f.y, 12, 0, Math.PI * 2)
+      ctx.strokeStyle = 'rgba(255,255,255,0.30)'; ctx.stroke()
+      ctx.restore()
+    }
     // enemies
     ctx.fillStyle = ENEMY_COLOR
     for (const e of enemiesRef.current) ctx.fillRect(e.x, e.y, e.s, e.s)
@@ -196,16 +212,21 @@ export default function ReflexGame() {
   }, [])
 
   // ── pointer tracking (drag follows the square) ─────────────────────────────
-  const posFromEvent = (clientX: number, clientY: number) => {
+  const posFromEvent = (e: { clientX: number; clientY: number; pointerType: string }) => {
     const c = canvasRef.current; if (!c) return
     const r = c.getBoundingClientRect()
-    pointerRef.current = { x: clientX - r.left, y: clientY - r.top }
+    const touch = e.pointerType === 'touch'
+    const fx = e.clientX - r.left
+    const fy = e.clientY - r.top
+    fingerRef.current = { x: fx, y: fy, touch }
+    // lift the controlled square above the finger so it's never hidden
+    pointerRef.current = { x: fx, y: fy - (touch ? TOUCH_OFFSET : 0) }
   }
 
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (statusRef.current !== 'playing') return
-      posFromEvent(e.clientX, e.clientY)
+      posFromEvent(e)
     }
     window.addEventListener('pointermove', onMove)
     return () => window.removeEventListener('pointermove', onMove)
@@ -213,9 +234,7 @@ export default function ReflexGame() {
   }, [])
 
   const onCanvasPointerDown = (e: React.PointerEvent) => {
-    if (statusRef.current === 'over') return
-    posFromEvent(e.clientX, e.clientY)
-    if (statusRef.current === 'idle') start()
+    if (statusRef.current === 'playing') posFromEvent(e)
   }
 
   return (
