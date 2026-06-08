@@ -22,6 +22,7 @@ const P = 18          // player square size
 const WALL = 7        // wall band thickness
 const ENEMY_COUNT = 4 // fixed — like the classic "Escapa!" / "Hold On"
 const MAX_V = 8.5     // speed cap (px / frame) to keep collisions fair
+const TOUCH_OFFSET = 100 // lift the square this far above the finger when dragging on the arena
 
 export default function ReflexGame() {
   const router = useRouter()
@@ -33,6 +34,7 @@ export default function ReflexGame() {
   const padRef = useRef<HTMLDivElement | null>(null)
   const padDotRef = useRef<HTMLDivElement | null>(null)
   const padDownRef = useRef(false)
+  const fingerRef = useRef({ x: 0, y: 0, touch: false })  // raw touch point on the arena (for the tether)
 
   const [status, setStatus] = useState<Status>('idle')
   const [best, setBest] = useState(0)
@@ -92,6 +94,20 @@ export default function ReflexGame() {
     ctx.lineWidth = WALL
     ctx.strokeStyle = WALL_COLOR
     ctx.strokeRect(WALL / 2, WALL / 2, S - WALL, S - WALL)
+    // touch tether — link the finger to the (offset) square so the mapping is clear
+    const f = fingerRef.current
+    if (statusRef.current === 'playing' && f.touch) {
+      const pc = playerRef.current
+      ctx.save()
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)'
+      ctx.lineWidth = 2
+      ctx.setLineDash([4, 5])
+      ctx.beginPath(); ctx.moveTo(pc.x + P / 2, pc.y + P / 2); ctx.lineTo(f.x, f.y); ctx.stroke()
+      ctx.setLineDash([])
+      ctx.beginPath(); ctx.arc(f.x, f.y, 12, 0, Math.PI * 2)
+      ctx.strokeStyle = 'rgba(255,255,255,0.30)'; ctx.stroke()
+      ctx.restore()
+    }
     // enemies
     ctx.fillStyle = ENEMY_COLOR
     for (const e of enemiesRef.current) ctx.fillRect(e.x, e.y, e.s, e.s)
@@ -203,17 +219,30 @@ export default function ReflexGame() {
   // ── controls ───────────────────────────────────────────────────────────────
   // Desktop: mouse moves directly over the arena. Touch: a trackpad below the
   // arena (finger never covers the play field). Both feed the same pointerRef.
+  // Desktop mouse over the arena (no offset)
   const mapArena = (clientX: number, clientY: number) => {
     const c = canvasRef.current; if (!c) return
     const r = c.getBoundingClientRect()
+    fingerRef.current.touch = false
     pointerRef.current = { x: clientX - r.left, y: clientY - r.top }
   }
 
+  // Finger dragging directly on the arena — square sits above the finger
+  const mapArenaTouch = (clientX: number, clientY: number) => {
+    const c = canvasRef.current; if (!c) return
+    const r = c.getBoundingClientRect()
+    const fx = clientX - r.left, fy = clientY - r.top
+    fingerRef.current = { x: fx, y: fy, touch: true }
+    pointerRef.current = { x: fx, y: fy - TOUCH_OFFSET }
+  }
+
+  // Trackpad below the arena (absolute, uniform mapping)
   const mapPad = (clientX: number, clientY: number) => {
     const pad = padRef.current; if (!pad) return
     const r = pad.getBoundingClientRect()
     const nx = Math.max(0, Math.min(1, (clientX - r.left) / r.width))
     const ny = Math.max(0, Math.min(1, (clientY - r.top) / r.height))
+    fingerRef.current.touch = false
     pointerRef.current = { x: nx * sizeRef.current, y: ny * sizeRef.current }
     if (padDotRef.current) padDotRef.current.style.transform = `translate(${nx * r.width}px, ${ny * r.height}px)`
   }
@@ -227,6 +256,16 @@ export default function ReflexGame() {
     return () => window.removeEventListener('pointermove', onMove)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const onArenaDown = (e: React.PointerEvent) => {
+    if (statusRef.current !== 'playing' || e.pointerType !== 'touch') return
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* ignore */ }
+    mapArenaTouch(e.clientX, e.clientY)
+  }
+  const onArenaMove = (e: React.PointerEvent) => {
+    if (statusRef.current !== 'playing' || e.pointerType !== 'touch') return
+    mapArenaTouch(e.clientX, e.clientY)
+  }
 
   const onPadDown = (e: React.PointerEvent) => {
     if (statusRef.current !== 'playing') return
@@ -269,7 +308,8 @@ export default function ReflexGame() {
       {/* Arena */}
       <div className="relative w-full max-w-md flex justify-center">
         <div className="relative rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-md)]">
-          <canvas ref={canvasRef} style={{ touchAction: 'none', display: 'block' }} />
+          <canvas ref={canvasRef} onPointerDown={onArenaDown} onPointerMove={onArenaMove}
+            style={{ touchAction: 'none', display: 'block' }} />
 
           {/* Idle overlay */}
           {status === 'idle' && (
