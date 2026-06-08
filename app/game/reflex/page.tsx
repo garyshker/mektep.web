@@ -57,7 +57,12 @@ export default function ReflexGame() {
   useEffect(() => {
     const b = Number(localStorage.getItem('reflex-best') || 0)
     if (b) { setBest(b); bestRef.current = b }
-    setCoarse(typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches)
+    const touch = typeof window !== 'undefined' && (
+      'ontouchstart' in window ||
+      (navigator.maxTouchPoints ?? 0) > 0 ||
+      !!window.matchMedia?.('(pointer: coarse)')?.matches
+    )
+    setCoarse(touch)
   }, [])
 
   // ── helpers ──────────────────────────────────────────────────────────────
@@ -354,14 +359,18 @@ export default function ReflexGame() {
       {coarse && (
         <div ref={padRef}
           onPointerDown={onPadDown} onPointerMove={onPadMove} onPointerUp={onPadUp} onPointerCancel={onPadUp}
-          className="relative mt-4 rounded-[var(--radius-lg)] border-2 border-dashed border-border bg-card shadow-[var(--shadow-sm)] overflow-hidden select-none flex items-center justify-center"
-          style={{ touchAction: 'none', width: 'min(82vw, 230px)', height: 'min(82vw, 230px)' }}>
-          <span className="text-xs font-display font-black uppercase tracking-wider text-muted-foreground/70 pointer-events-none px-6 text-center">
+          className="relative mt-4 rounded-[var(--radius-lg)] overflow-hidden select-none flex items-center justify-center shadow-[var(--shadow-sm)]"
+          style={{
+            touchAction: 'none', width: 'min(84vw, 240px)', height: 'min(84vw, 240px)',
+            background: 'color-mix(in oklch, var(--primary) 7%, var(--card))',
+            border: '2px dashed color-mix(in oklch, var(--primary) 45%, var(--border))',
+          }}>
+          <span className="text-xs font-display font-black uppercase tracking-wider pointer-events-none px-6 text-center" style={{ color: 'color-mix(in oklch, var(--primary) 70%, var(--muted-foreground))' }}>
             {t('reflex_pad_hint', lang)}
           </span>
           <div ref={padDotRef}
             className="absolute top-0 left-0 w-7 h-7 -ml-3.5 -mt-3.5 rounded-full pointer-events-none"
-            style={{ background: 'color-mix(in oklch, var(--primary) 30%, transparent)', border: '2px solid var(--primary)' }} />
+            style={{ background: 'color-mix(in oklch, var(--primary) 35%, transparent)', border: '2px solid var(--primary)' }} />
         </div>
       )}
 
