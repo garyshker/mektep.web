@@ -164,7 +164,28 @@ export default function DuelPage() {
       await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + xp }).eq('id', myId)
     }
     save()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
+
+  // Reconcile the final scoreboard from the DB so both players see identical
+  // numbers — a late score update can otherwise be missed once a side is 'done'
+  useEffect(() => {
+    if (phase !== 'done' || !duel) return
+    const roomId = duel.id
+    let n = 0
+    const sync = async () => {
+      const { data } = await supabase.from('duels').select('host_score, guest_score').eq('id', roomId).single()
+      if (!data) return
+      const mine = isHostRef.current ? data.host_score : data.guest_score
+      const opp = isHostRef.current ? data.guest_score : data.host_score
+      setMyScore(prev => Math.max(prev, mine))   // never downgrade my own (local is authoritative)
+      setOppScore(opp)
+    }
+    sync()
+    const iv = setInterval(() => { n += 1; sync(); if (n >= 5) clearInterval(iv) }, 600)
+    return () => clearInterval(iv)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, duel?.id])
 
   const createRoom = async () => {
     if (!myId) return
