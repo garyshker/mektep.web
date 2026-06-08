@@ -7,7 +7,7 @@ import { ALL_LESSONS, SUBJECTS, UPCOMING_SUBJECTS, subjectLabel, subjectDesc } f
 import { BottomNav } from '@/components/BottomNav'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
-import { ChevronRight, ChevronLeft, Lock } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Lock, Check } from 'lucide-react'
 import { SUBJECT_ICONS } from '@/components/GameIcons'
 
 function SubjIcon({ id, emoji, size = 24 }: { id: string; emoji?: string; size?: number }) {
@@ -133,7 +133,7 @@ function SubjectGrid({ grade, starsMap, lang, router }: {
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono text-muted-foreground tabular">{countdown}</span>
                 <button className="text-[10px] font-black rounded-full px-2.5 py-1"
-                  style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)', color: 'var(--primary)' }}
+                  style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))', color: 'var(--primary)' }}
                   onClick={e => e.stopPropagation()}>
                   {t('notify_me', lang)}
                 </button>
@@ -249,13 +249,21 @@ function LessonPath({ unlocked, locked, starsMap, lang, onOpen }: {
                 {t('start', lang)}
               </span>
             )}
-            <button disabled={isLocked} onClick={() => onOpen(n.lesson.id)}
-              className={`pop-btn rounded-full flex items-center justify-center ${isCurrent ? 'animate-pulse' : ''}`}
-              style={{ width: size, height: size, fontSize: 28, background: bg,
-                ['--pop-shadow' as string]: popShadow, opacity: isLocked ? 0.55 : 1,
-                cursor: isLocked ? 'default' : 'pointer' } as CSSProperties}>
-              {isLocked ? <Lock size={22} style={{ color: 'var(--muted-foreground)' }} /> : <span>{n.lesson.emoji ?? '📚'}</span>}
-            </button>
+            <div className="relative">
+              <button disabled={isLocked} onClick={() => onOpen(n.lesson.id)}
+                className={`pop-btn rounded-full flex items-center justify-center ${isCurrent ? 'animate-pulse' : ''}`}
+                style={{ width: size, height: size, fontSize: 28, background: bg,
+                  ['--pop-shadow' as string]: popShadow, opacity: isLocked ? 0.55 : 1,
+                  cursor: isLocked ? 'default' : 'pointer' } as CSSProperties}>
+                {isLocked ? <Lock size={22} style={{ color: 'var(--muted-foreground)' }} /> : <span>{n.lesson.emoji ?? '📚'}</span>}
+              </button>
+              {n.state === 'done' && (
+                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--success)', boxShadow: '0 0 0 3px var(--background)' }}>
+                  <Check size={12} className="text-white" strokeWidth={3.5} />
+                </span>
+              )}
+            </div>
             {n.state === 'done' && <StarDots stars={n.stars} color="var(--accent)" />}
             <span className={`text-[11px] font-bold text-center leading-tight line-clamp-2 max-w-[130px] ${isLocked ? 'text-muted-foreground' : 'text-foreground'}`}>
               {n.lesson.titleByLang[lang] ?? n.lesson.titleByLang.ru}

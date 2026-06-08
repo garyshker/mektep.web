@@ -78,7 +78,7 @@ function SpeakButton({ text }: { text: string }) {
   return (
     <button onClick={() => speak(text, 'kk-KZ')}
       className="w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition-transform shrink-0"
-      style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)', color: 'var(--primary)' }}
+      style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))', color: 'var(--primary)' }}
       aria-label="Дыбыс">
       <Volume2 size={18} />
     </button>
@@ -293,14 +293,15 @@ export default function LessonPage() {
             {words.map((word, i) => {
               const isSel = tapSel.has(i)
               const shouldBe = q.correctIdxs?.includes(i)
-              let cls = 'px-4 py-2 rounded-xl border-2 text-base font-semibold transition-all active:scale-95 '
+              let style: CSSProperties = { background: 'var(--card)', color: 'var(--foreground)', borderColor: 'var(--border)' }
+              let anim = ''
               if (feedback) {
-                if (shouldBe && isSel) cls += 'bg-emerald-500 border-emerald-500 text-white'
-                else if (shouldBe && !isSel) cls += 'bg-emerald-100 border-emerald-400 text-emerald-800'
-                else if (!shouldBe && isSel) cls += 'bg-red-400 border-red-400 text-white'
-                else cls += 'bg-white border-gray-200 text-gray-500'
-              } else {
-                cls += isSel ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-gray-200 text-gray-700 shadow-sm'
+                if (shouldBe && isSel) style = { background: 'var(--success)', borderColor: 'var(--success)', color: '#fff' }
+                else if (shouldBe && !isSel) style = { background: 'color-mix(in oklch, var(--success) 16%, var(--card))', borderColor: 'var(--success)', color: 'var(--success)' }
+                else if (!shouldBe && isSel) { style = { background: 'var(--destructive)', borderColor: 'var(--destructive)', color: '#fff' }; anim = 'animate-mk-shake' }
+                else style = { background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--muted-foreground)' }
+              } else if (isSel) {
+                style = { background: 'var(--success)', borderColor: 'var(--success)', color: '#fff' }
               }
               return (
                 <button key={i} disabled={!!feedback}
@@ -309,7 +310,8 @@ export default function LessonPage() {
                     if (next.has(i)) next.delete(i); else next.add(i)
                     return next
                   })}
-                  className={cls}>{word}</button>
+                  className={`px-4 py-2 rounded-xl border-2 text-base font-semibold transition-all active:scale-95 ${anim}`}
+                  style={style}>{word}</button>
               )
             })}
           </div>
@@ -336,25 +338,26 @@ export default function LessonPage() {
         <div className="flex flex-col gap-3">
           {items.map((item, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className="min-w-[90px] text-sm font-bold text-gray-900 bg-white shadow-sm border border-gray-100 px-3 py-2.5 rounded-xl text-center">
+              <span className="min-w-[90px] text-sm font-bold text-foreground bg-card shadow-[var(--shadow-sm)] border border-border px-3 py-2.5 rounded-xl text-center">
                 {item.text}
               </span>
               <div className="flex gap-2 flex-1">
                 {groups.map((g, gi) => {
                   const isAssigned = matchMap[item.text] === gi
-                  let cls = 'flex-1 py-2.5 px-1 rounded-xl border-2 text-xs font-semibold transition-all text-center '
+                  let style: CSSProperties = { background: 'var(--card)', color: 'var(--foreground)', borderColor: 'var(--border)' }
                   if (feedback) {
-                    if (isAssigned && item.group === gi) cls += 'bg-emerald-500 border-emerald-500 text-white'
-                    else if (isAssigned && item.group !== gi) cls += 'bg-red-400 border-red-400 text-white'
-                    else if (!isAssigned && item.group === gi) cls += 'bg-emerald-100 border-emerald-400 text-emerald-800'
-                    else cls += 'bg-white border-gray-200 text-gray-600'
-                  } else {
-                    cls += isAssigned ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-gray-200 text-gray-700 shadow-sm'
+                    if (isAssigned && item.group === gi) style = { background: 'var(--success)', borderColor: 'var(--success)', color: '#fff' }
+                    else if (isAssigned && item.group !== gi) style = { background: 'var(--destructive)', borderColor: 'var(--destructive)', color: '#fff' }
+                    else if (!isAssigned && item.group === gi) style = { background: 'color-mix(in oklch, var(--success) 16%, var(--card))', borderColor: 'var(--success)', color: 'var(--success)' }
+                    else style = { background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--muted-foreground)' }
+                  } else if (isAssigned) {
+                    style = { background: 'var(--success)', borderColor: 'var(--success)', color: '#fff' }
                   }
                   return (
                     <button key={gi} disabled={!!feedback}
                       onClick={() => setMatchMap(prev => ({ ...prev, [item.text]: gi }))}
-                      className={cls}>{g}</button>
+                      className="flex-1 py-2.5 px-1 rounded-xl border-2 text-xs font-semibold transition-all text-center"
+                      style={style}>{g}</button>
                   )
                 })}
               </div>
@@ -500,7 +503,7 @@ export default function LessonPage() {
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4 lg:max-w-2xl lg:mx-auto lg:w-full" style={{ paddingBottom: feedbackHeight + 24 }}>
         <div className="bg-card rounded-3xl px-5 py-5 shadow-[var(--shadow-md)]">
           {/* Label */}
-          <div className="inline-flex items-center mb-4 px-2.5 py-1 rounded-full" style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)' }}>
+          <div className="inline-flex items-center mb-4 px-2.5 py-1 rounded-full" style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))' }}>
             <span className="text-[11px] font-black tracking-[0.12em] uppercase leading-none" style={{ color: 'var(--primary)' }}>
               {t(LABEL_KEYS[q?.kind ?? 'mc'], lang)}
             </span>
@@ -515,7 +518,7 @@ export default function LessonPage() {
             <>
               {q.image && q.kind !== 'word' && <div className="text-4xl text-center mb-3">{q.image}</div>}
               {q.kind === 'word' && (
-                <div className="rounded-2xl p-4 mb-0" style={{ background: 'color-mix(in oklch, var(--primary) 8%, white)' }}>
+                <div className="rounded-2xl p-4 mb-0" style={{ background: 'color-mix(in oklch, var(--primary) 10%, var(--card))' }}>
                   {q.image && <div className="text-3xl mb-2 text-center">{q.image}</div>}
                   <p className="text-foreground text-base leading-relaxed text-center">{byLang(q.storyByLang, lang)}</p>
                 </div>
@@ -561,10 +564,10 @@ export default function LessonPage() {
 
       {/* ── Feedback panel (fixed bottom) ── */}
       {feedback && (
-        <div className="fixed bottom-0 left-0 right-0 px-4 pt-5 pb-10 rounded-t-3xl z-50 animate-mk-pop-in"
+        <div className="fixed bottom-0 left-0 right-0 px-4 pt-5 pb-10 rounded-t-3xl z-50 animate-mk-pop-in shadow-[0_-8px_24px_rgba(0,0,0,0.10)]"
           style={{ background: feedback === 'right'
-            ? 'color-mix(in oklch, var(--success) 16%, white)'
-            : 'color-mix(in oklch, var(--destructive) 13%, white)' }}>
+            ? 'color-mix(in oklch, var(--success) 16%, var(--card))'
+            : 'color-mix(in oklch, var(--destructive) 14%, var(--card))' }}>
          <div className="lg:max-w-2xl lg:mx-auto">
 
           {/* Title with icon circle */}
@@ -583,13 +586,13 @@ export default function LessonPage() {
             <div className="flex flex-col gap-2 mb-4">
               <span className="text-xs font-semibold text-foreground/70 mb-0.5">{t('step_by_step', lang)}</span>
               {steps.map((step, i) => (
-                <div key={i} className="flex items-center gap-3 bg-white/50 rounded-2xl px-4 py-2.5">
-                  <span className="w-6 h-6 rounded-full text-white text-xs font-black flex items-center justify-center shrink-0 tabular"
-                    style={{ background: 'var(--foreground)' }}>{i + 1}</span>
+                <div key={i} className="flex items-center gap-3 bg-card/70 rounded-2xl px-4 py-2.5">
+                  <span className="w-6 h-6 rounded-full text-xs font-black flex items-center justify-center shrink-0 tabular"
+                    style={{ background: 'var(--foreground)', color: 'var(--background)' }}>{i + 1}</span>
                   <span className="text-foreground font-semibold text-sm">{step}</span>
                 </div>
               ))}
-              <div className="flex items-center gap-3 bg-white/75 rounded-2xl px-4 py-2.5">
+              <div className="flex items-center gap-3 bg-card rounded-2xl px-4 py-2.5">
                 <span className="w-6 h-6 rounded-full text-white text-xs font-black flex items-center justify-center shrink-0"
                   style={{ background: 'var(--success)' }}>✓</span>
                 <span className="text-foreground font-black text-sm">{t('answer_label', lang)} {correctStr()}</span>
@@ -621,8 +624,8 @@ export default function LessonPage() {
               </button>
             )}
             <button onClick={next}
-              className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] text-white font-display font-black text-base flex items-center justify-center gap-2"
-              style={{ background: feedback === 'right' ? 'var(--success)' : 'var(--foreground)', ['--pop-shadow' as string]: feedback === 'right' ? 'var(--brand-deep)' : 'oklch(0.1 0.02 260)' } as CSSProperties}>
+              className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] font-display font-black text-base flex items-center justify-center gap-2"
+              style={{ background: feedback === 'right' ? 'var(--success)' : 'var(--foreground)', color: feedback === 'right' ? '#fff' : 'var(--background)', ['--pop-shadow' as string]: feedback === 'right' ? 'var(--brand-deep)' : 'oklch(0.1 0.02 260)' } as CSSProperties}>
               {t('next', lang)} <ArrowRight size={18} />
             </button>
           </div>

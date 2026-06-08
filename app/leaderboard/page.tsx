@@ -76,7 +76,7 @@ export default function LeaderboardPage() {
           <p className="text-xs text-muted-foreground">{t('top_by_xp', lang)}</p>
         </div>
         {myRank && (
-          <div className="rounded-2xl px-3 py-1.5" style={{ background: 'color-mix(in oklch, var(--primary) 12%, white)' }}>
+          <div className="rounded-2xl px-3 py-1.5" style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))' }}>
             <p className="text-xs leading-none font-semibold" style={{ color: 'var(--primary)' }}>{t('your_rank', lang)}</p>
             <p className="text-lg font-black tabular leading-none" style={{ color: 'var(--primary)' }}>#{myRank}</p>
           </div>
@@ -100,7 +100,8 @@ export default function LeaderboardPage() {
                   isMe={top3[1].id === myId}
                   height="h-24"
                   medal="🥈"
-                  bg="bg-gray-100"
+                  ped="color-mix(in oklch, var(--muted-foreground) 16%, var(--card))"
+                  lang={lang}
                 />
               )}
               {/* 1st place */}
@@ -110,7 +111,8 @@ export default function LeaderboardPage() {
                 isMe={top3[0].id === myId}
                 height="h-32"
                 medal="🥇"
-                bg="bg-amber-100"
+                ped="var(--gradient-gold)"
+                lang={lang}
               />
               {/* 3rd place */}
               {top3[2] && (
@@ -120,7 +122,8 @@ export default function LeaderboardPage() {
                   isMe={top3[2].id === myId}
                   height="h-20"
                   medal="🥉"
-                  bg="bg-orange-100"
+                  ped="color-mix(in oklch, var(--accent) 20%, var(--card))"
+                  lang={lang}
                 />
               )}
             </div>
@@ -137,11 +140,11 @@ export default function LeaderboardPage() {
                 <div
                   key={entry.id}
                   className="flex items-center gap-3 px-4 py-3.5 border-b border-border/50 last:border-0"
-                  style={isMe ? { background: 'color-mix(in oklch, var(--primary) 6%, white)' } : undefined}>
+                  style={isMe ? { background: 'color-mix(in oklch, var(--primary) 9%, var(--card))' } : undefined}>
                   <span className="w-7 text-center text-sm font-black tabular text-muted-foreground">{rank}</span>
                   <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center font-black text-white text-sm shrink-0"
-                    style={{ background: avatarColor(entry.name) }}>
+                    className="w-9 h-9 rounded-full flex items-center justify-center font-display font-black text-white text-sm shrink-0"
+                    style={{ background: avatarColor(entry.name), boxShadow: `0 0 0 3px color-mix(in oklch, ${avatarColor(entry.name)} 20%, transparent)` }}>
                     {entry.name?.[0]?.toUpperCase() ?? '?'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -174,28 +177,31 @@ export default function LeaderboardPage() {
 }
 
 function PodiumCard({
-  entry, rank, isMe, height, medal, bg,
+  entry, rank, isMe, height, medal, ped, lang,
 }: {
-  entry: Entry; rank: number; isMe: boolean; height: string; medal: string; bg: string
+  entry: Entry; rank: number; isMe: boolean; height: string; medal: string; ped: string; lang: 'ru' | 'kk' | 'en'
 }) {
   const AVATAR_COLORS = ['#22C55E', '#F59E0B', '#3B82F6', '#8B5CF6', '#EF4444', '#EC4899']
   const l = entry.name?.[0]?.toUpperCase() ?? 'A'
   const color = AVATAR_COLORS[l.charCodeAt(0) % AVATAR_COLORS.length]
+  const you = lang === 'kk' ? 'Сен' : lang === 'en' ? 'You' : 'Ты'
+  const big = rank === 1
 
   return (
     <div className="flex flex-col items-center gap-1.5 flex-1 max-w-[100px]">
+      {big && <span className="text-lg leading-none -mb-1">👑</span>}
       <span className="text-xl">{medal}</span>
       <div
-        className="w-11 h-11 rounded-full flex items-center justify-center font-black text-white text-lg shrink-0 ring-2 ring-white"
-        style={{ background: color }}>
+        className={`${big ? 'w-14 h-14 text-xl' : 'w-11 h-11 text-lg'} rounded-full flex items-center justify-center font-display font-black text-white shrink-0`}
+        style={{ background: color, boxShadow: `0 0 0 3px color-mix(in oklch, ${color} 22%, transparent)` }}>
         {entry.name?.[0]?.toUpperCase() ?? '?'}
       </div>
       <p className="text-xs font-bold text-foreground text-center truncate w-full px-1">
-        {isMe ? 'Ты' : entry.name}
+        {isMe ? you : entry.name}
       </p>
-      <div className={`w-full ${height} ${bg} rounded-2xl flex flex-col items-center justify-center`}>
-        <p className="font-black text-foreground text-base tabular leading-none">{entry.xp}</p>
-        <p className="text-[10px] text-muted-foreground">XP</p>
+      <div className={`w-full ${height} rounded-2xl flex flex-col items-center justify-center`} style={{ background: ped }}>
+        <p className="font-display font-black text-foreground text-base tabular leading-none">{entry.xp}</p>
+        <p className="text-[10px] text-foreground/60">XP</p>
       </div>
     </div>
   )

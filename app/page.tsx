@@ -189,22 +189,22 @@ export default function HomePage() {
         <p className="font-display font-black text-foreground text-lg leading-tight">{t('hello', lang)} {profile?.name}!</p>
         <div className="flex items-center gap-2">
           {/* Streak */}
-          <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--warning) 14%, white)' }}>
+          <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--warning) 16%, var(--card))' }}>
             <Flame size={16} fill="currentColor" style={{ color: 'var(--warning)' }} />
             <span className="font-black text-xs tabular" style={{ color: 'var(--warning)' }}>{streak}</span>
           </div>
           {/* XP */}
-          <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--xp) 16%, white)' }}>
+          <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--xp) 18%, var(--card))' }}>
             <Zap size={16} fill="currentColor" style={{ color: 'var(--xp)' }} />
             <span className="font-black text-xs tabular" style={{ color: 'var(--xp)' }}>{xp}</span>
           </div>
           <button onClick={() => router.push('/setup')} aria-label="Тіл / Язык"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-base bg-white shadow-sm">
+            className="w-8 h-8 rounded-full flex items-center justify-center text-base bg-card shadow-[var(--shadow-sm)]">
             🇰🇿
           </button>
           <button onClick={() => router.push('/profile')} aria-label="Профиль"
-            className="w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-xs shrink-0 shadow-sm"
-            style={{ background: avatarColor(profile?.name ?? 'A') }}>
+            className="w-8 h-8 rounded-full flex items-center justify-center font-display font-black text-white text-xs shrink-0"
+            style={{ background: avatarColor(profile?.name ?? 'A'), boxShadow: `0 0 0 3px color-mix(in oklch, ${avatarColor(profile?.name ?? 'A')} 22%, transparent)` }}>
             {profile?.name?.[0]?.toUpperCase() ?? '?'}
           </button>
         </div>
@@ -215,8 +215,8 @@ export default function HomePage() {
         {/* ── Guest banner ── */}
         {isGuest && (
           <div className="rounded-[var(--radius-lg)] p-4 flex items-center gap-3 animate-mk-pop-in"
-            style={{ background: 'color-mix(in oklch, var(--warning) 14%, white)' }}>
-            <p className="flex-1 text-xs font-semibold leading-snug" style={{ color: 'oklch(0.42 0.1 70)' }}>
+            style={{ background: 'color-mix(in oklch, var(--warning) 14%, var(--card))' }}>
+            <p className="flex-1 text-xs font-semibold leading-snug text-foreground/80">
               {t('guest_banner', lang)}
             </p>
             <button onClick={() => router.push('/login')}
@@ -265,7 +265,7 @@ export default function HomePage() {
                 </span>
               </div>
 
-              <h2 className="text-white text-xl leading-tight mb-1">
+              <h2 className="text-white text-xl font-display font-black leading-tight mb-1">
                 {nextLesson.titleByLang[lang] ?? nextLesson.titleByLang.ru}
               </h2>
               <p className="text-white/65 text-xs mb-4">{nextLesson.subtitle ?? t('hero_default', lang)}</p>
@@ -317,7 +317,7 @@ export default function HomePage() {
                     <p className="text-xs text-muted-foreground">{task.sub[lang]}</p>
                   </div>
                   <span className="text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 tabular flex items-center gap-0.5"
-                    style={{ background: 'color-mix(in oklch, var(--xp) 16%, white)', color: 'var(--xp)' }}>
+                    style={{ background: 'color-mix(in oklch, var(--xp) 18%, var(--card))', color: 'var(--xp)' }}>
                     <Zap size={10} fill="currentColor" /> +{task.xp}
                   </span>
                 </div>
