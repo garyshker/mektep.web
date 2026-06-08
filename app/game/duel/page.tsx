@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 
 type Phase = 'lobby' | 'waiting' | 'countdown' | 'playing' | 'done'
 
@@ -55,6 +57,7 @@ function genCode() {
 export default function DuelPage() {
   const router = useRouter()
   const supabase = createClient()
+  const lang = useLang()
 
   const [phase, setPhase] = useState<Phase>('lobby')
   const [myId, setMyId] = useState('')
@@ -91,7 +94,7 @@ export default function DuelPage() {
       if (!user) { router.push('/login'); return }
       setMyId(user.id)
       const { data } = await supabase.from('profiles').select('name, grade').eq('id', user.id).single()
-      setMyName(data?.name ?? 'Игрок')
+      setMyName(data?.name ?? (lang === 'kk' ? 'Ойыншы' : lang === 'en' ? 'Player' : 'Игрок'))
       setMyGrade(data?.grade ?? 2)
     }
     init()
@@ -198,11 +201,7 @@ export default function DuelPage() {
     }).select().single()
     if (error || !data) {
       console.error('createRoom error:', error)
-      setLobbyError(
-        error?.code === '42P01'
-          ? 'Дуэли ещё не настроены на сервере (нет таблицы duels).'
-          : `Не удалось создать игру${error?.message ? `: ${error.message}` : ''}`
-      )
+      setLobbyError(error?.code === '42P01' ? t('duel_err_setup', lang) : t('duel_err_create', lang))
       return
     }
     setDuel(data)
@@ -213,7 +212,7 @@ export default function DuelPage() {
 
   const joinRoom = async () => {
     const code = joinCode.trim().toUpperCase()
-    if (code.length !== 4) { setJoinError('Введи 4 символа'); return }
+    if (code.length !== 4) { setJoinError(t('duel_err_code', lang)); return }
     const { data, error } = await supabase.from('duels')
       .update({ guest_id: myId, guest_name: myName })
       .eq('id', code)
@@ -221,7 +220,7 @@ export default function DuelPage() {
       .select().single()
     if (error || !data) {
       console.error('joinRoom error:', error)
-      setJoinError(error?.code === '42P01' ? 'Дуэли ещё не настроены на сервере' : 'Комната не найдена или уже занята')
+      setJoinError(error?.code === '42P01' ? t('duel_err_setup', lang) : t('duel_err_room', lang))
       return
     }
     setDuel(data)
@@ -255,12 +254,12 @@ export default function DuelPage() {
       <button onClick={() => router.push('/')}
         className="absolute top-5 left-4 w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 font-bold text-sm">✕</button>
       <div className="text-7xl mb-4">⚔️</div>
-      <h1 className="text-3xl font-black text-gray-900 mb-2">1v1 Дуэль</h1>
-      <p className="text-gray-400 text-sm mb-10 text-center">Сразись с другом — кто решит больше за 60 секунд</p>
+      <h1 className="text-3xl font-black text-gray-900 mb-2">{t('duel_title', lang)}</h1>
+      <p className="text-gray-400 text-sm mb-10 text-center">{t('duel_sub', lang)}</p>
       <div className="w-full max-w-xs flex flex-col gap-3">
         <button onClick={createRoom}
           className="w-full py-4 rounded-2xl bg-gray-900 text-white font-black text-lg active:scale-95 transition-all">
-          Создать игру
+          {t('duel_create', lang)}
         </button>
         {lobbyError && (
           <div className="rounded-2xl px-4 py-3 bg-red-50 border border-red-200">
@@ -268,7 +267,7 @@ export default function DuelPage() {
           </div>
         )}
         <div className="bg-white rounded-3xl p-4 shadow-sm flex flex-col gap-3">
-          <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase">Войти по коду</p>
+          <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase">{t('duel_join_label', lang)}</p>
           <input value={joinCode}
             onChange={e => { setJoinCode(e.target.value.toUpperCase()); setJoinError('') }}
             maxLength={4} placeholder="XXXX"
@@ -276,7 +275,7 @@ export default function DuelPage() {
           {joinError && <p className="text-red-500 text-xs font-semibold">{joinError}</p>}
           <button onClick={joinRoom}
             className="w-full py-3.5 rounded-2xl bg-emerald-500 text-white font-bold text-base active:scale-95 transition-all">
-            Войти →
+            {t('duel_join_btn', lang)}
           </button>
         </div>
       </div>
@@ -287,10 +286,10 @@ export default function DuelPage() {
   if (phase === 'waiting') return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: '#F5F4F0' }}>
       <div className="text-6xl mb-4">⏳</div>
-      <h2 className="text-2xl font-black text-gray-900 mb-2">Жди соперника</h2>
-      <p className="text-gray-400 text-sm mb-8">Поделись кодом с другом</p>
+      <h2 className="text-2xl font-black text-gray-900 mb-2">{t('duel_wait', lang)}</h2>
+      <p className="text-gray-400 text-sm mb-8">{t('duel_share', lang)}</p>
       <div className="bg-white rounded-3xl px-8 py-6 shadow-sm mb-8">
-        <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">Код комнаты</p>
+        <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-2">{t('duel_room_code', lang)}</p>
         <p className="text-6xl font-black text-gray-900 tracking-widest">{duel?.id}</p>
       </div>
       <div className="flex gap-1.5">
@@ -305,7 +304,7 @@ export default function DuelPage() {
   if (phase === 'countdown') return (
     <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#F5F4F0' }}>
       <p className="text-gray-500 text-lg mb-6 font-semibold">
-        {countdown === 3 ? 'Соперник найден! Готовься...' : 'Поехали!'}
+        {countdown === 3 ? t('duel_found', lang) : t('duel_go', lang)}
       </p>
       <div className="text-[9rem] font-black text-gray-900 leading-none tabular-nums">{countdown > 0 ? countdown : '🏁'}</div>
     </div>
@@ -320,17 +319,17 @@ export default function DuelPage() {
       <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: '#F5F4F0' }}>
         <div className="text-7xl mb-4">{tied ? '🤝' : iWon ? '🏆' : '💪'}</div>
         <h2 className="text-3xl font-black text-gray-900 mb-1">
-          {tied ? 'Ничья!' : iWon ? 'Ты победил!' : 'Соперник победил'}
+          {tied ? t('ttt_draw', lang) : iWon ? t('duel_you_win', lang) : t('duel_opp_win', lang)}
         </h2>
-        <p className="text-gray-400 mb-8">против {oppName ?? 'соперника'}</p>
+        <p className="text-gray-400 mb-8">{t('duel_vs', lang)} {oppName ?? t('duel_opp', lang)}</p>
         <div className="bg-white rounded-3xl px-6 py-5 shadow-sm w-full max-w-xs mb-4">
           <div className="flex justify-between items-center mb-3">
-            <span className="text-gray-500 font-semibold text-sm">Ты</span>
+            <span className="text-gray-500 font-semibold text-sm">{t('duel_you', lang)}</span>
             <span className="font-black text-gray-900 text-2xl">{myScore}</span>
           </div>
           <div className="h-px bg-gray-100 mb-3" />
           <div className="flex justify-between items-center">
-            <span className="text-gray-500 font-semibold text-sm">{oppName ?? 'Соперник'}</span>
+            <span className="text-gray-500 font-semibold text-sm">{oppName ?? t('duel_opp', lang)}</span>
             <span className="font-black text-gray-900 text-2xl">{oppScore}</span>
           </div>
         </div>
@@ -342,11 +341,11 @@ export default function DuelPage() {
         <div className="flex gap-3 w-full max-w-xs">
           <button onClick={() => router.push('/')}
             className="flex-1 py-3.5 rounded-2xl bg-white border-2 border-gray-200 text-gray-700 font-bold active:scale-95">
-            На главную
+            {t('game_home', lang)}
           </button>
           <button onClick={() => { setPhase('lobby'); setMyScore(0); setOppScore(0); setProbIdx(0); setTimeLeft(60); setDuel(null); setJoinCode('') }}
             className="flex-1 py-3.5 rounded-2xl bg-gray-900 text-white font-bold active:scale-95">
-            Ещё раз →
+            {t('game_again', lang)}
           </button>
         </div>
       </div>
@@ -365,7 +364,7 @@ export default function DuelPage() {
       <header className="px-4 pt-5 pb-3 lg:max-w-2xl lg:mx-auto lg:w-full">
         <div className="bg-white rounded-2xl px-4 py-3 shadow-sm flex items-center gap-3">
           <div className="flex-1 text-center">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ты</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('duel_you', lang)}</p>
             <p className="text-3xl font-black text-emerald-500">{myScore}</p>
           </div>
           <div className="w-14 h-14 rounded-full flex items-center justify-center font-black text-xl text-white transition-colors duration-500"
@@ -382,7 +381,7 @@ export default function DuelPage() {
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4 lg:max-w-2xl lg:mx-auto lg:w-full">
         {/* Problem */}
         <div className="bg-white rounded-3xl px-5 py-6 shadow-sm">
-          <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-4 text-center">РЕШИ ПРИМЕР</p>
+          <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-4 text-center">{t('duel_solve', lang)}</p>
           <div className="text-5xl font-black text-center leading-none tracking-tight py-2">
             {prob?.expr.split(/(\s*[+\-−×÷]\s*)/).map((p, i) => {
               const t = p.trim()

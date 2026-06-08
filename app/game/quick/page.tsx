@@ -141,10 +141,10 @@ export default function QuickGamePage() {
         <div className="text-7xl mb-5">⚡</div>
         <h1 className="text-3xl font-black text-gray-900 mb-2">{lang === 'kk' ? 'Жылдам санау' : lang === 'en' ? 'Quick Math' : 'Быстрый счёт'}</h1>
         <p className="text-gray-500 text-base text-center mb-2">
-          Решай примеры как можно быстрее!
+          {t('game_quick_desc', lang)}
         </p>
         <p className="text-gray-400 text-sm mb-10">
-          {grade} класс · 60 секунд
+          {grade} {t('grade', lang)} · 60 {t('game_seconds', lang)}
         </p>
 
         <div className="bg-white rounded-3xl px-6 py-5 shadow-sm w-full max-w-xs mb-8 text-center">
@@ -170,7 +170,7 @@ export default function QuickGamePage() {
         <div className="text-7xl mb-4">{medal}</div>
         <h2 className="text-3xl font-black text-gray-900 mb-1">{t('game_time_up', lang)}</h2>
         <p className="text-gray-500 mb-6">
-          {score} из {total} правильно · {pct}%
+          {score} / {total} · {pct}%
         </p>
 
         <div className="bg-white rounded-3xl px-6 py-5 shadow-sm w-full max-w-xs mb-2">

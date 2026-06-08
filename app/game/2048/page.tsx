@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong } from '@/lib/sounds'
+import { useLang } from '@/lib/useLang'
+import { t } from '@/lib/i18n'
 
 type Board = (number | null)[][]
 type Dir = 'left' | 'right' | 'up' | 'down'
@@ -82,6 +84,7 @@ function isOver(b: Board) {
 export default function Game2048Page() {
   const router = useRouter()
   const supabase = createClient()
+  const lang = useLang()
 
   const [board, setBoard] = useState<Board>(() => addTile(addTile(emptyBoard())))
   const [score, setScore] = useState(0)
@@ -166,18 +169,18 @@ export default function Game2048Page() {
         </div>
         <div className="flex gap-2">
           <div className="bg-amber-400 rounded-xl px-3 py-1.5 text-center min-w-[60px]">
-            <p className="text-[9px] font-black text-amber-900 uppercase tracking-wider">Счёт</p>
+            <p className="text-[9px] font-black text-amber-900 uppercase tracking-wider">{t('game_score', lang)}</p>
             <p className="text-base font-black text-amber-900 leading-none">{score}</p>
           </div>
           <div className="bg-white rounded-xl px-3 py-1.5 text-center shadow-sm min-w-[60px]">
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Рекорд</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{t('reflex_best', lang)}</p>
             <p className="text-base font-black text-gray-700 leading-none">{best}</p>
           </div>
         </div>
       </header>
 
       {/* Instructions */}
-      <p className="text-xs text-gray-400 mb-3">Свайпай чтобы объединять плитки. Дойди до 2048!</p>
+      <p className="text-xs text-gray-400 mb-3">{t('g2048_swipe', lang)}</p>
 
       {/* Board */}
       <div
@@ -210,11 +213,11 @@ export default function Game2048Page() {
         {(won || over) && (
           <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center gap-4"
             style={{ background: 'rgba(238,228,218,0.88)' }}>
-            <p className="text-4xl font-black text-gray-900">{won ? '🎉 2048!' : '😔 Конец'}</p>
-            <p className="text-gray-600 font-semibold">{won ? `+50 XP` : `Счёт: ${score}`}</p>
+            <p className="text-4xl font-black text-gray-900">{won ? '🎉 2048!' : `😔 ${t('game_over', lang)}`}</p>
+            <p className="text-gray-600 font-semibold">{won ? `+50 XP` : `${t('game_score', lang)}: ${score}`}</p>
             <button onClick={restart}
               className="px-8 py-3 rounded-2xl bg-gray-900 text-white font-black text-lg active:scale-95">
-              Ещё раз
+              {t('game_again', lang)}
             </button>
           </div>
         )}
@@ -223,13 +226,13 @@ export default function Game2048Page() {
       {/* New game button */}
       <button onClick={restart}
         className="mt-4 px-6 py-2.5 rounded-2xl bg-white shadow-sm text-gray-700 font-bold text-sm active:scale-95">
-        Новая игра
+        {t('g2048_new', lang)}
       </button>
 
       {/* Hint */}
       <div className="mt-4 mx-4 bg-white rounded-2xl px-4 py-3 shadow-sm max-w-sm w-full">
         <p className="text-xs text-gray-400 text-center leading-relaxed">
-          Стрелки на клавиатуре или свайп. Одинаковые плитки сливаются. Доберись до <strong className="text-amber-600">2048</strong>!
+          {t('g2048_help', lang)}
         </p>
       </div>
     </div>

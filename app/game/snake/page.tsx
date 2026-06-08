@@ -306,7 +306,7 @@ export default function SnakePage() {
             <p className="text-orange-400 text-sm mb-6 text-center font-semibold">{t('game_snake_penalty', lang)}</p>
             <button onClick={startGame}
               className="px-8 py-3.5 rounded-2xl bg-emerald-500 text-white font-black text-lg active:scale-95">
-              Старт →
+              {t('game_go', lang)}
             </button>
           </div>
         )}
