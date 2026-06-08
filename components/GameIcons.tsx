@@ -107,6 +107,17 @@ export const MathIcon: FC<IconProps> = ({ size = 30 }) => (
   </svg>
 )
 
+// Саймон — four quadrant pads around a hub
+export const SimonIcon: FC<IconProps> = ({ size = 30 }) => (
+  <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
+    <rect x="7"  y="7"  width="15" height="15" rx="6" fill="currentColor" fillOpacity="0.95" />
+    <rect x="26" y="7"  width="15" height="15" rx="6" fill="currentColor" fillOpacity="0.45" />
+    <rect x="7"  y="26" width="15" height="15" rx="6" fill="currentColor" fillOpacity="0.45" />
+    <rect x="26" y="26" width="15" height="15" rx="6" fill="currentColor" fillOpacity="0.95" />
+    <circle cx="24" cy="24" r="3.4" fill="currentColor" />
+  </svg>
+)
+
 // Реакция — arena with a player square dodging shapes
 export const ReflexIcon: FC<IconProps> = ({ size = 30 }) => (
   <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
@@ -155,6 +166,7 @@ export const GAME_ICONS: Record<string, { Comp: FC<IconProps>; color: string }> 
   '/game/countries':{ Comp: GlobeIcon,     color: '#3B82F6' },
   '/game/tictactoe':{ Comp: TicTacToeIcon, color: '#5B8DEF' },
   '/game/reflex':   { Comp: ReflexIcon,    color: '#E0457B' },
+  '/game/simon':    { Comp: SimonIcon,     color: '#8B5CF6' },
 }
 
 export const SUBJECT_ICONS: Record<string, { Comp: FC<IconProps>; color: string }> = {

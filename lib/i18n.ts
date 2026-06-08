@@ -209,6 +209,16 @@ export const I18N = {
   reflex_hint:        { ru: 'Чем дольше держишься — тем быстрее летают фигуры.', kk: 'Неғұрлым ұзақ шыдасаң — фигуралар соғұрлым жылдам ұшады.', en: 'The longer you survive, the faster the shapes move.' },
   reflex_sec:         { ru: 'сек',                         kk: 'сек',                        en: 's' },
 
+  // Simon (repeat the sequence — memory)
+  simon_title:        { ru: 'Саймон',                      kk: 'Саймон',                     en: 'Simon' },
+  simon_sub:          { ru: 'Повтори цвета',               kk: 'Түстерді қайтала',           en: 'Repeat the colors' },
+  simon_round:        { ru: 'Раунд',                       kk: 'Раунд',                      en: 'Round' },
+  simon_watch:        { ru: 'Смотри',                      kk: 'Қара',                       en: 'Watch' },
+  simon_repeat:       { ru: 'Повтори',                     kk: 'Қайтала',                    en: 'Repeat' },
+  simon_over:         { ru: 'Ошибка! 🙈',                  kk: 'Қате! 🙈',                   en: 'Wrong! 🙈' },
+  simon_passed:       { ru: 'Раундов пройдено',            kk: 'Раунд өтті',                 en: 'Rounds passed' },
+  simon_start_hint:   { ru: 'Запомни порядок вспышек и повтори его',  kk: 'Жарқылдардың ретін есте сақтап қайтала', en: 'Memorize the flashes, then repeat them' },
+
   // Sudoku
   sudoku_title:       { ru: 'Судоку',                      kk: 'Судоку',                     en: 'Sudoku' },
   sudoku_pick:        { ru: 'Выбери сложность',            kk: 'Күрделілікті таңда',         en: 'Choose difficulty' },

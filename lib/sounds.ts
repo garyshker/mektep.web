@@ -70,3 +70,9 @@ export function playTap() {
     tone(1000, 'sine', now, 0.05, 0.08)
   } catch { /* ignore */ }
 }
+
+// A single musical note — used for Simon pads (each pad has its own pitch)
+export function playNote(freq: number, dur = 0.3, vol = 0.2) {
+  if (!soundEnabled()) return
+  try { tone(freq, 'sine', ac().currentTime, dur, vol) } catch { /* ignore */ }
+}
