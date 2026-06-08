@@ -1,4 +1,4 @@
-import { mathLessons, generateClockLesson, generateAdditionLesson, generateSubtractionLesson } from './math'
+import { mathLessons, generateClockLesson, generateAdditionLesson, generateSubtractionLesson, generateEquationLesson } from './math'
 import { kazakhLessons } from './kazakh'
 import type { Lesson } from './types'
 
@@ -24,6 +24,7 @@ function randomiseTaps(lesson: Lesson): Lesson {
 export const ALL_LESSONS: Lesson[] = [
   generateAdditionLesson(),
   generateSubtractionLesson(),
+  generateEquationLesson(),
   ...mathLessons.filter(l => l.id !== 'math-1' && l.id !== 'math-2').map(randomiseTaps),
   generateClockLesson(),
   ...kazakhLessons,

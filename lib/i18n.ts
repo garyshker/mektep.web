@@ -47,6 +47,12 @@ export const I18N = {
   label_clock:        { ru: 'КОТОРЫЙ ЧАС?',               kk: 'САҒАТ НЕШЕДЕ?',              en: 'WHAT TIME IS IT?' },
   label_tf:           { ru: 'ВЕРНО ИЛИ НЕТ?',             kk: 'ДҰРЫС ПА?',                  en: 'TRUE OR FALSE?' },
   label_pairs:        { ru: 'СОЕДИНИ ПАРЫ',               kk: 'ЖҰПТАРДЫ ҚОС',               en: 'MATCH THE PAIRS' },
+  label_equation:     { ru: 'НАЙДИ X',                    kk: 'X-ТІ ТАП',                   en: 'FIND X' },
+  eq_play:            { ru: 'Показать решение',           kk: 'Шешімін көрсету',            en: 'Show solution' },
+  eq_replay:          { ru: 'Ещё раз',                    kk: 'Қайтадан',                   en: 'Again' },
+  eq_hint_intro:      { ru: 'Нажми — покажу, как решать',  kk: 'Бас — қалай шешуді көрсетемін', en: 'Tap — see how to solve' },
+  eq_hint_move:       { ru: 'Переносим число через = и меняем знак', kk: 'Санды = арқылы көшіреміз, таңбасын өзгертеміз', en: 'Move the number across = and flip its sign' },
+  eq_hint_done:       { ru: 'Считаем — и x найден!',       kk: 'Есептейміз — x табылды!',     en: 'Calculate — x is found!' },
   tf_true:            { ru: 'Верно',                      kk: 'Дұрыс',                      en: 'True' },
   tf_false:           { ru: 'Неверно',                    kk: 'Қате',                       en: 'False' },
 

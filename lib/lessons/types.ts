@@ -1,4 +1,4 @@
-export type QuestionKind = 'mc' | 'type' | 'tap' | 'word' | 'match' | 'clock' | 'tf' | 'pairs'
+export type QuestionKind = 'mc' | 'type' | 'tap' | 'word' | 'match' | 'clock' | 'tf' | 'pairs' | 'equation'
 
 export interface ByLang { kk: string; ru: string; en: string }
 
@@ -32,6 +32,8 @@ export interface Question {
   // tf — `answer` is 'true' | 'false'
   // pairs — connect a↔b
   pairs?: { a: string; b: string }[]
+  // equation — `x op a = b`, `answer` is x; drives the animated transposition solver
+  eq?: { a: number; op: '+' | '-'; b: number }
 }
 
 export interface Lesson {

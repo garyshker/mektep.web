@@ -277,6 +277,27 @@ export function generateClockLesson(): Lesson {
   }
 }
 
+// ── Equations · find x (animated transposition) ──────────────────────────────
+export function generateEquationLesson(): Lesson {
+  const make = (): Question => {
+    if (Math.random() < 0.5) {
+      // x + a = b   →   x = b − a
+      const x = _ri(2, 20), a = _ri(1, 10), b = x + a
+      return { kind: 'equation', prompt: `x + ${a} = ${b}`, answer: x, eq: { a, op: '+', b } }
+    }
+    // x − a = b   →   x = b + a   (keep x > a so b ≥ 1)
+    const a = _ri(1, 9), x = _ri(a + 1, 20), b = x - a
+    return { kind: 'equation', prompt: `x − ${a} = ${b}`, answer: x, eq: { a, op: '-', b } }
+  }
+  return {
+    id: 'math-eq', subjectId: 'math', emoji: '🟰',
+    titleByLang: { kk: 'Теңдеулер · x-ті тап', ru: 'Уравнения · найди x', en: 'Equations · find x' },
+    introByLang: { kk: 'Санды теңдік арқылы көшіріп, x-ті табамыз!', ru: 'Переносим число через знак = и находим x!', en: 'Move the number across = to find x!' },
+    grade: [2, 3, 4],
+    questions: Array.from({ length: 8 }, make),
+  }
+}
+
 export const mathLessons: Lesson[] = [
   {
     id: 'math-1', subjectId: 'math', emoji: '➕',
