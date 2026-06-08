@@ -20,7 +20,8 @@ const PLAYER_GLOW = '#3B82F6'
 
 const P = 18          // player square size
 const WALL = 7        // wall band thickness
-const MAX_V = 5.6     // speed cap (px / frame) to keep collisions fair
+const ENEMY_COUNT = 4 // fixed — like the classic "Escapa!" / "Hold On"
+const MAX_V = 8.5     // speed cap (px / frame) to keep collisions fair
 
 export default function ReflexGame() {
   const router = useRouter()
@@ -71,7 +72,7 @@ export default function ReflexGame() {
     playerRef.current = { x: S / 2 - P / 2, y: S / 2 - P / 2 }
     pointerRef.current = { x: S / 2, y: S / 2 }
     enemiesRef.current = []
-    for (let i = 0; i < 4; i++) spawnEnemy()
+    for (let i = 0; i < ENEMY_COUNT; i++) spawnEnemy()
     startRef.current = performance.now()
     lastRampRef.current = performance.now()
   }
@@ -133,14 +134,14 @@ export default function ReflexGame() {
     // wall hit — player rect must stay inside the safe band
     if (p.x < WALL || p.y < WALL || p.x + P > S - WALL || p.y + P > S - WALL) { endGame(); return }
 
+    // Fixed 4 squares that simply speed up every second (no new ones spawn)
     const now = performance.now()
-    if (now - lastRampRef.current > 2600) {
+    if (now - lastRampRef.current > 1000) {
       lastRampRef.current = now
       for (const e of enemiesRef.current) {
-        e.vx = Math.max(-MAX_V, Math.min(MAX_V, e.vx * 1.1))
-        e.vy = Math.max(-MAX_V, Math.min(MAX_V, e.vy * 1.1))
+        e.vx = Math.max(-MAX_V, Math.min(MAX_V, e.vx * 1.06))
+        e.vy = Math.max(-MAX_V, Math.min(MAX_V, e.vy * 1.06))
       }
-      if (enemiesRef.current.length < 9) spawnEnemy()
     }
 
     for (const e of enemiesRef.current) {
