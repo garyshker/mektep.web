@@ -106,6 +106,7 @@ export const I18N = {
   game_go:            { ru: 'Поехали! →',                 kk: 'Бастайық! →',                en: "Let's go! →" },
   game_again:         { ru: 'Ещё раз →',                  kk: 'Қайтадан →',                 en: 'Again →' },
   game_home:          { ru: 'На главную',                 kk: 'Басты бетке',                en: 'Home' },
+  game_back:          { ru: 'Назад',                      kk: 'Артқа',                      en: 'Back' },
   game_how_to_play:   { ru: 'Как играть',                 kk: 'Қалай ойнау',                en: 'How to play' },
   game_quick_desc:    { ru: 'Решай примеры как можно быстрее!', kk: 'Мысалдарды мүмкіндігінше тез шеш!', en: 'Solve problems as fast as you can!' },
   game_quick_rules:   { ru: 'Видишь пример — выбирай ответ. Правильно = +1 балл.', kk: 'Мысалды көр — жауапты таңда. Дұрыс = +1 ұпай.', en: 'See a problem — pick the answer. Correct = +1 point.' },
@@ -183,6 +184,10 @@ export const I18N = {
   checkers_black_turn:{ ru: 'Ход чёрных ⚫',                kk: 'Қараның кезегі ⚫',           en: 'Black to move ⚫' },
   checkers_white_win: { ru: 'Белые победили! ⚪',          kk: 'Ақтар жеңді! ⚪',            en: 'White wins! ⚪' },
   checkers_black_win: { ru: 'Чёрные победили! ⚫',          kk: 'Қаралар жеңді! ⚫',           en: 'Black wins! ⚫' },
+  checkers_difficulty:{ ru: 'Сложность',                  kk: 'Күрделілік',                 en: 'Difficulty' },
+  checkers_puzzles:   { ru: 'Задачи',                      kk: 'Есептер',                    en: 'Puzzles' },
+  checkers_puzzles_sub:{ ru: 'Комбинации и тактика',       kk: 'Комбинациялар мен тактика',  en: 'Combinations & tactics' },
+  checkers_puzzles_soon:{ ru: 'Скоро здесь появятся шашечные задачи — реши комбинацию и выиграй в несколько ходов.', kk: 'Жақында мұнда дойбы есептері пайда болады — комбинацияны шешіп, бірнеше жүрісте жең.', en: 'Checkers puzzles are coming soon — solve a combination and win in a few moves.' },
 
   // Sudoku
   sudoku_title:       { ru: 'Судоку',                      kk: 'Судоку',                     en: 'Sudoku' },

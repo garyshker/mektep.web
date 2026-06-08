@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Users, Puzzle, ChevronRight, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
@@ -208,13 +209,49 @@ function pickAiMove(b: Board, level: Level): Move | null {
 const countPieces = (b: Board, color: Color) =>
   b.flat().filter(p => p?.color === color).length
 
+// ── A single rendered checker disc (cream or black), used in the menu hero ────
+function Disc({ white, size, king }: { white: boolean; size: number; king?: boolean }) {
+  return (
+    <div className="relative rounded-full" style={{
+      width: size, height: size,
+      background: white
+        ? 'radial-gradient(circle at 38% 32%, #fcfcf8, #d2cdbe)'
+        : 'radial-gradient(circle at 38% 32%, #6c6c6c, #141414)',
+      boxShadow: 'inset 0 -3px 6px rgba(0,0,0,0.4), 0 5px 10px rgba(0,0,0,0.35)',
+      border: white ? '1px solid #b6b0a1' : '1px solid #000',
+    }}>
+      <div className="absolute rounded-full" style={{ inset: '13%', border: white ? '2px solid rgba(120,110,85,0.40)' : '2px solid rgba(255,255,255,0.20)' }} />
+      <div className="absolute rounded-full" style={{ inset: '26%', border: white ? '1.5px solid rgba(120,110,85,0.28)' : '1.5px solid rgba(255,255,255,0.13)' }} />
+      {king && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span style={{ color: white ? '#C99A2E' : '#F5C84B', fontSize: size * 0.46, lineHeight: 1 }}>★</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Difficulty indicator: 1–3 filled signal bars ─────────────────────────────
+function SignalBars({ filled, color }: { filled: number; color: string }) {
+  return (
+    <div className="flex items-end gap-[3px] h-5">
+      {[0, 1, 2].map(i => (
+        <div key={i} className="w-1.5 rounded-full" style={{
+          height: 8 + i * 5,
+          background: i < filled ? color : 'color-mix(in oklch, var(--muted-foreground) 28%, transparent)',
+        }} />
+      ))}
+    </div>
+  )
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 export default function CheckersPage() {
   const router = useRouter()
   const supabase = createClient()
   const lang = useLang()
 
-  const [mode, setMode] = useState<'ai' | 'local' | null>(null)
+  const [mode, setMode] = useState<'ai' | 'local' | 'puzzles' | null>(null)
   const [level, setLevel] = useState<Level>('medium')
   const [board, setBoard] = useState<Board>(initBoard)
   const [turn, setTurn] = useState<Color>('w')
@@ -345,47 +382,111 @@ export default function CheckersPage() {
 
   // ── Mode-selection menu ──
   if (mode === null) {
+    const diffs = [
+      { lv: 'easy' as Level,   label: 'sudoku_easy' as const,   bars: 1, color: 'var(--brand)' },
+      { lv: 'medium' as Level, label: 'sudoku_medium' as const, bars: 2, color: 'var(--accent)' },
+      { lv: 'hard' as Level,   label: 'sudoku_hard' as const,   bars: 3, color: 'var(--destructive)' },
+    ]
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: '#2A2520' }}>
-        <button onClick={() => router.push('/')}
-          className="absolute top-5 left-4 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">✕</button>
-
-        <div className="text-6xl mb-4">🔴⚫</div>
-        <h1 className="text-2xl font-black text-white mb-1 text-center">{t('checkers_title', lang)}</h1>
-        <p className="text-white/50 text-sm mb-8">{t('checkers_pick_mode', lang)}</p>
-
-        <div className="w-full max-w-xs flex flex-col gap-3">
-          {/* vs computer — pick difficulty */}
-          <p className="text-white/40 text-[11px] font-black tracking-widest uppercase flex items-center gap-2">
-            🤖 {t('checkers_vs_ai', lang)}
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {([
-              { lv: 'easy' as Level,   key: 'sudoku_easy' as const,   emoji: '🟢' },
-              { lv: 'medium' as Level, key: 'sudoku_medium' as const, emoji: '🟡' },
-              { lv: 'hard' as Level,   key: 'sudoku_hard' as const,   emoji: '🔴' },
-            ]).map(d => (
-              <button key={d.lv} onClick={() => startGame('ai', d.lv)}
-                className="bg-white/10 hover:bg-white/15 rounded-2xl py-3 flex flex-col items-center gap-1 active:scale-95 transition-all">
-                <span className="text-xl">{d.emoji}</span>
-                <span className="font-black text-white text-xs">{t(d.key, lang)}</span>
-              </button>
-            ))}
-          </div>
-          {/* local 2-player */}
-          <button onClick={() => startGame('local')}
-            className="w-full bg-amber-400 hover:brightness-105 rounded-2xl px-5 py-4 flex items-center gap-4 text-left active:scale-[0.98] transition-all mt-1">
-            <span className="text-3xl">👥</span>
-            <div>
-              <p className="font-black text-gray-900 text-base">{t('checkers_vs_local', lang)}</p>
-              <p className="text-gray-800/70 text-xs">{t('checkers_vs_local_sub', lang)}</p>
-            </div>
+      <div className="min-h-screen bg-background flex flex-col items-center px-5 py-6">
+        <div className="w-full max-w-md flex items-center mb-2">
+          <button onClick={() => router.push('/')} aria-label={t('game_home', lang)}
+            className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground active:scale-90 transition-transform">
+            <X size={20} />
           </button>
         </div>
 
-        <p className="w-full max-w-xs text-white/40 text-xs leading-relaxed mt-8 text-center">
-          {t('checkers_rules', lang)}
-        </p>
+        <div className="flex-1 w-full max-w-md flex flex-col items-center justify-center py-4">
+          {/* Hero — cream king + black piece on the brand gradient */}
+          <div className="relative mb-6 w-[160px] h-[116px] rounded-[28px] flex items-center justify-center shadow-[var(--shadow-md)]"
+            style={{ background: 'var(--gradient-hero)' }}>
+            <div className="absolute" style={{ transform: 'translateX(-26px) translateY(4px) rotate(-9deg)' }}>
+              <Disc white={false} size={66} />
+            </div>
+            <div className="absolute" style={{ transform: 'translateX(26px) translateY(-2px) rotate(9deg)' }}>
+              <Disc white size={66} king />
+            </div>
+          </div>
+
+          <h1 className="text-3xl font-display font-black text-foreground text-center leading-tight">{t('checkers_title', lang)}</h1>
+          <p className="text-muted-foreground text-center mt-1.5 mb-7">{t('checkers_pick_mode', lang)}</p>
+
+          <div className="w-full flex flex-col gap-3">
+            {/* vs computer — pick difficulty */}
+            <p className="text-muted-foreground/70 text-[11px] font-display font-black tracking-widest uppercase px-1">
+              {t('checkers_difficulty', lang)}
+            </p>
+            <div className="grid grid-cols-3 gap-2.5">
+              {diffs.map(d => (
+                <button key={d.lv} onClick={() => startGame('ai', d.lv)}
+                  className="bg-card border-2 border-border rounded-[var(--radius-lg)] py-4 flex flex-col items-center gap-2 shadow-[var(--shadow-sm)] active:scale-95 transition-transform">
+                  <SignalBars filled={d.bars} color={d.color} />
+                  <span className="font-display font-black text-foreground text-sm">{t(d.label, lang)}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* local 2-player */}
+            <button onClick={() => startGame('local')}
+              className="w-full bg-card border-2 border-border rounded-[var(--radius-lg)] px-4 py-4 flex items-center gap-3.5 text-left shadow-[var(--shadow-sm)] active:scale-[0.98] transition-transform">
+              <span className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: 'color-mix(in oklch, var(--accent) 18%, transparent)', color: 'var(--accent)' }}>
+                <Users size={22} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-black text-foreground text-[15px]">{t('checkers_vs_local', lang)}</p>
+                <p className="text-muted-foreground text-xs truncate">{t('checkers_vs_local_sub', lang)}</p>
+              </div>
+              <ChevronRight size={20} className="text-muted-foreground shrink-0" />
+            </button>
+
+            {/* puzzles */}
+            <button onClick={() => { playTap(); setMode('puzzles') }}
+              className="w-full bg-card border-2 border-border rounded-[var(--radius-lg)] px-4 py-4 flex items-center gap-3.5 text-left shadow-[var(--shadow-sm)] active:scale-[0.98] transition-transform">
+              <span className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: 'color-mix(in oklch, var(--primary) 16%, transparent)', color: 'var(--primary)' }}>
+                <Puzzle size={22} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-black text-foreground text-[15px]">{t('checkers_puzzles', lang)}</p>
+                <p className="text-muted-foreground text-xs truncate">{t('checkers_puzzles_sub', lang)}</p>
+              </div>
+              <ChevronRight size={20} className="text-muted-foreground shrink-0" />
+            </button>
+          </div>
+
+          <p className="w-full text-muted-foreground/70 text-xs leading-relaxed mt-7 text-center">
+            {t('checkers_rules', lang)}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Puzzles (placeholder — checkers tactics coming soon) ──
+  if (mode === 'puzzles') {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center px-5 py-6">
+        <div className="w-full max-w-md flex items-center gap-3 mb-2">
+          <button onClick={() => setMode(null)} aria-label={t('game_back', lang)}
+            className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground active:scale-90 transition-transform">
+            <X size={20} />
+          </button>
+          <h1 className="text-lg font-display font-black text-foreground">{t('checkers_puzzles', lang)}</h1>
+        </div>
+
+        <div className="flex-1 w-full max-w-md flex flex-col items-center justify-center text-center">
+          <div className="w-20 h-20 rounded-[24px] flex items-center justify-center mb-5 shadow-[var(--shadow-md)]"
+            style={{ background: 'var(--gradient-hero)', color: 'white' }}>
+            <Puzzle size={38} />
+          </div>
+          <h2 className="text-2xl font-display font-black text-foreground">{t('checkers_puzzles', lang)}</h2>
+          <p className="text-muted-foreground mt-2 max-w-xs leading-relaxed">{t('checkers_puzzles_soon', lang)}</p>
+          <button onClick={() => setMode(null)}
+            className="mt-7 px-6 py-3 rounded-[var(--radius)] bg-card border-2 border-border font-display font-black text-foreground active:scale-95 transition-transform">
+            {t('game_back', lang)}
+          </button>
+        </div>
       </div>
     )
   }
@@ -439,6 +540,15 @@ export default function CheckersPage() {
                 className="relative aspect-square flex items-center justify-center"
                 style={{ background: dark ? '#769656' : '#EEEED2', cursor: dark ? 'pointer' : 'default' }}
               >
+                {/* coordinates — rank on the left column, file on the bottom row */}
+                {c === 0 && (
+                  <span className="absolute top-[2px] left-[3px] text-[8px] sm:text-[9px] font-black leading-none pointer-events-none"
+                    style={{ color: dark ? '#EEEED2' : '#769656' }}>{8 - r}</span>
+                )}
+                {r === 7 && (
+                  <span className="absolute bottom-[2px] right-[3px] text-[8px] sm:text-[9px] font-black leading-none pointer-events-none"
+                    style={{ color: dark ? '#EEEED2' : '#769656' }}>{String.fromCharCode(97 + c)}</span>
+                )}
                 {/* selection highlight */}
                 {isSel && <div className="absolute inset-0" style={{ background: 'rgba(245,210,80,0.55)' }} />}
                 {/* move hint */}
