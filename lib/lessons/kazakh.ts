@@ -22,6 +22,13 @@ function _mcPhrase(kk: string, ru: string, wrong: [string, string, string]): Que
   return { kind: 'mc', prompt: kk, options: opts, answer: opts.indexOf(ru), audio: kk }
 }
 
+// Alphabet card: big letter shown, audio reads "letter, example word" (so even a
+// Russian fallback voice produces sound), pick the word that starts with the letter
+function _letter(letter: string, word: string, wrong: [string, string, string]): Question {
+  const opts = _sfl([word, ...wrong])
+  return { kind: 'mc', prompt: letter, big: true, options: opts, answer: opts.indexOf(word), audio: `${letter}, ${word}` }
+}
+
 // Connect Kazakh words with their translations
 function _pairs(ru: string, kk: string, pairs: { a: string; b: string }[]): Question {
   return { kind: 'pairs', promptByLang: { kk, ru, en: ru }, pairs }
@@ -72,11 +79,11 @@ export const kazakhLessons: Lesson[] = [
     grade: [1, 2, 3, 4],
     questions: [
       // letter (big + audio) → pick the word that starts with it
-      _mc('Ә', 'Әже', ['Үй', 'Іс', 'Өрік'], true),
-      _mc('Ө', 'Өзен', ['Әке', 'Ұл', 'Үй'], true),
-      _mc('Ұ', 'Ұл', ['Іс', 'Ән', 'Үй'], true),
-      _mc('Ү', 'Үй', ['Ұл', 'Өрік', 'Әже'], true),
-      _mc('І', 'Іс', ['Ұя', 'Үш', 'Әке'], true),
+      _letter('Ә', 'Әже', ['Үй', 'Іс', 'Өрік']),
+      _letter('Ө', 'Өзен', ['Әке', 'Ұл', 'Үй']),
+      _letter('Ұ', 'Ұл', ['Іс', 'Ән', 'Үй']),
+      _letter('Ү', 'Үй', ['Ұл', 'Өрік', 'Әже']),
+      _letter('І', 'Іс', ['Ұя', 'Үш', 'Әке']),
       _mc('Қай сөз «Ә» әрпінен басталады?', 'Әке', ['Үй', 'Өзен', 'Ұл']),
       _mc('Қай сөз «Ү» әрпінен басталады?', 'Үш', ['Ән', 'Іс', 'Өрік']),
       _tap('Найди слова с буквой Ө', 'Құрамында «ө» бар сөздерді тап',
@@ -95,8 +102,8 @@ export const kazakhLessons: Lesson[] = [
     subtitle: 'ғ · қ · ң · һ',
     grade: [1, 2, 3, 4],
     questions: [
-      _mc('Қ', 'Қар', ['Үй', 'Әже', 'Іс'], true),
-      _mc('Ғ', 'Ғарыш', ['Қала', 'Үй', 'Алма'], true),
+      _letter('Қ', 'Қар', ['Үй', 'Әже', 'Іс']),
+      _letter('Ғ', 'Ғарыш', ['Қала', 'Үй', 'Алма']),
       _mc('Қай сөз «Қ» әрпінен басталады?', 'Қала', ['Үй', 'Өзен', 'Ұл']),
       _mc('Қай сөзде «ң» әрпі бар?', 'Мың', ['Қар', 'Үй', 'Алма']),
       _mc('Қай сөзде «һ» әрпі бар?', 'Гауһар', ['Қала', 'Үй', 'Ғарыш']),
