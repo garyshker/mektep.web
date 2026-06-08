@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { saveLang } from '@/lib/useLang'
@@ -35,6 +35,21 @@ export default function SetupPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  // Pre-fill from the existing profile so editing (or just changing the
+  // language) doesn't force re-typing the name and re-picking the grade.
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase.from('profiles').select('name, grade, language').eq('id', user.id).single()
+      if (!data) return
+      if (data.name) setName(data.name)
+      if (data.grade) setGrade(data.grade)
+      if (data.language) { setLang(data.language as Lang); saveLang(data.language as Lang) }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const pickLang = (code: Lang) => { setLang(code); saveLang(code) }
 

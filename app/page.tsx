@@ -200,9 +200,15 @@ export default function HomePage() {
             <Zap size={16} fill="currentColor" style={{ color: 'var(--xp)' }} />
             <span className="font-black text-xs tabular" style={{ color: 'var(--xp)' }}>{xp}</span>
           </div>
-          <button onClick={() => router.push('/setup')} aria-label="Тіл / Язык"
+          <button onClick={async () => {
+              const order: ('kk' | 'ru' | 'en')[] = ['kk', 'ru', 'en']
+              const next = order[(order.indexOf(lang) + 1) % 3]
+              saveLang(next)
+              const { data: { user } } = await supabase.auth.getUser()
+              if (user) await supabase.from('profiles').update({ language: next }).eq('id', user.id)
+            }} aria-label="Тіл / Язык"
             className="w-8 h-8 rounded-full flex items-center justify-center text-base bg-card shadow-[var(--shadow-sm)]">
-            🇰🇿
+            {lang === 'kk' ? '🇰🇿' : lang === 'ru' ? '🇷🇺' : '🇬🇧'}
           </button>
           <button onClick={() => router.push('/profile')} aria-label="Профиль"
             className="w-8 h-8 rounded-full flex items-center justify-center font-display font-black text-white text-xs shrink-0"
