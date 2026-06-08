@@ -117,6 +117,7 @@ export const I18N = {
   game_again:         { ru: 'Ещё раз →',                  kk: 'Қайтадан →',                 en: 'Again →' },
   game_home:          { ru: 'На главную',                 kk: 'Басты бетке',                en: 'Home' },
   game_back:          { ru: 'Назад',                      kk: 'Артқа',                      en: 'Back' },
+  play_label:         { ru: 'Играть',                     kk: 'Ойна',                       en: 'Play' },
   game_how_to_play:   { ru: 'Как играть',                 kk: 'Қалай ойнау',                en: 'How to play' },
   game_quick_desc:    { ru: 'Решай примеры как можно быстрее!', kk: 'Мысалдарды мүмкіндігінше тез шеш!', en: 'Solve problems as fast as you can!' },
   game_quick_rules:   { ru: 'Видишь пример — выбирай ответ. Правильно = +1 балл.', kk: 'Мысалды көр — жауапты таңда. Дұрыс = +1 ұпай.', en: 'See a problem — pick the answer. Correct = +1 point.' },

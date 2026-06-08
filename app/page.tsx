@@ -364,7 +364,7 @@ export default function HomePage() {
                   <p className="text-muted-foreground text-[10px] mt-0.5">{act.sub[lang]}</p>
                 </div>
                 <span className="text-[11px] font-black flex items-center gap-0.5 self-start" style={{ color: accent }}>
-                  Ойна <ChevronRight size={13} />
+                  {t('play_label', lang)} <ChevronRight size={13} />
                 </span>
               </button>
               )
