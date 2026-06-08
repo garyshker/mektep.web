@@ -356,10 +356,10 @@ export default function HomePage() {
                   ? <span style={{ color: custom.color }}><custom.Comp size={30} /></span>
                   : <span className="text-2xl">{act.icon}</span>}
                 <div>
-                  <p className="font-display font-black text-foreground text-xs leading-tight">{act.name[lang]}</p>
-                  <p className="text-muted-foreground text-[10px] mt-0.5">{act.sub[lang]}</p>
+                  <p className="font-display font-black text-xs leading-tight" style={{ color: '#1e293b' }}>{act.name[lang]}</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: '#64748b' }}>{act.sub[lang]}</p>
                 </div>
-                <span className="text-[11px] font-black flex items-center gap-0.5 self-start" style={{ color: 'var(--primary)' }}>
+                <span className="text-[11px] font-black flex items-center gap-0.5 self-start" style={{ color: '#2563eb' }}>
                   Ойна <ChevronRight size={13} />
                 </span>
               </button>
