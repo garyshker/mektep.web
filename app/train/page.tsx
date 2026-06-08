@@ -19,6 +19,22 @@ export default function TrainPage() {
       </header>
 
       <main className="max-w-lg lg:max-w-2xl mx-auto px-4 grid grid-cols-2 gap-3">
+        {/* Smart addition — adaptive engine + mastery */}
+        <button onClick={() => router.push('/train/smart-add')}
+          className="col-span-2 rounded-[var(--radius)] p-4 flex items-center gap-4 text-left shadow-[var(--shadow-md)] active:translate-y-[-2px] transition-transform"
+          style={{ background: 'var(--gradient-hero)' }}>
+          <span className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">🧠</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-display font-black text-white text-base">{t('train_smart_add', lang)}</p>
+            <p className="text-white/75 text-xs flex items-center gap-1">
+              <InfinityIcon size={12} /> {t('sm_adaptive', lang)}
+            </p>
+          </div>
+          <span className="text-xs font-black flex items-center gap-0.5 shrink-0 text-white">
+            {t('game_go', lang)} <ChevronRight size={14} />
+          </span>
+        </button>
+
         {/* Equations — its own page with the animated solver */}
         <button onClick={() => router.push('/train/equations')}
           className="col-span-2 rounded-[var(--radius)] p-4 flex items-center gap-4 text-left border-2 active:translate-y-[-2px] transition-transform"
