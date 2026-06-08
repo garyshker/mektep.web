@@ -29,6 +29,12 @@ function _letter(letter: string, word: string, wrong: [string, string, string]):
   return { kind: 'mc', prompt: letter, big: true, options: opts, answer: opts.indexOf(word), audio: `${letter}, ${word}` }
 }
 
+// Listen-and-pick: 🔊 plays the word, learner taps the written form
+function _listen(ru: string, kk: string, word: string, wrong: [string, string, string]): Question {
+  const opts = _sfl([word, ...wrong])
+  return { kind: 'mc', promptByLang: { kk, ru, en: ru }, options: opts, answer: opts.indexOf(word), audio: word }
+}
+
 // Connect Kazakh words with their translations
 function _pairs(ru: string, kk: string, pairs: { a: string; b: string }[]): Question {
   return { kind: 'pairs', promptByLang: { kk, ru, en: ru }, pairs }
@@ -113,6 +119,50 @@ export const kazakhLessons: Lesson[] = [
         ['Мың', 'Таң', 'Аң'], ['Қар', 'Үй', 'Алма']),
       _pairs('Соедини букву и слово', 'Әріп пен сөзді қос',
         [{ a: 'Ғ', b: 'Ғарыш' }, { a: 'Қ', b: 'Қала' }, { a: 'Ң', b: 'Мың' }, { a: 'Һ', b: 'Гауһар' }]),
+    ],
+  },
+
+  // ── 0c. Буындар (слоги) ─────────────────────────────────────────────
+  {
+    id: 'kaz-read-1',
+    subjectId: 'kazakh',
+    emoji: '🔡',
+    titleByLang: { kk: 'Буындар', ru: 'Слоги', en: 'Syllables' },
+    subtitle: 'қа · ма · то · бұ',
+    grade: [1, 2, 3, 4],
+    questions: [
+      // consonant + vowel → syllable
+      _mc('қ + а = ?', 'қа', ['ақ', 'ка', 'аұ']),
+      _mc('м + ә = ?', 'мә', ['әм', 'ма', 'мұ']),
+      _mc('т + о = ?', 'то', ['от', 'ту', 'та']),
+      _mc('б + ұ = ?', 'бұ', ['ұб', 'бу', 'ба']),
+      _mc('с + ү = ?', 'сү', ['үс', 'су', 'са']),
+      _tap('Найди открытые слоги (согласная + гласная)', 'Ашық буындарды тап',
+        ['қа', 'ма', 'то', 'сү'], ['ақ', 'от', 'үс']),
+      _pairs('Соедини слово и слоги', 'Сөз бен буынды қос',
+        [{ a: 'қала', b: 'қа-ла' }, { a: 'бала', b: 'ба-ла' }, { a: 'ана', b: 'а-на' }, { a: 'мектеп', b: 'мек-теп' }]),
+    ],
+  },
+
+  // ── 0d. Сөз оқу (чтение слов) ───────────────────────────────────────
+  {
+    id: 'kaz-read-2',
+    subjectId: 'kazakh',
+    emoji: '📖',
+    titleByLang: { kk: 'Сөз оқу', ru: 'Чтение слов', en: 'Reading words' },
+    subtitle: 'ба-ла · қа-ла · а-на',
+    grade: [1, 2, 3, 4],
+    questions: [
+      // syllables → word
+      _mc('ба + ла = ?', 'бала', ['лаба', 'абал', 'балы']),
+      _mc('қа + ла = ?', 'қала', ['лақа', 'қалы', 'алқа']),
+      _mc('а + на = ?', 'ана', ['нан', 'аян', 'наз']),
+      _mc('мек + теп = ?', 'мектеп', ['тепмек', 'мекет', 'тепек']),
+      // listen and pick the written word
+      _listen('Послушай и выбери слово', 'Тыңда да, сөзді тап', 'қала', ['бала', 'тала', 'қар']),
+      _listen('Послушай и выбери слово', 'Тыңда да, сөзді тап', 'ана', ['ата', 'апа', 'аға']),
+      _pairs('Соедини слово и перевод', 'Сөз бен аударманы қос',
+        [{ a: 'бала', b: 'ребёнок' }, { a: 'қала', b: 'город' }, { a: 'ана', b: 'мама' }, { a: 'мектеп', b: 'школа' }]),
     ],
   },
 

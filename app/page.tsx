@@ -236,7 +236,7 @@ export default function HomePage() {
               return (
                 <div key={i} className={`flex flex-col items-center gap-1 ${future ? 'opacity-40' : ''}`}>
                   <span className="text-[10px] font-bold text-muted-foreground">{d}</span>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isToday ? 'animate-pulse' : ''}`}
                     style={{
                       background: done ? 'var(--gradient-gold)' : 'var(--muted)',
                       boxShadow: isToday ? '0 0 0 3px color-mix(in oklch, var(--primary) 45%, transparent)' : 'none',

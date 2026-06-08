@@ -204,11 +204,10 @@ export default function LoginPage() {
               </button>
             )}
 
-            {/* Safety badge */}
-            <div className="mt-4 flex items-center justify-center gap-2 rounded-[var(--radius)] py-2.5"
-              style={{ background: 'color-mix(in oklch, var(--success) 12%, white)' }}>
-              <ShieldCheck size={16} style={{ color: 'var(--success)' }} />
-              <span className="text-sm font-bold" style={{ color: 'var(--success)' }}>{t('safe_for_kids', lang)}</span>
+            {/* Safety note — flat, de-emphasised (trust signal, not a button) */}
+            <div className="mt-4 flex items-center justify-center gap-1.5">
+              <ShieldCheck size={13} style={{ color: 'var(--success)' }} />
+              <span className="text-xs font-semibold" style={{ color: 'var(--success)' }}>{t('safe_for_kids', lang)}</span>
             </div>
           </div>
 
