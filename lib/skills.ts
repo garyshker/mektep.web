@@ -21,6 +21,8 @@ const carries = (a: number, b: number) => (a % 10) + (b % 10) >= 10
 export const ERROR_TAG_LABEL: Record<string, ByLang> = {
   forgot_carry:    { ru: 'Спотыкается на переходе через десяток (например, 27 + 15). Делаем упор на разбор таких примеров.', kk: 'Ондыққа ауысуда қателеседі (мысалы, 27 + 15). Осындай мысалдарды талдауға баса назар аударамыз.', en: 'Stumbles on carrying over ten (e.g. 27 + 15). We focus on these.' },
   wrong_operation: { ru: 'Иногда путает сложение и вычитание.', kk: 'Кейде қосу мен алуды шатастырады.', en: 'Sometimes mixes up adding and subtracting.' },
+  forgot_borrow:   { ru: 'Спотыкается на занимании десятка (например, 53 − 28). Делаем упор на разбор таких примеров.', kk: 'Ондық алуда қателеседі (мысалы, 53 − 28). Осындай мысалдарды талдауға баса назар аударамыз.', en: 'Stumbles on borrowing a ten (e.g. 53 − 28). We focus on these.' },
+  subtracted_smaller: { ru: 'Вычитает меньшую цифру из большей в столбик, не занимая десяток.', kk: 'Бағанада кіші санды үлкеннен алады, ондық алмайды.', en: 'Subtracts the smaller digit from the larger without borrowing.' },
   off_by_one:      { ru: 'Небольшие промахи в счёте на единицу.', kk: 'Санауда бір санға қателеседі.', en: 'Small off-by-one counting slips.' },
   extra_ten:       { ru: 'Иногда прибавляет лишний десяток.', kk: 'Кейде артық ондық қосады.', en: 'Sometimes adds an extra ten.' },
   random_guess:    { ru: 'Пока угадывает — нужно закрепить счёт.', kk: 'Әзірге болжайды — санауды бекіту керек.', en: 'Still guessing — needs to cement counting.' },
@@ -104,11 +106,12 @@ export function updateStat(prev: SkillStat | undefined, correct: boolean, errorT
 
 // Bucket picker: 60% practice the weak / 20% explore new / 20% warm-up mastered.
 // A skill with FUSE+ wrongs in a row is locked → the picker naturally drops to
-// the remaining (easier) skills, restoring the child's morale.
-export function pickSkill(stats: Record<string, SkillStat>, rng: () => number = Math.random): AddSkill {
-  const stat = (s: AddSkill) => stats[s]
-  const avail = ADD_LADDER.filter(s => (stat(s)?.recentWrong ?? 0) < FUSE)
-  const pool = avail.length ? avail : (['add_1d'] as AddSkill[])
+// the remaining (easier) skills, restoring the child's morale. Generic over any
+// difficulty ladder (addition, subtraction, …).
+export function pickSkill(stats: Record<string, SkillStat>, ladder: string[], rng: () => number = Math.random): string {
+  const stat = (s: string) => stats[s]
+  const avail = ladder.filter(s => (stat(s)?.recentWrong ?? 0) < FUSE)
+  const pool = avail.length ? avail : [ladder[0]]
 
   const unattempted = pool.filter(s => !stat(s) || stat(s)!.attempts === 0)
   const mastered = pool.filter(s => (stat(s)?.mastery ?? 0) >= MASTERED)
@@ -122,4 +125,64 @@ export function pickSkill(stats: Record<string, SkillStat>, rng: () => number = 
   if (roll < 0.8 && unattempted.length) return unattempted[0]   // lowest rung first
   if (mastered.length) return mastered[Math.floor(rng() * mastered.length)]
   return weakest ?? pool[0]
+}
+
+// ── Subtraction (within 100) — mirrors addition ───────────────────────────────
+export type SubSkill = 'sub_1d' | 'sub_2d_no_borrow' | 'sub_2d_borrow'
+export const SUB_LADDER: SubSkill[] = ['sub_1d', 'sub_2d_no_borrow', 'sub_2d_borrow']
+
+export const SUB_SKILL_LABEL: Record<SubSkill, ByLang> = {
+  sub_1d:           { ru: 'Однозначные',        kk: 'Бір таңбалы',        en: 'Single-digit' },
+  sub_2d_no_borrow: { ru: 'Без занимания',      kk: 'Алусыз',             en: 'No borrow' },
+  sub_2d_borrow:    { ru: 'Занимание десятка',  kk: 'Ондық алу',          en: 'Borrow a ten' },
+}
+
+const borrows = (a: number, b: number) => (a % 10) < (b % 10)
+
+export function subtractionSkillOf(a: number, b: number): SubSkill {
+  if (a < 10 && b < 10) return 'sub_1d'
+  return borrows(a, b) ? 'sub_2d_borrow' : 'sub_2d_no_borrow'
+}
+
+export function genSubtraction(skill: SubSkill): { a: number; b: number } {
+  if (skill === 'sub_1d') { const a = ri(3, 9); return { a, b: ri(1, a) } }
+  for (let i = 0; i < 80; i++) {
+    const a = ri(21, 98)
+    const b = ri(11, a - 1)
+    if (b < 11) continue
+    if (skill === 'sub_2d_borrow' && borrows(a, b)) return { a, b }
+    if (skill === 'sub_2d_no_borrow' && !borrows(a, b)) return { a, b }
+  }
+  return skill === 'sub_2d_borrow' ? { a: 53, b: 28 } : { a: 48, b: 23 }
+}
+
+export function subtractionOptions(a: number, b: number): TaggedOption[] {
+  const ans = a - b
+  const out: TaggedOption[] = []
+  const push = (v: number, tag: string) => {
+    if (v >= 0 && v !== ans && !out.some(o => o.value === String(v))) out.push({ value: String(v), tag })
+  }
+  if (borrows(a, b)) push(ans + 10, 'forgot_borrow')   // borrowed in the ones, forgot to drop a ten
+  // "subtract the smaller digit from the larger" in each column
+  const ss = Math.abs(Math.floor(a / 10) - Math.floor(b / 10)) * 10 + Math.abs((a % 10) - (b % 10))
+  push(ss, 'subtracted_smaller')
+  push(a + b, 'wrong_operation')                        // added instead
+  push(ans - 1, 'off_by_one')
+  push(ans + 1, 'off_by_one')
+  push(ans + 2, 'near')
+  const distractors = out.slice(0, 3)
+  const all: TaggedOption[] = [{ value: String(ans), tag: 'correct' }, ...distractors]
+  for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]] }
+  return all
+}
+
+export function diagnoseSubtraction(a: number, b: number, typed: number): string | null {
+  const ans = a - b
+  if (typed === ans) return null
+  if (borrows(a, b) && typed === ans + 10) return 'forgot_borrow'
+  const ss = Math.abs(Math.floor(a / 10) - Math.floor(b / 10)) * 10 + Math.abs((a % 10) - (b % 10))
+  if (typed === ss && ss !== ans) return 'subtracted_smaller'
+  if (typed === a + b) return 'wrong_operation'
+  if (typed === ans - 1 || typed === ans + 1) return 'off_by_one'
+  return 'random_guess'
 }

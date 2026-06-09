@@ -3,18 +3,17 @@
 // Fire-and-forget: swallows errors (e.g. the table not migrated yet).
 
 import { createClient } from './supabase'
-import { additionSkillOf, diagnoseAddition, updateStat, type SkillStat } from './skills'
+import {
+  additionSkillOf, diagnoseAddition, subtractionSkillOf, diagnoseSubtraction,
+  updateStat, type SkillStat,
+} from './skills'
 
 type SB = ReturnType<typeof createClient>
 
-export async function logAdditionAttempt(supabase: SB, a: number, b: number, answered: number) {
+async function logAttempt(supabase: SB, skill: string, correct: boolean, errorTag: string | undefined) {
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const skill = additionSkillOf(a, b)
-    const correct = answered === a + b
-    const errorTag = correct ? undefined : (diagnoseAddition(a, b, answered) ?? undefined)
-
     const { data } = await supabase.from('user_skill_mastery')
       .select('mastery_level, streak, recent_wrong, total_correct, total_attempts, last_error_tag')
       .eq('user_id', user.id).eq('skill_id', skill).maybeSingle()
@@ -33,4 +32,14 @@ export async function logAdditionAttempt(supabase: SB, a: number, b: number, ans
       updated_at: new Date().toISOString(),
     })
   } catch { /* table may not be migrated yet — ignore */ }
+}
+
+export function logAdditionAttempt(supabase: SB, a: number, b: number, answered: number) {
+  const correct = answered === a + b
+  return logAttempt(supabase, additionSkillOf(a, b), correct, correct ? undefined : (diagnoseAddition(a, b, answered) ?? undefined))
+}
+
+export function logSubtractionAttempt(supabase: SB, a: number, b: number, answered: number) {
+  const correct = answered === a - b
+  return logAttempt(supabase, subtractionSkillOf(a, b), correct, correct ? undefined : (diagnoseSubtraction(a, b, answered) ?? undefined))
 }

@@ -14,7 +14,7 @@ import { Check, X, ArrowRight, Volume2 } from 'lucide-react'
 import { LessonComplete } from '@/components/LessonComplete'
 import { EquationSolver } from '@/components/EquationSolver'
 import { NumberLineSolver } from '@/components/NumberLineSolver'
-import { logAdditionAttempt } from '@/lib/mastery'
+import { logAdditionAttempt, logSubtractionAttempt } from '@/lib/mastery'
 import type { CSSProperties } from 'react'
 
 type Feedback = 'right' | 'wrong' | null
@@ -156,20 +156,23 @@ export default function LessonPage() {
     if (isRight) { setCorrectCount(c => c + 1); playCorrect() } else playWrong()
   }
 
-  // Feed addition answers into the adaptive engine (skill mastery → dashboard)
-  const maybeLogAddition = (question: Question | undefined, answered: string) => {
+  // Feed addition/subtraction answers into the adaptive engine (mastery → dashboard)
+  const maybeLogMath = (question: Question | undefined, answered: string) => {
     if (!question || lesson?.subjectId !== 'math') return
-    let a: number | undefined, b: number | undefined
-    if (question.kind === 'addsub' && question.nl && question.nl.op === '+') {
-      a = question.nl.a; b = question.nl.b
-    } else {
-      const m = (question.prompt ?? '').match(/^\s*(\d+)\s*\+\s*(\d+)/)
-      if (m) { a = Number(m[1]); b = Number(m[2]) }
-    }
-    if (a === undefined || b === undefined) return
     const val = Number(String(answered).trim())
     if (!Number.isFinite(val)) return
-    logAdditionAttempt(supabase, a, b, val)
+    let a: number | undefined, b: number | undefined, op: '+' | '-' | undefined
+    if (question.kind === 'addsub' && question.nl) {
+      a = question.nl.a; b = question.nl.b; op = question.nl.op
+    } else {
+      const add = (question.prompt ?? '').match(/^\s*(\d+)\s*\+\s*(\d+)/)
+      const sub = (question.prompt ?? '').match(/^\s*(\d+)\s*[−-]\s*(\d+)/)
+      if (add) { a = Number(add[1]); b = Number(add[2]); op = '+' }
+      else if (sub) { a = Number(sub[1]); b = Number(sub[2]); op = '-' }
+    }
+    if (a === undefined || b === undefined || !op) return
+    if (op === '+') logAdditionAttempt(supabase, a, b, val)
+    else logSubtractionAttempt(supabase, a, b, val)
   }
 
   const retry = () => {
@@ -256,7 +259,7 @@ export default function LessonPage() {
           }
           return (
             <button key={i} disabled={!!feedback}
-              onClick={() => { if (feedback) return; playTap(); setSelected(opt); markResult(opt === correct); maybeLogAddition(q, opt) }}
+              onClick={() => { if (feedback) return; playTap(); setSelected(opt); markResult(opt === correct); maybeLogMath(q, opt) }}
               className={`pop-btn rounded-[var(--radius)] py-5 text-xl font-display font-extrabold border-2 min-h-[64px] ${anim}`}
               style={style}>
               {opt}
@@ -283,7 +286,7 @@ export default function LessonPage() {
             inputMode="numeric"
             value={typeInput}
             onChange={e => setTypeInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !feedback) { markResult(typeInput.trim() === String(q.answer)); maybeLogAddition(q, typeInput) } }}
+            onKeyDown={e => { if (e.key === 'Enter' && !feedback) { markResult(typeInput.trim() === String(q.answer)); maybeLogMath(q, typeInput) } }}
             disabled={!!feedback}
             placeholder="?"
             className={`w-full bg-card border-2 rounded-[var(--radius)] text-center text-4xl font-display font-black py-5 focus:outline-none transition-colors ${feedback ? 'animate-mk-' + (feedback === 'right' ? 'pop' : 'shake') : ''}`}
@@ -294,7 +297,7 @@ export default function LessonPage() {
           />
           {!feedback && (
             <button
-              onClick={() => { playTap(); markResult(typeInput.trim() === String(q.answer)); maybeLogAddition(q, typeInput) }}
+              onClick={() => { playTap(); markResult(typeInput.trim() === String(q.answer)); maybeLogMath(q, typeInput) }}
               className="pop-btn w-full font-display text-white font-black text-2xl rounded-[var(--radius)] py-4"
               style={{ background: 'var(--gradient-success)', ['--pop-shadow' as string]: 'var(--brand-deep)' } as CSSProperties}>
               OK

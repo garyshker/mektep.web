@@ -167,9 +167,11 @@ export const I18N = {
   train_mix:          { ru: 'Всё вместе',                 kk: 'Аралас',                     en: 'Mixed' },
   train_eq:           { ru: 'Уравнения',                  kk: 'Теңдеулер',                  en: 'Equations' },
   train_smart_add:    { ru: 'Умное сложение',             kk: 'Ақылды қосу',                en: 'Smart addition' },
+  train_smart_sub:    { ru: 'Умное вычитание',            kk: 'Ақылды алу',                 en: 'Smart subtraction' },
   sm_adaptive:        { ru: 'Подстраивается под тебя',    kk: 'Саған бейімделеді',          en: 'Adapts to you' },
   sm_mastery:         { ru: 'Усвоение',                   kk: 'Меңгеру',                    en: 'Mastery' },
   sm_help_carry:      { ru: 'Смотри, как переносить десяток:', kk: 'Ондықты қалай көшіруді қара:', en: 'See how to carry the ten:' },
+  sm_help_borrow:     { ru: 'Смотри, как занять десяток:',  kk: 'Ондықты қалай алуды қара:',   en: 'See how to borrow a ten:' },
 
   // Parent progress dashboard
   dash_title:         { ru: 'Прогресс ребёнка',            kk: 'Бала прогресі',              en: "Child's progress" },

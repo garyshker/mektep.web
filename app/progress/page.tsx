@@ -4,11 +4,15 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useLang } from '@/lib/useLang'
-import { t } from '@/lib/i18n'
-import { ADD_LADDER, ADD_SKILL_LABEL, ERROR_TAG_LABEL, type AddSkill, type SkillStat } from '@/lib/skills'
+import { t, type I18NKey } from '@/lib/i18n'
+import { ADD_LADDER, ADD_SKILL_LABEL, SUB_LADDER, SUB_SKILL_LABEL, ERROR_TAG_LABEL, type SkillStat } from '@/lib/skills'
+import type { ByLang } from '@/lib/lessons/types'
 import { ChevronLeft, Zap, Target, Flame, Lightbulb, ArrowRight } from 'lucide-react'
 
 type Row = { skill_id: string; mastery_level: number; total_correct: number; total_attempts: number; last_error_tag: string | null }
+
+const ALL_SKILLS = [...ADD_LADDER, ...SUB_LADDER]
+const SKILL_LABEL: Record<string, ByLang> = { ...ADD_SKILL_LABEL, ...SUB_SKILL_LABEL }
 
 export default function ProgressDashboard() {
   const router = useRouter()
@@ -50,10 +54,10 @@ export default function ProgressDashboard() {
     </div>
   )
 
-  const attempted = ADD_LADDER.filter(s => (stats[s]?.attempts ?? 0) > 0)
+  const attempted = ALL_SKILLS.filter(s => (stats[s]?.attempts ?? 0) > 0)
   const hasData = attempted.length > 0
-  const solved = ADD_LADDER.reduce((n, s) => n + (stats[s]?.correct ?? 0), 0)
-  const attempts = ADD_LADDER.reduce((n, s) => n + (stats[s]?.attempts ?? 0), 0)
+  const solved = ALL_SKILLS.reduce((n, s) => n + (stats[s]?.correct ?? 0), 0)
+  const attempts = ALL_SKILLS.reduce((n, s) => n + (stats[s]?.attempts ?? 0), 0)
   const accuracy = attempts > 0 ? Math.round((solved / attempts) * 100) : 0
 
   // weakest attempted skill drives the "focus" block
@@ -93,24 +97,9 @@ export default function ProgressDashboard() {
               <Stat icon={<Flame size={20} fill="currentColor" style={{ color: 'var(--warning)' }} />} value={String(streak)} label={t('dash_stat_streak', lang)} tint="var(--warning)" />
             </div>
 
-            {/* Skill radar */}
-            <div className="bg-card rounded-[var(--radius-lg)] p-5 shadow-[var(--shadow-sm)]">
-              <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase mb-2">{t('dash_radar', lang)}</p>
-              <SkillRadar stats={stats} />
-              <div className="flex flex-col gap-1.5 mt-3">
-                {ADD_LADDER.map((s, i) => {
-                  const m = Math.round((stats[s]?.mastery ?? 0) * 100)
-                  const color = m >= 80 ? 'var(--success)' : m >= 40 ? 'var(--accent)' : 'var(--primary)'
-                  return (
-                    <div key={s} className="flex items-center gap-2 text-sm">
-                      <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white shrink-0" style={{ background: color }}>{i + 1}</span>
-                      <span className="flex-1 text-foreground font-semibold">{ADD_SKILL_LABEL[s][lang]}</span>
-                      <span className="font-black tabular" style={{ color }}>{m}%</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            {/* Skill radars — one per operation */}
+            <RadarCard titleKey="train_add" ladder={ADD_LADDER} label={ADD_SKILL_LABEL} stats={stats} lang={lang} />
+            <RadarCard titleKey="train_sub" ladder={SUB_LADDER} label={SUB_SKILL_LABEL} stats={stats} lang={lang} />
 
             {/* Focus / actionable insight */}
             <div className="rounded-[var(--radius-lg)] p-5 shadow-[var(--shadow-sm)]" style={{ background: 'color-mix(in oklch, var(--primary) 9%, var(--card))' }}>
@@ -122,13 +111,13 @@ export default function ProgressDashboard() {
                 <p className="text-foreground font-semibold leading-relaxed">{t('dash_focus_good', lang)}</p>
               ) : (
                 <p className="text-foreground leading-relaxed">
-                  <span className="font-display font-black">{ADD_SKILL_LABEL[weakest][lang]} — {Math.round(stats[weakest]!.mastery * 100)}%.</span>{' '}
+                  <span className="font-display font-black">{SKILL_LABEL[weakest][lang]} — {Math.round(stats[weakest]!.mastery * 100)}%.</span>{' '}
                   {stats[weakest]!.lastErrorTag && ERROR_TAG_LABEL[stats[weakest]!.lastErrorTag!]
                     ? ERROR_TAG_LABEL[stats[weakest]!.lastErrorTag!][lang]
                     : ''}
                 </p>
               )}
-              <button onClick={() => router.push('/train/smart-add')}
+              <button onClick={() => router.push((SUB_LADDER as readonly string[]).includes(weakest) ? '/train/smart-sub' : '/train/smart-add')}
                 className="mt-4 px-4 py-2.5 rounded-[var(--radius)] font-display font-black text-white text-sm active:scale-95 transition-transform flex items-center gap-2"
                 style={{ background: 'var(--primary)' }}>
                 {t('dash_try', lang)} <ArrowRight size={16} />
@@ -151,33 +140,55 @@ function Stat({ icon, value, label, tint }: { icon: React.ReactNode; value: stri
   )
 }
 
-// Custom SVG radar (3 axes) — no chart library, theme-token colours.
-function SkillRadar({ stats }: { stats: Record<string, SkillStat> }) {
+// A radar card for one operation (title + 3-axis radar + numbered legend)
+function RadarCard({ titleKey, ladder, label, stats, lang }: {
+  titleKey: I18NKey; ladder: string[]; label: Record<string, ByLang>; stats: Record<string, SkillStat>; lang: 'kk' | 'ru' | 'en'
+}) {
+  return (
+    <div className="bg-card rounded-[var(--radius-lg)] p-5 shadow-[var(--shadow-sm)]">
+      <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase mb-2">{t('dash_radar', lang)} · {t(titleKey, lang)}</p>
+      <SkillRadar stats={stats} ladder={ladder} />
+      <div className="flex flex-col gap-1.5 mt-3">
+        {ladder.map((s, i) => {
+          const m = Math.round((stats[s]?.mastery ?? 0) * 100)
+          const color = m >= 80 ? 'var(--success)' : m >= 40 ? 'var(--accent)' : 'var(--primary)'
+          return (
+            <div key={s} className="flex items-center gap-2 text-sm">
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white shrink-0" style={{ background: color }}>{i + 1}</span>
+              <span className="flex-1 text-foreground font-semibold">{label[s][lang]}</span>
+              <span className="font-black tabular" style={{ color }}>{m}%</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// Custom SVG radar (N axes) — no chart library, theme-token colours.
+function SkillRadar({ stats, ladder }: { stats: Record<string, SkillStat>; ladder: string[] }) {
   const cx = 110, cy = 96, R = 74
-  const angles = ADD_LADDER.map((_, i) => (-90 + i * 120) * (Math.PI / 180))
+  const n = ladder.length
+  const angles = ladder.map((_, i) => (-90 + i * (360 / n)) * (Math.PI / 180))
   const pt = (i: number, r: number) => [cx + r * Math.cos(angles[i]), cy + r * Math.sin(angles[i])] as const
-  const poly = (r: number) => ADD_LADDER.map((_, i) => pt(i, r).join(',')).join(' ')
-  const valuePts = ADD_LADDER.map((s, i) => pt(i, Math.max(0.06, stats[s]?.mastery ?? 0) * R))
+  const poly = (r: number) => ladder.map((_, i) => pt(i, r).join(',')).join(' ')
+  const valuePts = ladder.map((s, i) => pt(i, Math.max(0.06, stats[s]?.mastery ?? 0) * R))
 
   return (
     <svg viewBox="0 0 220 200" className="w-full select-none" aria-hidden>
-      {/* rings */}
       {[1, 0.66, 0.33].map((f, k) => (
         <polygon key={k} points={poly(R * f)} fill="none" strokeWidth="1.5" style={{ stroke: 'var(--border)' }} />
       ))}
-      {/* axes */}
-      {ADD_LADDER.map((_, i) => {
+      {ladder.map((_, i) => {
         const [x, y] = pt(i, R)
         return <line key={i} x1={cx} y1={cy} x2={x} y2={y} strokeWidth="1.5" style={{ stroke: 'var(--border)' }} />
       })}
-      {/* value polygon */}
       <polygon points={valuePts.map(p => p.join(',')).join(' ')}
         strokeWidth="2.5" style={{ fill: 'color-mix(in oklch, var(--primary) 22%, transparent)', stroke: 'var(--primary)' }} />
       {valuePts.map((p, i) => (
         <circle key={i} cx={p[0]} cy={p[1]} r="4" style={{ fill: 'var(--primary)' }} />
       ))}
-      {/* numbered badges at axis ends */}
-      {ADD_LADDER.map((s, i) => {
+      {ladder.map((s, i) => {
         const [x, y] = pt(i, R + 15)
         const m = Math.round((stats[s]?.mastery ?? 0) * 100)
         const color = m >= 80 ? 'var(--success)' : m >= 40 ? 'var(--accent)' : 'var(--primary)'
