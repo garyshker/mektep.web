@@ -24,7 +24,7 @@ const LANGS: { code: Lang; flag: string; label: string }[] = [
 ]
 
 const selStyle = (active: boolean): CSSProperties => active
-  ? { borderColor: 'var(--primary)', background: 'color-mix(in oklch, var(--primary) 8%, white)', color: 'var(--foreground)' }
+  ? { borderColor: 'var(--primary)', background: 'color-mix(in oklch, var(--primary) 8%, var(--card))', color: 'var(--foreground)' }
   : { borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--foreground)' }
 
 export default function SetupPage() {

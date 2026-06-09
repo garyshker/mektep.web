@@ -169,12 +169,12 @@ export default function LoginPage() {
 
               {/* Error / info */}
               {error && (
-                <div className="rounded-[var(--radius)] px-4 py-3" style={{ background: 'color-mix(in oklch, var(--destructive) 12%, white)' }}>
+                <div className="rounded-[var(--radius)] px-4 py-3" style={{ background: 'color-mix(in oklch, var(--destructive) 12%, var(--card))' }}>
                   <p className="text-sm font-semibold" style={{ color: 'var(--destructive)' }}>{error}</p>
                 </div>
               )}
               {info && (
-                <div className="rounded-[var(--radius)] px-4 py-3" style={{ background: 'color-mix(in oklch, var(--success) 14%, white)' }}>
+                <div className="rounded-[var(--radius)] px-4 py-3" style={{ background: 'color-mix(in oklch, var(--success) 14%, var(--card))' }}>
                   <p className="text-sm font-semibold" style={{ color: 'var(--success)' }}>{info}</p>
                 </div>
               )}

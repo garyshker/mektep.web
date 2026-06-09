@@ -118,7 +118,7 @@ export default function TrainerRunner() {
           <h1 className="font-display font-black text-foreground text-base leading-tight">{t(trainer.titleKey, lang)}</h1>
           <p className="text-xs text-muted-foreground tabular">{correct} / {total}</p>
         </div>
-        <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--warning) 14%, white)' }}>
+        <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--warning) 14%, var(--card))' }}>
           <Flame size={16} fill="currentColor" style={{ color: 'var(--warning)' }} />
           <span className="font-black text-xs tabular" style={{ color: 'var(--warning)' }}>{streak}</span>
         </div>
@@ -140,7 +140,7 @@ export default function TrainerRunner() {
             if (picked) {
               if (isSel && isRight) { style = { background: 'var(--success)', color: 'white', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'var(--brand-deep)' }; anim = 'animate-mk-pop' }
               else if (isSel) { style = { background: 'var(--destructive)', color: 'white', borderColor: 'var(--destructive)', ['--pop-shadow' as string]: 'oklch(0.45 0.2 25)' }; anim = 'animate-mk-shake' }
-              else if (isRight) { style = { background: 'color-mix(in oklch, var(--success) 16%, white)', color: 'var(--success)', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'color-mix(in oklch, var(--success) 28%, white)' } }
+              else if (isRight) { style = { background: 'color-mix(in oklch, var(--success) 16%, var(--card))', color: 'var(--success)', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'color-mix(in oklch, var(--success) 28%, var(--card))' } }
             }
             return (
               <button key={opt} disabled={!!picked} onClick={() => { playTap(); pick(opt) }}

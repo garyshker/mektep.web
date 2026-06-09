@@ -255,7 +255,7 @@ export default function LessonPage() {
             style = { background: 'var(--destructive)', color: 'white', borderColor: 'var(--destructive)', ['--pop-shadow' as string]: 'oklch(0.45 0.2 25)' }
             anim = 'animate-mk-shake'
           } else if (feedback && isRight) {
-            style = { background: 'color-mix(in oklch, var(--success) 16%, white)', color: 'var(--success)', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'color-mix(in oklch, var(--success) 28%, white)' }
+            style = { background: 'color-mix(in oklch, var(--success) 16%, var(--card))', color: 'var(--success)', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'color-mix(in oklch, var(--success) 28%, var(--card))' }
           }
           return (
             <button key={i} disabled={!!feedback}
@@ -292,7 +292,7 @@ export default function LessonPage() {
             className={`w-full bg-card border-2 rounded-[var(--radius)] text-center text-4xl font-display font-black py-5 focus:outline-none transition-colors ${feedback ? 'animate-mk-' + (feedback === 'right' ? 'pop' : 'shake') : ''}`}
             style={{
               borderColor: feedback === 'right' ? 'var(--success)' : feedback === 'wrong' ? 'var(--destructive)' : 'var(--border)',
-              background: feedback === 'right' ? 'color-mix(in oklch, var(--success) 10%, white)' : feedback === 'wrong' ? 'color-mix(in oklch, var(--destructive) 8%, white)' : 'var(--card)',
+              background: feedback === 'right' ? 'color-mix(in oklch, var(--success) 10%, var(--card))' : feedback === 'wrong' ? 'color-mix(in oklch, var(--destructive) 8%, var(--card))' : 'var(--card)',
             }}
           />
           {!feedback && (
@@ -410,7 +410,7 @@ export default function LessonPage() {
             let anim = ''
             if (feedback && isSel && isRight) { style = { background: 'var(--success)', color: 'white', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'var(--brand-deep)' }; anim = 'animate-mk-pop' }
             else if (feedback && isSel && !isRight) { style = { background: 'var(--destructive)', color: 'white', borderColor: 'var(--destructive)', ['--pop-shadow' as string]: 'oklch(0.45 0.2 25)' }; anim = 'animate-mk-shake' }
-            else if (feedback && isRight) { style = { background: 'color-mix(in oklch, var(--success) 16%, white)', color: 'var(--success)', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'color-mix(in oklch, var(--success) 28%, white)' } }
+            else if (feedback && isRight) { style = { background: 'color-mix(in oklch, var(--success) 16%, var(--card))', color: 'var(--success)', borderColor: 'var(--success)', ['--pop-shadow' as string]: 'color-mix(in oklch, var(--success) 28%, var(--card))' } }
             return (
               <button key={v} disabled={!!feedback}
                 onClick={() => { if (feedback) return; playTap(); setSelected(v); markResult(v === correctVal) }}
@@ -446,7 +446,7 @@ export default function LessonPage() {
         const matched = pairMatched.has(pi)
         let style: CSSProperties = { background: 'var(--card)', color: 'var(--foreground)', borderColor: 'var(--border)' }
         let cls = ''
-        if (matched) style = { background: 'color-mix(in oklch, var(--success) 16%, white)', color: 'var(--success)', borderColor: 'var(--success)' }
+        if (matched) style = { background: 'color-mix(in oklch, var(--success) 16%, var(--card))', color: 'var(--success)', borderColor: 'var(--success)' }
         else if (side === 'l' && pairSel === pi) style = { background: 'var(--primary)', color: 'white', borderColor: 'var(--primary)' }
         else if (side === 'r' && pairWrong === pi) { style = { background: 'var(--destructive)', color: 'white', borderColor: 'var(--destructive)' }; cls = 'animate-mk-shake' }
         return { cls, style, matched }

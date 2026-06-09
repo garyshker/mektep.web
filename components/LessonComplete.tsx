@@ -77,7 +77,7 @@ export function LessonComplete({
 
       {/* Streak */}
       <div className="flex items-center gap-2 rounded-full px-4 py-2 mb-10"
-        style={{ background: 'color-mix(in oklch, var(--warning) 14%, white)' }}>
+        style={{ background: 'color-mix(in oklch, var(--warning) 14%, var(--card))' }}>
         <Flame size={18} fill="currentColor" style={{ color: 'var(--warning)' }} />
         {streakUp ? (
           <span className="font-black text-sm tabular" style={{ color: 'var(--warning)' }}>
