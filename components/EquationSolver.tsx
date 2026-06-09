@@ -55,7 +55,7 @@ export function EquationSolver({ a, op, b }: { a: number; op: '+' | '-'; b: numb
   const playing = stage === 1 || stage === 2
 
   return (
-    <div className="rounded-2xl p-4" style={{ background: 'color-mix(in oklch, var(--primary) 8%, var(--card))' }}>
+    <div className="rounded-2xl p-4 w-full max-w-full min-w-0 overflow-x-hidden" style={{ background: 'color-mix(in oklch, var(--primary) 8%, var(--card))' }}>
       <div ref={containerRef} className="relative flex flex-col items-center justify-center gap-3 py-2 min-h-[124px]">
 
         {/* Row 1 — the equation */}

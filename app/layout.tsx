@@ -41,7 +41,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col" style={{ background: 'var(--background)' }}>{children}</body>
+      <body className="min-h-full flex flex-col overflow-x-hidden" style={{ background: 'var(--background)' }}>{children}</body>
     </html>
   );
 }

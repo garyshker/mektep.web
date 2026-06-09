@@ -280,7 +280,10 @@ export default function LessonPage() {
 
     if (q.kind === 'type' || q.kind === 'equation' || q.kind === 'addsub') {
       return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 w-full min-w-0">
+          {!feedback && (
+            <p className="text-xs font-semibold text-muted-foreground text-center -mb-1">{t('type_your_answer', lang)}</p>
+          )}
           <input
             type="number"
             inputMode="numeric"
@@ -522,8 +525,8 @@ export default function LessonPage() {
       </header>
 
       {/* ── Question card ── */}
-      <main className="flex-1 flex flex-col px-4 pt-2 gap-4 lg:max-w-2xl lg:mx-auto lg:w-full" style={{ paddingBottom: feedbackHeight + 24 }}>
-        <div className="bg-card rounded-3xl px-5 py-5 shadow-[var(--shadow-md)]">
+      <main className="flex-1 flex flex-col px-4 pt-2 gap-4 w-full min-w-0 max-w-full lg:max-w-2xl lg:mx-auto" style={{ paddingBottom: feedbackHeight + 24 }}>
+        <div className="bg-card rounded-3xl px-5 py-5 shadow-[var(--shadow-md)] w-full min-w-0 max-w-full overflow-x-hidden">
           {/* Label */}
           <div className="inline-flex items-center mb-4 px-2.5 py-1 rounded-full" style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))' }}>
             <span className="text-[11px] font-black tracking-[0.12em] uppercase leading-none" style={{ color: 'var(--primary)' }}>

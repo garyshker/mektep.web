@@ -47,7 +47,7 @@ export function NumberLineSolver({ a, op, b }: { a: number; op: '+' | '-'; b: nu
   const cssPrimary = { color: 'var(--primary)' }
 
   return (
-    <div className="rounded-2xl p-4" style={{ background: 'color-mix(in oklch, var(--primary) 8%, var(--card))' }}>
+    <div className="rounded-2xl p-4 w-full max-w-full min-w-0 overflow-hidden" style={{ background: 'color-mix(in oklch, var(--primary) 8%, var(--card))' }}>
       {/* Equation header */}
       <p className="text-[26px] sm:text-3xl font-display font-black text-center tabular-nums leading-none mb-1">
         <span className="text-foreground">{a}</span>

@@ -49,6 +49,7 @@ export const I18N = {
   label_pairs:        { ru: 'СОЕДИНИ ПАРЫ',               kk: 'ЖҰПТАРДЫ ҚОС',               en: 'MATCH THE PAIRS' },
   label_equation:     { ru: 'НАЙДИ X',                    kk: 'X-ТІ ТАП',                   en: 'FIND X' },
   label_addsub:       { ru: 'РАЗБЕРЁМ ПО ШАГАМ',          kk: 'ҚАДАМДАП ТАЛДАЙМЫЗ',          en: 'STEP BY STEP' },
+  type_your_answer:   { ru: 'Введи ответ',                kk: 'Жауабыңды жаз',              en: 'Type your answer' },
   nl_hint:            { ru: 'Прыгаем по прямой: сначала десятки, потом единицы', kk: 'Түзу бойымен секіреміз: алдымен ондықтар, сосын бірліктер', en: 'Hop along the line: tens first, then ones' },
   nl_done:            { ru: 'Готово — вот ответ!',          kk: 'Дайын — міне жауап!',         en: 'Done — there is the answer!' },
   eq_play:            { ru: 'Показать решение',           kk: 'Шешімін көрсету',            en: 'Show solution' },
