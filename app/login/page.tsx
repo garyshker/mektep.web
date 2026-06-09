@@ -105,8 +105,9 @@ export default function LoginPage() {
           {/* Tapping the mascot is a hidden guest entry */}
           <button type="button" onClick={enterAsGuest} aria-label="Гость"
             className="active:scale-95 transition-transform cursor-pointer select-none">
-            <Image src="/otter.png" alt="iМектеп" width={220} height={220} priority
-              className="w-32 lg:w-56 h-auto drop-shadow-sm pointer-events-none" />
+            <Image src="/mascot-noback.png" alt="iМектеп" width={2816} height={1536} priority
+              sizes="(min-width: 1024px) 440px, 80vw"
+              className="w-[80vw] max-w-[320px] lg:w-[440px] lg:max-w-none h-auto drop-shadow-sm pointer-events-none" />
           </button>
           <h1 className="mt-5 text-3xl lg:text-5xl font-display font-black leading-tight text-foreground">
             {t('login_welcome', lang)} <span style={{ color: 'var(--primary)' }}>iМектеп</span>
