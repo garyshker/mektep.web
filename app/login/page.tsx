@@ -38,7 +38,7 @@ export default function LoginPage() {
     if (!email.trim()) return
     setLoading(true)
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset`,
+      redirectTo: `${window.location.origin}/reset`,
     })
     setLoading(false)
     if (error) {
@@ -214,7 +214,7 @@ export default function LoginPage() {
           {/* Help link */}
           <p className="text-center text-sm text-muted-foreground mt-5">
             {t('need_help', lang)}{' '}
-            <a href="mailto:support@imektep.kz" className="font-bold text-foreground">{t('write_us', lang)}</a>
+            <a href="mailto:kaisar@list.ru" className="font-bold text-foreground">{t('write_us', lang)}</a>
           </p>
         </div>
 

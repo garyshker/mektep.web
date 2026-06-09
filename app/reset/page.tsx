@@ -23,9 +23,21 @@ export default function ResetPasswordPage() {
   const supabase = createClient()
   const lang = useLang()
 
-  // Confirm we have a recovery session (set by /auth/callback)
+  // Establish the recovery session straight from the email link.
+  // Handles both flows: PKCE (?code=…, exchanged here) and implicit
+  // (#access_token=…&type=recovery, auto-detected by the browser client).
   useEffect(() => {
     const check = async () => {
+      try {
+        const url = new URL(window.location.href)
+        const errDesc = url.searchParams.get('error_description') || new URLSearchParams(url.hash.slice(1)).get('error_description')
+        const code = url.searchParams.get('code')
+        if (code) {
+          await supabase.auth.exchangeCodeForSession(code)
+          window.history.replaceState({}, '', '/reset')
+        }
+        if (errDesc) { setError(errDesc); setReady(true); return }
+      } catch { /* fall through to the session check */ }
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) setError(t('reset_link_invalid', lang))
       setReady(true)
