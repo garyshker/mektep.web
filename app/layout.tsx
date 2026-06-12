@@ -19,7 +19,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "iМектеп",
+  title: "Ushkyn",
   description: "Балаларға арналған интерактивті оқу платформасы",
 };
 

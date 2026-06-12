@@ -73,7 +73,7 @@ export function BottomNav() {
 
       {/* Desktop: fixed left sidebar */}
       <nav className="hidden lg:flex flex-col w-60 fixed left-0 top-0 bottom-0 bg-card border-r-2 border-border z-40">
-        <div className="px-6 py-5 text-xl font-display font-black text-primary">iМектеп</div>
+        <div className="px-6 py-5 text-xl font-display font-black text-primary">Ushkyn</div>
         <div className="flex flex-col gap-1 px-2">
           {TABS.map(tab => {
             const active = tab.path === '/' ? pathname === '/' : pathname.startsWith(tab.path)

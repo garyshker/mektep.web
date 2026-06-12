@@ -105,12 +105,12 @@ export default function LoginPage() {
           {/* Tapping the mascot is a hidden guest entry */}
           <button type="button" onClick={enterAsGuest} aria-label="Гость"
             className="active:scale-95 transition-transform cursor-pointer select-none">
-            <Image src="/mascot-noback.png" alt="iМектеп" width={2816} height={1536} priority
+            <Image src="/mascot-noback.png" alt="Ushkyn" width={2816} height={1536} priority
               sizes="(min-width: 1024px) 440px, 80vw"
               className="w-[80vw] max-w-[320px] lg:w-[440px] lg:max-w-none h-auto drop-shadow-sm pointer-events-none" />
           </button>
           <h1 className="mt-5 text-3xl lg:text-5xl font-display font-black leading-tight text-foreground">
-            {t('login_welcome', lang)} <span style={{ color: 'var(--primary)' }}>iМектеп</span>
+            {t('login_welcome', lang)} <span style={{ color: 'var(--primary)' }}>Ushkyn</span>
           </h1>
           <p className="mt-3 text-muted-foreground text-base lg:text-lg max-w-md">{t('login_tagline', lang)}</p>
         </div>
@@ -129,7 +129,7 @@ export default function LoginPage() {
                 <div className="relative">
                   <Mail size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="you@imektep.kz" required autoComplete="email" className={inputCls} />
+                    placeholder="you@email.com" required autoComplete="email" className={inputCls} />
                 </div>
               </div>
 
