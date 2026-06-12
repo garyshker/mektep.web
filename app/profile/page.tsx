@@ -125,7 +125,7 @@ export default function ProfilePage() {
           <Avatar name={profile?.name ?? '?'} size="lg" />
           <div className="flex-1 min-w-0">
             <p className="font-display font-black text-foreground text-xl leading-tight truncate">{profile?.name}</p>
-            <p className="text-muted-foreground text-sm mt-0.5">{profile?.grade} {t('grade', lang)} · {LANG_LABELS[profile?.language ?? 'ru']}</p>
+            <p className="text-muted-foreground text-sm mt-0.5">{profile?.grade} {t('grade', lang)} · {LANG_LABELS[profile?.language ?? 'en']}</p>
           </div>
         </div>
 

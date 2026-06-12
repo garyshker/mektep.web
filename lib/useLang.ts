@@ -14,13 +14,13 @@ export function saveLang(lang: Lang) {
 
 export function useLang(): Lang {
   const [lang, setLang] = useState<Lang>(() => {
-    if (typeof window === 'undefined') return 'ru'
-    return (localStorage.getItem(KEY) as Lang) || 'ru'
+    if (typeof window === 'undefined') return 'en'
+    return (localStorage.getItem(KEY) as Lang) || 'en'
   })
 
   useEffect(() => {
     const handler = (e: StorageEvent) => {
-      if (e.key === KEY) setLang((e.newValue as Lang) || 'ru')
+      if (e.key === KEY) setLang((e.newValue as Lang) || 'en')
     }
     window.addEventListener('storage', handler)
     return () => window.removeEventListener('storage', handler)

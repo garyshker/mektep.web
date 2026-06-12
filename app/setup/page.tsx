@@ -31,7 +31,7 @@ export default function SetupPage() {
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [grade, setGrade] = useState<number | null>(null)
-  const [lang, setLang] = useState<Lang>('ru')
+  const [lang, setLang] = useState<Lang>('en')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
