@@ -115,6 +115,9 @@ export const I18N = {
   game_time_up:       { ru: 'Время вышло!',               kk: 'Уақыт бітті!',               en: "Time's up!" },
   game_over:          { ru: 'Игра окончена',              kk: 'Ойын аяқталды',              en: 'Game over' },
   game_seconds:       { ru: 'секунд',                     kk: 'секунд',                     en: 'seconds' },
+  clock_title:        { ru: 'Часы',                       kk: 'Сағат',                      en: 'Clock' },
+  clock_sub:          { ru: 'Учись определять время',      kk: 'Уақытты тануды үйрен',       en: 'Learn to tell the time' },
+  clock_q:            { ru: 'Сколько времени?',            kk: 'Сағат неше?',                en: 'What time is it?' },
 
   // 2048
   g2048_swipe:        { ru: 'Свайпай, чтобы объединять плитки. Дойди до 2048!', kk: 'Тақташаларды біріктіру үшін сырғыт. 2048-ге жет!', en: 'Swipe to merge tiles. Reach 2048!' },

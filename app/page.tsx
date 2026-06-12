@@ -50,6 +50,7 @@ const ACTIVITIES: { icon: string; name: L3; sub: L3; color: string; border: stri
   { icon: '🔢', name: { kk: '2048', ru: '2048', en: '2048' }, sub: { kk: 'Сандарды біріктір', ru: 'Объединяй числа', en: 'Merge numbers' }, color: '#FFF8E0', border: '#FFE08A', path: '/game/2048' },
   { icon: '🔴', name: { kk: 'Дойбы', ru: 'Шашки', en: 'Checkers' }, sub: { kk: 'Орыс дойбысы', ru: 'Русские шашки', en: 'Russian checkers' }, color: '#F3E9E2', border: '#D9B89E', path: '/game/checkers' },
   { icon: '🧩', name: { kk: 'Судоку', ru: 'Судоку', en: 'Sudoku' }, sub: { kk: 'Логикалық', ru: 'Логика', en: 'Logic' }, color: '#EDE7FB', border: '#C9B8F0', path: '/game/sudoku' },
+  { icon: '🕐', name: { kk: 'Сағат', ru: 'Часы', en: 'Clock' }, sub: { kk: 'Уақытты тану', ru: 'Определяй время', en: 'Tell the time' }, color: '#E0F5F3', border: '#A8E0DA', path: '/game/clock' },
   { icon: '⭕', name: { kk: 'Айқыш-дөңгелек', ru: 'Крестики-нолики', en: 'Tic-Tac-Toe' }, sub: { kk: 'Үшеуін қатарға', ru: 'Три в ряд', en: 'Three in a row' }, color: '#E7F0FB', border: '#A9CBF0', path: '/game/tictactoe' },
   { icon: '🎯', name: { kk: 'Рефлекс', ru: 'Реакция', en: 'Reflex' }, sub: { kk: 'Ұшқыш сынағы', ru: 'Тест пилота', en: 'Pilot test' }, color: '#FDE7EF', border: '#F6B6CE', path: '/game/reflex' },
   { icon: '🎵', name: { kk: 'Саймон', ru: 'Саймон', en: 'Simon' }, sub: { kk: 'Түстерді қайтала', ru: 'Повтори цвета', en: 'Repeat colors' }, color: '#EDE7FB', border: '#C9B8F0', path: '/game/simon' },

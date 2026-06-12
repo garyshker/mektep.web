@@ -107,6 +107,15 @@ export const MathIcon: FC<IconProps> = ({ size = 30 }) => (
   </svg>
 )
 
+// Часы — clock face with hands
+export const ClockGameIcon: FC<IconProps> = ({ size = 30 }) => (
+  <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
+    <circle cx="24" cy="24" r="17" stroke="currentColor" strokeWidth="2.6" fill="none" />
+    <path d="M24 14 V24 L31 28" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="24" cy="24" r="1.8" fill="currentColor" />
+  </svg>
+)
+
 // Саймон — four quadrant pads around a hub
 export const SimonIcon: FC<IconProps> = ({ size = 30 }) => (
   <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
@@ -167,6 +176,7 @@ export const GAME_ICONS: Record<string, { Comp: FC<IconProps>; color: string }> 
   '/game/tictactoe':{ Comp: TicTacToeIcon, color: '#5B8DEF' },
   '/game/reflex':   { Comp: ReflexIcon,    color: '#E0457B' },
   '/game/simon':    { Comp: SimonIcon,     color: '#8B5CF6' },
+  '/game/clock':    { Comp: ClockGameIcon, color: '#0EA5A0' },
 }
 
 export const SUBJECT_ICONS: Record<string, { Comp: FC<IconProps>; color: string }> = {

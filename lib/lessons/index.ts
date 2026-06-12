@@ -1,4 +1,4 @@
-import { mathLessons, generateClockLesson, generateAdditionLesson, generateSubtractionLesson, generateEquationLesson } from './math'
+import { mathLessons, generateAdditionLesson, generateSubtractionLesson, generateEquationLesson } from './math'
 import { kazakhLessons } from './kazakh'
 import type { Lesson } from './types'
 
@@ -26,7 +26,7 @@ export const ALL_LESSONS: Lesson[] = [
   generateSubtractionLesson(),
   generateEquationLesson(),
   ...mathLessons.filter(l => l.id !== 'math-1' && l.id !== 'math-2').map(randomiseTaps),
-  generateClockLesson(),
+  // Clock is now a standalone game (/game/clock), not a linear lesson.
   ...kazakhLessons,
 ]
 
