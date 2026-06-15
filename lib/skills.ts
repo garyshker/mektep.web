@@ -90,25 +90,37 @@ export type SkillStat = {
 const FUSE = 3            // wrong-in-a-row that locks a skill (drop to an easier one)
 const MASTERED = 0.8
 
+// Spaced repetition (Leitner-style): the longer the correct streak on a mastered
+// skill, the further out its next review. Keeps mastered facts fresh without
+// re-drilling them every day.
+const REVIEW_DAYS = [2, 5, 14, 30]       // streak bucket → days until next review
+function reviewDelayMs(streak: number): number {
+  const idx = streak >= 8 ? 3 : streak >= 5 ? 2 : streak >= 3 ? 1 : 0
+  return REVIEW_DAYS[idx] * 86_400_000
+}
+
 export function updateStat(prev: SkillStat | undefined, correct: boolean, errorTag: string | undefined, nowMs: number): SkillStat {
   const p = prev ?? { mastery: 0, streak: 0, recentWrong: 0, attempts: 0, correct: 0 }
   const mastery = Math.max(0, Math.min(1, p.mastery * 0.75 + (correct ? 1 : 0) * 0.25))
+  const streak = correct ? p.streak + 1 : 0
   return {
     mastery,
-    streak: correct ? p.streak + 1 : 0,
+    streak,
     recentWrong: correct ? 0 : p.recentWrong + 1,
     attempts: p.attempts + 1,
     correct: p.correct + (correct ? 1 : 0),
     lastErrorTag: correct ? p.lastErrorTag : (errorTag ?? p.lastErrorTag),
-    nextReviewAt: mastery >= MASTERED ? nowMs + 2 * 86_400_000 : nowMs,
+    // Mastered → schedule a future review (interval grows with the streak);
+    // not yet mastered → keep it in active rotation (due now).
+    nextReviewAt: mastery >= MASTERED ? nowMs + reviewDelayMs(streak) : nowMs,
   }
 }
 
-// Bucket picker: 60% practice the weak / 20% explore new / 20% warm-up mastered.
+// Bucket picker: 60% practice the weak / due reviews / 20% explore new / 20% warm-up.
 // A skill with FUSE+ wrongs in a row is locked → the picker naturally drops to
 // the remaining (easier) skills, restoring the child's morale. Generic over any
 // difficulty ladder (addition, subtraction, …).
-export function pickSkill(stats: Record<string, SkillStat>, ladder: string[], rng: () => number = Math.random): string {
+export function pickSkill(stats: Record<string, SkillStat>, ladder: string[], rng: () => number = Math.random, now: number = Date.now()): string {
   const stat = (s: string) => stats[s]
   const avail = ladder.filter(s => (stat(s)?.recentWrong ?? 0) < FUSE)
   const pool = avail.length ? avail : [ladder[0]]
@@ -118,10 +130,16 @@ export function pickSkill(stats: Record<string, SkillStat>, ladder: string[], rn
   const practice = pool.filter(s => stat(s) && stat(s)!.attempts > 0 && stat(s)!.mastery < MASTERED)
   const weakest = [...pool].sort((x, y) => (stat(x)?.mastery ?? 0) - (stat(y)?.mastery ?? 0))[0]
 
+  // Spaced repetition: mastered skills whose review has come due, most overdue first.
+  const due = mastered
+    .filter(s => (stat(s)!.nextReviewAt ?? 0) <= now)
+    .sort((x, y) => (stat(x)!.nextReviewAt ?? 0) - (stat(y)!.nextReviewAt ?? 0))
+
   const roll = rng()
   if (roll < 0.6 && practice.length) {
     return [...practice].sort((x, y) => stat(x)!.mastery - stat(y)!.mastery)[0]
   }
+  if (due.length) return due[0]                                 // refresh before exploring new
   if (roll < 0.8 && unattempted.length) return unattempted[0]   // lowest rung first
   if (mastered.length) return mastered[Math.floor(rng() * mastered.length)]
   return weakest ?? pool[0]
