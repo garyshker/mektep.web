@@ -335,6 +335,17 @@ export const I18N = {
   countries_q_whose:  { ru: 'Чья это столица?',           kk: 'Бұл қай елдің астанасы?',    en: 'Whose capital is this?' },
   countries_result:   { ru: 'Результат',                  kk: 'Нәтиже',                     en: 'Result' },
 
+  kz_title:           { ru: 'Казахстан',                  kk: 'Қазақстан',                  en: 'Kazakhstan' },
+  kz_subtitle:        { ru: 'Области и символы',          kk: 'Облыстар мен рәміздер',      en: 'Regions & symbols' },
+  kz_regions_label:   { ru: 'Области и центры',           kk: 'Облыстар мен орталықтар',    en: 'Regions & centers' },
+  kz_symbols_label:   { ru: 'Государственные символы',    kk: 'Мемлекеттік рәміздер',       en: 'State symbols' },
+  kz_center:          { ru: 'Центр',                      kk: 'Орталығы',                   en: 'Center' },
+  kz_start:           { ru: 'Начать викторину',           kk: 'Викторинаны бастау',         en: 'Start quiz' },
+  kz_result:          { ru: 'Результат',                  kk: 'Нәтиже',                     en: 'Result' },
+  kz_q_center:        { ru: 'Какой центр у области?',     kk: 'Облыстың орталығы қандай?',  en: 'What is the region’s center?' },
+  kz_q_region:        { ru: 'Центр какой области?',       kk: 'Бұл қай облыстың орталығы?', en: 'Center of which region?' },
+  kz_q_symbol:        { ru: 'Символ Казахстана',          kk: 'Қазақстан рәмізі',           en: 'Symbol of Kazakhstan' },
+
   // Reset password page
   reset_title:        { ru: 'Новый пароль',               kk: 'Жаңа құпиясөз',              en: 'New password' },
   reset_subtitle:     { ru: 'Придумай новый пароль для входа', kk: 'Кіру үшін жаңа құпиясөз ойлап тап', en: 'Create a new password to sign in' },
