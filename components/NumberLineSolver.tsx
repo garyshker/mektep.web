@@ -26,6 +26,12 @@ export function NumberLineSolver({ a, op, b }: { a: number; op: '+' | '-'; b: nu
   const W = 320, padX = 28, baseY = 82, arcH = 42
   const X = (n: number) => padX + ((n - visLo) / (visHi - visLo)) * (W - 2 * padX)
 
+  // When two adjacent points sit close together (e.g. a small "+1" final hop,
+  // 56 → 57), their labels overlap. Drop the earlier label to a second row so
+  // both stay readable.
+  const labelLowered = points.map((p, i) =>
+    i < points.length - 1 && X(points[i + 1]) - X(p) < 22)
+
   const [step, setStep] = useState(0) // 0 idle | 1..n reveal hops | n+1 result
   const n = hops.length
   const done = step === n + 1
@@ -60,7 +66,7 @@ export function NumberLineSolver({ a, op, b }: { a: number; op: '+' | '-'; b: nu
       </p>
 
       {/* Number line */}
-      <svg viewBox="0 0 320 112" className="w-full select-none" aria-hidden>
+      <svg viewBox="0 0 320 134" className="w-full select-none" aria-hidden>
         <line x1={X(visLo)} y1={baseY} x2={X(visHi)} y2={baseY} strokeWidth="2.5" strokeLinecap="round" style={{ stroke: 'var(--border)' }} />
 
         {/* Hops (arcs) */}
@@ -88,7 +94,7 @@ export function NumberLineSolver({ a, op, b }: { a: number; op: '+' | '-'; b: nu
           return (
             <g key={i} style={{ opacity: reached ? 1 : 0, transition: 'opacity .3s ease' }}>
               <circle cx={X(p)} cy={baseY} r={isResult ? 6 : 4.5} style={{ fill: dotColor }} />
-              <text x={X(p)} y={baseY + 22} textAnchor="middle" fontSize="14" fontWeight="900"
+              <text x={X(p)} y={baseY + (labelLowered[i] ? 38 : 22)} textAnchor="middle" fontSize="14" fontWeight="900"
                 style={{ fill: isResult && done ? 'var(--success)' : 'var(--foreground)' }}>{p}</text>
             </g>
           )
