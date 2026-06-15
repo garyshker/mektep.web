@@ -6,9 +6,9 @@ import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
-import { genEquation, type EqProblem } from '@/lib/trainers'
+import { genEquation, genEquationExample, type EqProblem } from '@/lib/trainers'
 import { EquationSolver } from '@/components/EquationSolver'
-import { X, Flame, Square, ArrowRight } from 'lucide-react'
+import { X, Flame, Square, ArrowRight, Lightbulb, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
 export default function EquationTrainer() {
@@ -18,6 +18,7 @@ export default function EquationTrainer() {
 
   const [problem, setProblem] = useState<EqProblem | null>(null)
   const [pk, setPk] = useState(0)               // resets the solver per problem
+  const [example, setExample] = useState<EqProblem | null>(null) // "show how" worked example
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
   const [correct, setCorrect] = useState(0)
@@ -28,7 +29,12 @@ export default function EquationTrainer() {
 
   useEffect(() => { setProblem(genEquation()) }, [])
 
-  const next = () => { setStatus('idle'); setInput(''); setPk(k => k + 1); setProblem(genEquation()) }
+  const next = () => { setStatus('idle'); setInput(''); setExample(null); setPk(k => k + 1); setProblem(genEquation()) }
+
+  const toggleHow = () => {
+    playTap()
+    setExample(ex => (ex ? null : problem ? genEquationExample(problem) : null))
+  }
 
   const check = () => {
     if (status !== 'idle' || !problem || !input.trim()) return
@@ -57,7 +63,7 @@ export default function EquationTrainer() {
   }
   const restart = () => {
     setCorrect(0); setTotal(0); setStreak(0); setBest(0); setEnded(false)
-    setStatus('idle'); setInput(''); setPk(k => k + 1); setProblem(genEquation())
+    setStatus('idle'); setInput(''); setExample(null); setPk(k => k + 1); setProblem(genEquation())
   }
 
   // ── Ended summary ──
@@ -117,25 +123,46 @@ export default function EquationTrainer() {
           {status === 'wrong' ? (
             <EquationSolver key={pk} a={problem.a} op={problem.op} b={problem.b} xRight={problem.xRight} />
           ) : (
-            <p className="text-4xl sm:text-5xl font-display font-black text-center tabular-nums leading-none py-2">
-              {problem.xRight ? (
-                <>
-                  {problem.a}
-                  <span className="mx-1.5" style={{ color: 'var(--accent)' }}>−</span>
-                  <span style={{ color: 'var(--primary)' }}>x</span>
-                </>
-              ) : (
-                <>
-                  <span style={{ color: 'var(--primary)' }}>x</span>
-                  <span className="mx-1.5" style={{ color: 'var(--accent)' }}>{opG}</span>
-                  {problem.a}
-                </>
+            <>
+              <p className="text-4xl sm:text-5xl font-display font-black text-center tabular-nums leading-none py-2">
+                {problem.xRight ? (
+                  <>
+                    {problem.a}
+                    <span className="mx-1.5" style={{ color: 'var(--accent)' }}>−</span>
+                    <span style={{ color: 'var(--primary)' }}>x</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ color: 'var(--primary)' }}>x</span>
+                    <span className="mx-1.5" style={{ color: 'var(--accent)' }}>{opG}</span>
+                    {problem.a}
+                  </>
+                )}
+                <span className="mx-1.5 text-muted-foreground">=</span>
+                <span style={{ color: status === 'right' ? 'var(--success)' : 'var(--foreground)' }}>{problem.b}</span>
+              </p>
+
+              {/* "Show how" — reveals an animated worked example (different numbers) */}
+              {status === 'idle' && (
+                <button onClick={toggleHow}
+                  className="mx-auto mt-3 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-display font-black text-xs active:scale-95 transition-transform"
+                  style={{ background: 'color-mix(in oklch, var(--primary) 12%, var(--card))', color: 'var(--primary)' }}>
+                  {example ? <ChevronUp size={15} /> : <Lightbulb size={15} />}
+                  {example ? t('eq_hide', lang) : t('eq_show_how', lang)}
+                </button>
               )}
-              <span className="mx-1.5 text-muted-foreground">=</span>
-              <span style={{ color: status === 'right' ? 'var(--success)' : 'var(--foreground)' }}>{problem.b}</span>
-            </p>
+            </>
           )}
         </div>
+
+        {/* Expanding worked example */}
+        {example && status !== 'wrong' && (
+          <div className="animate-mk-pop-in">
+            <p className="text-[11px] font-black text-muted-foreground tracking-widest uppercase mb-1.5 ml-1">{t('eq_example', lang)}</p>
+            <EquationSolver key={`ex-${pk}-${example.a}-${example.b}`}
+              a={example.a} op={example.op} b={example.b} xRight={example.xRight} autoPlay />
+          </div>
+        )}
 
         {/* Answer input */}
         <div className="flex flex-col gap-3">

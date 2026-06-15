@@ -52,3 +52,16 @@ export const genEquation = (): EqProblem => {
   const a = ri(3, 20), b = ri(1, a - 1)
   return { a, op: '-', b, answer: a - b, xRight: true }
 }
+
+// A worked example of the SAME form as `like` but with different (small) numbers,
+// so "show how" teaches the method without revealing the current answer.
+export const genEquationExample = (like: EqProblem): EqProblem => {
+  const make = (): EqProblem => {
+    if (like.op === '+') { const x = ri(2, 12), a = ri(1, 9); return { a, op: '+', b: x + a, answer: x } }
+    if (!like.xRight) { const a = ri(1, 8), x = ri(a + 1, 14); return { a, op: '-', b: x - a, answer: x } }
+    const a = ri(4, 14), b = ri(1, a - 1); return { a, op: '-', b, answer: a - b, xRight: true }
+  }
+  let ex = make()
+  for (let i = 0; i < 20 && ex.a === like.a && ex.b === like.b; i++) ex = make()
+  return ex
+}

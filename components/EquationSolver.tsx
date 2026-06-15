@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 
@@ -9,7 +9,7 @@ import { t } from '@/lib/i18n'
 // • a − x = b            : x and the result swap → x = a − b.
 // The full worked solution stays on screen (equation → rearrangement → result),
 // instead of collapsing to just the answer.
-export function EquationSolver({ a, op, b, xRight = false }: { a: number; op: '+' | '-'; b: number; xRight?: boolean }) {
+export function EquationSolver({ a, op, b, xRight = false, autoPlay = false }: { a: number; op: '+' | '-'; b: number; xRight?: boolean; autoPlay?: boolean }) {
   const lang = useLang()
   const subX = op === '-' && xRight // a − x = b
   const opG = op === '+' ? '+' : '−'
@@ -62,6 +62,14 @@ export function EquationSolver({ a, op, b, xRight = false }: { a: number; op: '+
       }
     }))
   }
+
+  // Auto-play the worked steps once when used as a "show how" example.
+  useEffect(() => {
+    if (!autoPlay) return
+    const id = requestAnimationFrame(() => play())
+    return () => { cancelAnimationFrame(id); clearTimers() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const big = 'text-[32px] sm:text-4xl font-display font-black tabular-nums leading-none'
   const playing = stage >= 1 && stage < 3

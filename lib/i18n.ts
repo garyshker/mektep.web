@@ -58,6 +58,9 @@ export const I18N = {
   eq_hint_move:       { ru: 'Переносим число через = и меняем знак', kk: 'Санды = арқылы көшіреміз, таңбасын өзгертеміз', en: 'Move the number across = and flip its sign' },
   eq_hint_swap:       { ru: 'x вычитают: x = первое число − результат', kk: 'x — азайтқыш: x = бірінші сан − нәтиже', en: 'x is subtracted: x = first number − result' },
   eq_hint_done:       { ru: 'Считаем — и x найден!',       kk: 'Есептейміз — x табылды!',     en: 'Calculate — x is found!' },
+  eq_show_how:        { ru: 'Покажи как',                  kk: 'Қалай шешу',                 en: 'Show how' },
+  eq_hide:            { ru: 'Скрыть',                      kk: 'Жасыру',                     en: 'Hide' },
+  eq_example:         { ru: 'Похожий пример',              kk: 'Ұқсас мысал',                en: 'Similar example' },
   tf_true:            { ru: 'Верно',                      kk: 'Дұрыс',                      en: 'True' },
   tf_false:           { ru: 'Неверно',                    kk: 'Қате',                       en: 'False' },
 
