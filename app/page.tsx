@@ -34,7 +34,7 @@ const WEEKDAYS: Record<string, string[]> = {
 }
 const todayIdx = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1 }
 
-type Profile = { name: string; grade: number; xp: number; streak: number; language?: string }
+type Profile = { name: string; grade: number; xp: number; streak: number; language?: string; avatar_url?: string | null }
 
 const AVATAR_COLORS = ['#22C55E', '#F59E0B', '#3B82F6', '#8B5CF6', '#EF4444', '#EC4899']
 function avatarColor(name: string) {
@@ -111,7 +111,7 @@ export default function HomePage() {
       const today = new Date()
 
       const [{ data: profileData }, { data: progress }, { data: weekProgress }] = await Promise.all([
-        supabase.from('profiles').select('name, grade, xp, streak, language').eq('id', user.id).single(),
+        supabase.from('profiles').select('name, grade, xp, streak, language, avatar_url').eq('id', user.id).single(),
         supabase.from('lesson_progress').select('lesson_id, stars').eq('user_id', user.id),
         supabase.from('lesson_progress').select('completed_at').eq('user_id', user.id)
           .gte('completed_at', weekStart.toISOString()),
@@ -211,11 +211,20 @@ export default function HomePage() {
             className="w-8 h-8 rounded-full flex items-center justify-center text-base bg-card shadow-[var(--shadow-sm)]">
             {lang === 'kk' ? '🇰🇿' : lang === 'ru' ? '🇷🇺' : '🇬🇧'}
           </button>
-          <button onClick={() => router.push('/profile')} aria-label="Профиль"
-            className="w-8 h-8 rounded-full flex items-center justify-center font-display font-black text-white text-xs shrink-0"
-            style={{ background: avatarColor(profile?.name ?? 'A'), boxShadow: `0 0 0 3px color-mix(in oklch, ${avatarColor(profile?.name ?? 'A')} 22%, transparent)` }}>
-            {profile?.name?.[0]?.toUpperCase() ?? '?'}
-          </button>
+          {profile?.avatar_url ? (
+            <button onClick={() => router.push('/profile')} aria-label="Профиль" className="shrink-0 rounded-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={profile.avatar_url} alt={profile.name}
+                className="w-8 h-8 rounded-full object-cover"
+                style={{ boxShadow: `0 0 0 3px color-mix(in oklch, ${avatarColor(profile?.name ?? 'A')} 22%, transparent)` }} />
+            </button>
+          ) : (
+            <button onClick={() => router.push('/profile')} aria-label="Профиль"
+              className="w-8 h-8 rounded-full flex items-center justify-center font-display font-black text-white text-xs shrink-0"
+              style={{ background: avatarColor(profile?.name ?? 'A'), boxShadow: `0 0 0 3px color-mix(in oklch, ${avatarColor(profile?.name ?? 'A')} 22%, transparent)` }}>
+              {profile?.name?.[0]?.toUpperCase() ?? '?'}
+            </button>
+          )}
         </div>
       </header>
 

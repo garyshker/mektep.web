@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useLang, saveLang } from '@/lib/useLang'
@@ -11,7 +11,7 @@ import { LangSwitch } from '@/components/LangSwitch'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SoundToggle } from '@/components/SoundToggle'
 import { SUBJECT_ICONS } from '@/components/GameIcons'
-import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2, Star, UserPlus, LineChart } from 'lucide-react'
+import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2, Star, UserPlus, LineChart, Camera } from 'lucide-react'
 import type { Lang } from '@/lib/i18n'
 
 type Profile = {
@@ -20,6 +20,7 @@ type Profile = {
   xp: number
   streak: number
   language: string
+  avatar_url: string | null
 }
 
 type LessonProgress = {
@@ -28,14 +29,21 @@ type LessonProgress = {
   xp_earned: number
 }
 
-function Avatar({ name, size = 'lg' }: { name: string; size?: 'sm' | 'lg' }) {
+function Avatar({ name, src, size = 'lg' }: { name: string; src?: string | null; size?: 'sm' | 'lg' }) {
   const letter = name?.[0]?.toUpperCase() ?? '?'
   const colors = ['#22C55E', '#F59E0B', '#3B82F6', '#8B5CF6', '#EF4444', '#EC4899']
   const color = colors[letter.charCodeAt(0) % colors.length]
   const dim = size === 'lg' ? 'w-20 h-20 text-3xl' : 'w-9 h-9 text-base'
+  const ring = `0 0 0 ${size === 'lg' ? 5 : 3}px color-mix(in oklch, ${color} 20%, transparent)`
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt={name} className={`${dim} rounded-full object-cover shrink-0`} style={{ boxShadow: ring }} />
+    )
+  }
   return (
     <div className={`${dim} rounded-full flex items-center justify-center font-display font-black text-white shrink-0`}
-      style={{ background: color, boxShadow: `0 0 0 ${size === 'lg' ? 5 : 3}px color-mix(in oklch, ${color} 20%, transparent)` }}>
+      style={{ background: color, boxShadow: ring }}>
       {letter}
     </div>
   )
@@ -49,6 +57,8 @@ export default function ProfilePage() {
   const [progress, setProgress] = useState<LessonProgress[]>([])
   const [isGuest, setIsGuest] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement | null>(null)
   const lang = useLang()
 
   useEffect(() => {
@@ -58,7 +68,7 @@ export default function ProfilePage() {
       setIsGuest(user.is_anonymous ?? false)
 
       const [{ data: prof }, { data: prog }] = await Promise.all([
-        supabase.from('profiles').select('name, grade, xp, streak, language').eq('id', user.id).single(),
+        supabase.from('profiles').select('name, grade, xp, streak, language, avatar_url').eq('id', user.id).single(),
         supabase.from('lesson_progress').select('lesson_id, stars, xp_earned').eq('user_id', user.id),
       ])
 
@@ -72,6 +82,32 @@ export default function ProfilePage() {
   const signOut = async () => {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  const pickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // allow re-selecting the same file later
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { alert(t('photo_too_big', lang)); return }
+
+    setUploading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+      const path = `${user.id}/avatar.${ext}`
+      const { error: upErr } = await supabase.storage.from('avatars')
+        .upload(path, file, { upsert: true, cacheControl: '3600', contentType: file.type })
+      if (upErr) throw upErr
+      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
+      const url = `${pub.publicUrl}?v=${Date.now()}` // bust browser cache on re-upload
+      await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id)
+      setProfile(p => (p ? { ...p, avatar_url: url } : p))
+    } catch {
+      // ignore — avatar simply stays as-is
+    } finally {
+      setUploading(false)
+    }
   }
 
   const changeLang = async (l: Lang) => {
@@ -122,7 +158,21 @@ export default function ProfilePage() {
 
         {/* Profile card */}
         <div className="bg-card rounded-[var(--radius-lg)] px-5 py-5 shadow-[var(--shadow-sm)] flex items-center gap-4">
-          <Avatar name={profile?.name ?? '?'} size="lg" />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickPhoto} />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            aria-label={t('change_photo', lang)}
+            className="relative shrink-0 rounded-full active:scale-95 transition-transform disabled:opacity-70">
+            <Avatar name={profile?.name ?? '?'} src={profile?.avatar_url} size="lg" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-[var(--shadow-sm)] ring-2 ring-card"
+              style={{ background: 'var(--primary)' }}>
+              {uploading
+                ? <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                : <Camera size={14} />}
+            </span>
+          </button>
           <div className="flex-1 min-w-0">
             <p className="font-display font-black text-foreground text-xl leading-tight truncate">{profile?.name}</p>
             <p className="text-muted-foreground text-sm mt-0.5">{profile?.grade} {t('grade', lang)} · {LANG_LABELS[profile?.language ?? 'en']}</p>

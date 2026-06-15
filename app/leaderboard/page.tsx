@@ -14,6 +14,7 @@ interface Entry {
   grade: number
   xp: number
   streak: number
+  avatar_url: string | null
 }
 
 const AVATAR_COLORS = ['#22C55E', '#F59E0B', '#3B82F6', '#8B5CF6', '#EF4444', '#EC4899']
@@ -40,7 +41,7 @@ export default function LeaderboardPage() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('id, name, grade, xp, streak')
+        .select('id, name, grade, xp, streak, avatar_url')
         .order('xp', { ascending: false })
         .limit(50)
 
@@ -142,11 +143,18 @@ export default function LeaderboardPage() {
                   className="flex items-center gap-3 px-4 py-3.5 border-b border-border/50 last:border-0"
                   style={isMe ? { background: 'color-mix(in oklch, var(--primary) 9%, var(--card))' } : undefined}>
                   <span className="w-7 text-center text-sm font-black tabular text-muted-foreground">{rank}</span>
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center font-display font-black text-white text-sm shrink-0"
-                    style={{ background: avatarColor(entry.name), boxShadow: `0 0 0 3px color-mix(in oklch, ${avatarColor(entry.name)} 20%, transparent)` }}>
-                    {entry.name?.[0]?.toUpperCase() ?? '?'}
-                  </div>
+                  {entry.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={entry.avatar_url} alt={entry.name}
+                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                      style={{ boxShadow: `0 0 0 3px color-mix(in oklch, ${avatarColor(entry.name)} 20%, transparent)` }} />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center font-display font-black text-white text-sm shrink-0"
+                      style={{ background: avatarColor(entry.name), boxShadow: `0 0 0 3px color-mix(in oklch, ${avatarColor(entry.name)} 20%, transparent)` }}>
+                      {entry.name?.[0]?.toUpperCase() ?? '?'}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm truncate text-foreground"
                       style={isMe ? { color: 'var(--primary)' } : undefined}>
@@ -191,11 +199,18 @@ function PodiumCard({
     <div className="flex flex-col items-center gap-1.5 flex-1 max-w-[100px]">
       {big && <span className="text-lg leading-none -mb-1">👑</span>}
       <span className="text-xl">{medal}</span>
-      <div
-        className={`${big ? 'w-14 h-14 text-xl' : 'w-11 h-11 text-lg'} rounded-full flex items-center justify-center font-display font-black text-white shrink-0`}
-        style={{ background: color, boxShadow: `0 0 0 3px color-mix(in oklch, ${color} 22%, transparent)` }}>
-        {entry.name?.[0]?.toUpperCase() ?? '?'}
-      </div>
+      {entry.avatar_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={entry.avatar_url} alt={entry.name}
+          className={`${big ? 'w-14 h-14' : 'w-11 h-11'} rounded-full object-cover shrink-0`}
+          style={{ boxShadow: `0 0 0 3px color-mix(in oklch, ${color} 22%, transparent)` }} />
+      ) : (
+        <div
+          className={`${big ? 'w-14 h-14 text-xl' : 'w-11 h-11 text-lg'} rounded-full flex items-center justify-center font-display font-black text-white shrink-0`}
+          style={{ background: color, boxShadow: `0 0 0 3px color-mix(in oklch, ${color} 22%, transparent)` }}>
+          {entry.name?.[0]?.toUpperCase() ?? '?'}
+        </div>
+      )}
       <p className="text-xs font-bold text-foreground text-center truncate w-full px-1">
         {isMe ? you : entry.name}
       </p>

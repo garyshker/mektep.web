@@ -85,6 +85,8 @@ export const I18N = {
   stars_label:        { ru: 'Звёзды',                     kk: 'Жұлдыздар',                  en: 'Stars' },
   completed_lessons:  { ru: 'Пройденные уроки',           kk: 'Өткен сабақтар',             en: 'Completed lessons' },
   edit_profile:       { ru: 'Редактировать профиль',      kk: 'Профильді өзгерту',          en: 'Edit profile' },
+  change_photo:       { ru: 'Изменить фото',              kk: 'Фотоны өзгерту',             en: 'Change photo' },
+  photo_too_big:      { ru: 'Файл слишком большой (макс. 5 МБ)', kk: 'Файл тым үлкен (макс. 5 МБ)', en: 'File too large (max 5 MB)' },
   sign_out:           { ru: 'Выйти из аккаунта',          kk: 'Шығу',                       en: 'Sign out' },
   theme_label:        { ru: 'Тёмная тема',                kk: 'Қараңғы тақырып',            en: 'Dark theme' },
   sound_label:        { ru: 'Звуки',                      kk: 'Дыбыстар',                   en: 'Sounds' },
