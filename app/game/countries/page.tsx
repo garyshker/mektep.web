@@ -106,7 +106,7 @@ export default function CountriesPage() {
             {COUNTRIES.map(c => (
               <div key={c.code} className="bg-white rounded-2xl p-3 shadow-sm flex flex-col gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={flagUrl(c.code)} alt={c.name[lang]} className="w-full h-20 object-cover rounded-xl border border-gray-100" loading="lazy" />
+                <img src={flagUrl(c.code)} alt={c.name[lang]} className="w-full h-20 object-contain rounded-xl border border-gray-100 bg-gray-50 p-1" loading="lazy" />
                 <div>
                   <p className="font-black text-gray-900 text-sm leading-tight">{c.name[lang]}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{t('countries_capital', lang)}: {c.capital[lang]}</p>
@@ -177,7 +177,7 @@ export default function CountriesPage() {
           <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase">{t(QLABEL[q.type], lang)}</p>
           {q.type === 'flag' ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={flagUrl(q.country.code)} alt="" className="w-40 h-28 object-cover rounded-2xl border border-gray-100 shadow" />
+            <img src={flagUrl(q.country.code)} alt="" className="w-44 h-28 object-contain rounded-2xl border border-gray-100 bg-gray-50 shadow p-2" />
           ) : q.type === 'capital' ? (
             <p className="text-2xl font-black text-gray-900 text-center">{q.country.name[lang]}</p>
           ) : (
@@ -201,7 +201,7 @@ export default function CountriesPage() {
                 className={`${cls} rounded-2xl py-4 px-4 text-lg font-bold text-left transition-all active:scale-[0.98] flex items-center gap-3`}>
                 {q.type === 'whose' && (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={flagUrl(c.code)} alt="" className="w-8 h-6 object-cover rounded shrink-0 border border-black/10" />
+                  <img src={flagUrl(c.code)} alt="" className="w-9 h-6 object-contain rounded shrink-0 border border-black/10 bg-gray-50" />
                 )}
                 <span>{optionLabel(c)}</span>
               </button>
