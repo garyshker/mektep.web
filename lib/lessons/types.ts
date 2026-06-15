@@ -32,8 +32,8 @@ export interface Question {
   // tf — `answer` is 'true' | 'false'
   // pairs — connect a↔b
   pairs?: { a: string; b: string }[]
-  // equation — `x op a = b`, `answer` is x; drives the animated transposition solver
-  eq?: { a: number; op: '+' | '-'; b: number }
+  // equation — `x op a = b` (or `a − x = b` when xRight), `answer` is x; drives the animated solver
+  eq?: { a: number; op: '+' | '-'; b: number; xRight?: boolean }
   // addsub — `a ± b`, `answer` is the result; drives the animated number-line explainer
   nl?: { a: number; op: '+' | '-'; b: number }
 }

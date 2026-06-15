@@ -540,7 +540,7 @@ export default function LessonPage() {
           )}
 
           {q?.kind === 'equation' && q.eq && (
-            <EquationSolver key={idx} a={q.eq.a} op={q.eq.op} b={q.eq.b} />
+            <EquationSolver key={idx} a={q.eq.a} op={q.eq.op} b={q.eq.b} xRight={q.eq.xRight} />
           )}
 
           {q?.kind === 'addsub' && q.nl && (

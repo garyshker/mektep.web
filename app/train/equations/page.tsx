@@ -115,12 +115,22 @@ export default function EquationTrainer() {
         {/* Equation / solver */}
         <div className="bg-card rounded-3xl px-5 py-6 shadow-[var(--shadow-md)]">
           {status === 'wrong' ? (
-            <EquationSolver key={pk} a={problem.a} op={problem.op} b={problem.b} />
+            <EquationSolver key={pk} a={problem.a} op={problem.op} b={problem.b} xRight={problem.xRight} />
           ) : (
             <p className="text-4xl sm:text-5xl font-display font-black text-center tabular-nums leading-none py-2">
-              <span style={{ color: 'var(--primary)' }}>x</span>
-              <span className="mx-1.5" style={{ color: 'var(--accent)' }}>{opG}</span>
-              {problem.a}
+              {problem.xRight ? (
+                <>
+                  {problem.a}
+                  <span className="mx-1.5" style={{ color: 'var(--accent)' }}>−</span>
+                  <span style={{ color: 'var(--primary)' }}>x</span>
+                </>
+              ) : (
+                <>
+                  <span style={{ color: 'var(--primary)' }}>x</span>
+                  <span className="mx-1.5" style={{ color: 'var(--accent)' }}>{opG}</span>
+                  {problem.a}
+                </>
+              )}
               <span className="mx-1.5 text-muted-foreground">=</span>
               <span style={{ color: status === 'right' ? 'var(--success)' : 'var(--foreground)' }}>{problem.b}</span>
             </p>

@@ -35,14 +35,20 @@ export const TRAINERS: Trainer[] = [
 export const trainerById = (id: string) => TRAINERS.find(t => t.id === id)
 
 // ── Equations trainer (own page with the animated solver) ─────────────────────
-export type EqProblem = { a: number; op: '+' | '-'; b: number; answer: number }
+export type EqProblem = { a: number; op: '+' | '-'; b: number; answer: number; xRight?: boolean }
 export const genEquation = (): EqProblem => {
-  if (Math.random() < 0.5) {
+  const r = Math.random()
+  if (r < 0.4) {
     // x + a = b   →   x = b − a
     const x = ri(2, 20), a = ri(1, 10)
     return { a, op: '+', b: x + a, answer: x }
   }
-  // x − a = b   →   x = b + a   (keep x > a so b ≥ 1)
-  const a = ri(1, 9), x = ri(a + 1, 20)
-  return { a, op: '-', b: x - a, answer: x }
+  if (r < 0.7) {
+    // x − a = b   →   x = b + a   (keep x > a so b ≥ 1)
+    const a = ri(1, 9), x = ri(a + 1, 20)
+    return { a, op: '-', b: x - a, answer: x }
+  }
+  // a − x = b   →   x = a − b   (a is the minuend; keep b ≥ 1, x ≥ 1)
+  const a = ri(3, 20), b = ri(1, a - 1)
+  return { a, op: '-', b, answer: a - b, xRight: true }
 }

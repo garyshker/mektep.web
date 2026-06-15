@@ -56,6 +56,7 @@ export const I18N = {
   eq_replay:          { ru: 'Ещё раз',                    kk: 'Қайтадан',                   en: 'Again' },
   eq_hint_intro:      { ru: 'Нажми — покажу, как решать',  kk: 'Бас — қалай шешуді көрсетемін', en: 'Tap — see how to solve' },
   eq_hint_move:       { ru: 'Переносим число через = и меняем знак', kk: 'Санды = арқылы көшіреміз, таңбасын өзгертеміз', en: 'Move the number across = and flip its sign' },
+  eq_hint_swap:       { ru: 'x вычитают: x = первое число − результат', kk: 'x — азайтқыш: x = бірінші сан − нәтиже', en: 'x is subtracted: x = first number − result' },
   eq_hint_done:       { ru: 'Считаем — и x найден!',       kk: 'Есептейміз — x табылды!',     en: 'Calculate — x is found!' },
   tf_true:            { ru: 'Верно',                      kk: 'Дұрыс',                      en: 'True' },
   tf_false:           { ru: 'Неверно',                    kk: 'Қате',                       en: 'False' },
