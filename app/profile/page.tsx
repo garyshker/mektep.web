@@ -11,6 +11,7 @@ import { LangSwitch } from '@/components/LangSwitch'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SoundToggle } from '@/components/SoundToggle'
 import { SUBJECT_ICONS } from '@/components/GameIcons'
+import { AvatarCropper } from '@/components/AvatarCropper'
 import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2, Star, UserPlus, LineChart, Camera } from 'lucide-react'
 import type { Lang } from '@/lib/i18n'
 
@@ -58,6 +59,7 @@ export default function ProfilePage() {
   const [isGuest, setIsGuest] = useState(false)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [cropFile, setCropFile] = useState<File | null>(null)
   const fileRef = useRef<HTMLInputElement | null>(null)
   const lang = useLang()
 
@@ -84,20 +86,23 @@ export default function ProfilePage() {
     router.push('/login')
   }
 
-  const pickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const pickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = '' // allow re-selecting the same file later
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) { alert(t('photo_too_big', lang)); return }
+    if (file.size > 10 * 1024 * 1024) { alert(t('photo_too_big', lang)); return }
+    setCropFile(file) // open the cropper; upload happens on confirm
+  }
 
+  const uploadBlob = async (blob: Blob) => {
+    setCropFile(null)
     setUploading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-      const path = `${user.id}/avatar.${ext}`
+      const path = `${user.id}/avatar.jpg` // cropper always exports JPEG
       const { error: upErr } = await supabase.storage.from('avatars')
-        .upload(path, file, { upsert: true, cacheControl: '3600', contentType: file.type })
+        .upload(path, blob, { upsert: true, cacheControl: '3600', contentType: 'image/jpeg' })
       if (upErr) throw upErr
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
       const url = `${pub.publicUrl}?v=${Date.now()}` // bust browser cache on re-upload
@@ -105,6 +110,25 @@ export default function ProfilePage() {
       setProfile(p => (p ? { ...p, avatar_url: url } : p))
     } catch {
       // ignore — avatar simply stays as-is
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removePhoto = async () => {
+    if (!window.confirm(t('confirm_remove_photo', lang))) return
+    setUploading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const { data: files } = await supabase.storage.from('avatars').list(user.id)
+      if (files?.length) {
+        await supabase.storage.from('avatars').remove(files.map(f => `${user.id}/${f.name}`))
+      }
+      await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id)
+      setProfile(p => (p ? { ...p, avatar_url: null } : p))
+    } catch {
+      // ignore
     } finally {
       setUploading(false)
     }
@@ -176,8 +200,19 @@ export default function ProfilePage() {
           <div className="flex-1 min-w-0">
             <p className="font-display font-black text-foreground text-xl leading-tight truncate">{profile?.name}</p>
             <p className="text-muted-foreground text-sm mt-0.5">{profile?.grade} {t('grade', lang)} · {LANG_LABELS[profile?.language ?? 'en']}</p>
+            {profile?.avatar_url && (
+              <button onClick={removePhoto} disabled={uploading}
+                className="mt-1.5 text-xs font-bold active:opacity-60 transition-opacity disabled:opacity-50"
+                style={{ color: 'var(--destructive)' }}>
+                {t('remove_photo', lang)}
+              </button>
+            )}
           </div>
         </div>
+
+        {cropFile && (
+          <AvatarCropper file={cropFile} onCancel={() => setCropFile(null)} onConfirm={uploadBlob} />
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
