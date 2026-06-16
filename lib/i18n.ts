@@ -325,7 +325,7 @@ export const I18N = {
 
   // Countries
   countries_title:    { ru: 'Страны',                     kk: 'Елдер',                      en: 'Countries' },
-  countries_subtitle: { ru: 'Страны СНГ',                 kk: 'ТМД елдері',                 en: 'CIS countries' },
+  countries_subtitle: { ru: 'Постсоветские страны',       kk: 'Бұрынғы КСРО елдері',        en: 'Post-Soviet countries' },
   countries_capital:  { ru: 'Столица',                    kk: 'Астанасы',                   en: 'Capital' },
   countries_pop:      { ru: 'Население',                  kk: 'Халық саны',                 en: 'Population' },
   countries_mln:      { ru: 'млн',                        kk: 'млн',                        en: 'M' },

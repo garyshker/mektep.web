@@ -57,7 +57,7 @@ const KZ_SYMBOLS: Sym[] = [
 const COUNTRIES: Country[] = [
   {
     code: 'kz', name: { ru: 'Казахстан', kk: 'Қазақстан', en: 'Kazakhstan' }, capital: { ru: 'Астана', kk: 'Астана', en: 'Astana' },
-    pop: 20_000_000, area: 2_724_900, currency: { ru: 'Тенге (₸)', kk: 'Теңге (₸)', en: 'Tenge (₸)' }, language: { ru: 'Казахский', kk: 'Қазақ тілі', en: 'Kazakh' },
+    pop: 20_000_000, area: 2_724_900, currency: { ru: 'Тенге (₸)', kk: 'Теңге (₸)', en: 'Tenge (₸)' }, language: { ru: 'Казахский, русский', kk: 'Қазақ, орыс тілдері', en: 'Kazakh, Russian' },
     about: { ru: 'Крупнейшая страна Центральной Азии и 9-я по площади в мире. 17 областей и 3 города республиканского значения.', kk: 'Орталық Азиядағы ең үлкен ел, әлемде ауданы бойынша 9-шы. 17 облыс және 3 республикалық маңызы бар қала.', en: 'The largest country in Central Asia and 9th largest in the world. 17 regions and 3 cities of republican significance.' },
     regions: KZ_REGIONS, symbols: KZ_SYMBOLS,
   },

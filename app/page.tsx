@@ -55,7 +55,7 @@ const ACTIVITIES: { icon: string; name: L3; sub: L3; color: string; border: stri
   { icon: '🎯', name: { kk: 'Рефлекс', ru: 'Реакция', en: 'Reflex' }, sub: { kk: 'Ұшқыш сынағы', ru: 'Тест пилота', en: 'Pilot test' }, color: '#FDE7EF', border: '#F6B6CE', path: '/game/reflex' },
   { icon: '🎵', name: { kk: 'Саймон', ru: 'Саймон', en: 'Simon' }, sub: { kk: 'Түстерді қайтала', ru: 'Повтори цвета', en: 'Repeat colors' }, color: '#EDE7FB', border: '#C9B8F0', path: '/game/simon' },
   { icon: '🪨', name: { kk: 'Тоғыз құмалақ', ru: 'Тоғыз құмалақ', en: 'Togyz Kumalak' }, sub: { kk: 'Ұлттық ойын', ru: 'Нац. игра', en: 'National game' }, color: '#F5E9D8', border: '#D9B98A', path: '/game/togyz' },
-  { icon: '🌍', name: { kk: 'Елдер', ru: 'Страны', en: 'Countries' }, sub: { kk: 'ТМД елдері', ru: 'Страны СНГ', en: 'CIS countries' }, color: '#E7F0FB', border: '#A9CBF0', path: '/game/countries' },
+  { icon: '🌍', name: { kk: 'Елдер', ru: 'Страны', en: 'Countries' }, sub: { kk: 'Бұрынғы КСРО елдері', ru: 'Постсоветские страны', en: 'Post-Soviet countries' }, color: '#E7F0FB', border: '#A9CBF0', path: '/game/countries' },
 ]
 
 function getWeekStart(): Date {
