@@ -7,10 +7,17 @@ import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import type { Lang } from '@/lib/i18n'
+import type { CSSProperties } from 'react'
+import {
+  ArrowLeft, X, Search, MapPin, ChevronDown, Users, Landmark, Maximize2,
+  Coins, Languages, Building2, Bird, Music, Star, Palette, Mountain, Target, Globe,
+  type LucideIcon,
+} from 'lucide-react'
 
 type ByLang = { ru: string; kk: string; en: string }
 type Region = { name: ByLang; center: ByLang }
-type Sym = { emoji: string; label: ByLang; value: ByLang }
+type TintKey = 'blue' | 'green' | 'amber' | 'purple' | 'sky' | 'pink'
+type Sym = { icon: LucideIcon; tint: TintKey; label: ByLang; value: ByLang }
 type Country = {
   code: string
   name: ByLang
@@ -21,7 +28,20 @@ type Country = {
   language: ByLang
   about: ByLang
   regions?: Region[]    // Kazakhstan only — the 17 oblysy + centers
-  symbols?: Sym[]    // Kazakhstan only — state symbols
+  symbols?: Sym[]       // Kazakhstan only — state symbols
+}
+
+// Palette (matches the approved design)
+const BG = '#ECEBF7', TEXT = '#222A44', MUTED = '#8A8FA6'
+const GRAD = 'linear-gradient(90deg, #5B6CE8 0%, #7E5BE6 100%)'
+const ACCENT = '#6D5AE6'
+const TINTS: Record<TintKey, { bg: string; fg: string }> = {
+  blue:   { bg: '#E9EEFF', fg: '#4C6FE6' },
+  green:  { bg: '#E6F6EE', fg: '#1FA971' },
+  amber:  { bg: '#FFF1E0', fg: '#E08A00' },
+  purple: { bg: '#EFEAFD', fg: '#7B5CBF' },
+  sky:    { bg: '#E3F4FB', fg: '#0EA5C9' },
+  pink:   { bg: '#FDE9F1', fg: '#E0418B' },
 }
 
 // 17 regions of Kazakhstan + administrative centers
@@ -46,12 +66,12 @@ const KZ_REGIONS: Region[] = [
 ]
 
 const KZ_SYMBOLS: Sym[] = [
-  { emoji: '🏙️', label: { kk: 'Ең үлкен қала', ru: 'Крупнейший город', en: 'Largest city' }, value: { kk: 'Алматы', ru: 'Алматы', en: 'Almaty' } },
-  { emoji: '🦅', label: { kk: 'Тудағы құс', ru: 'Птица на флаге', en: 'Bird on the flag' }, value: { kk: 'Бүркіт', ru: 'Беркут', en: 'Golden eagle' } },
-  { emoji: '🎵', label: { kk: 'Ұлттық аспап', ru: 'Нац. инструмент', en: 'National instrument' }, value: { kk: 'Домбыра', ru: 'Домбра', en: 'Dombyra' } },
-  { emoji: '⚪', label: { kk: 'Елтаңба ортасы', ru: 'Центр герба', en: 'Center of the emblem' }, value: { kk: 'Шаңырақ', ru: 'Шанырак', en: 'Shanyraq' } },
-  { emoji: '🔵', label: { kk: 'Ту түсі', ru: 'Цвет флага', en: 'Flag color' }, value: { kk: 'Көк', ru: 'Голубой', en: 'Sky blue' } },
-  { emoji: '🏔️', label: { kk: 'Ең биік шыңы', ru: 'Высшая точка', en: 'Highest peak' }, value: { kk: 'Хан Тәңірі', ru: 'Хан-Тенгри', en: 'Khan Tengri' } },
+  { icon: Building2, tint: 'blue',   label: { kk: 'Ең үлкен қала', ru: 'Крупнейший город', en: 'Largest city' }, value: { kk: 'Алматы', ru: 'Алматы', en: 'Almaty' } },
+  { icon: Bird,      tint: 'amber',  label: { kk: 'Тудағы құс', ru: 'Птица на флаге', en: 'Bird on the flag' }, value: { kk: 'Бүркіт', ru: 'Беркут', en: 'Golden eagle' } },
+  { icon: Music,     tint: 'green',  label: { kk: 'Ұлттық аспап', ru: 'Нац. инструмент', en: 'National instrument' }, value: { kk: 'Домбыра', ru: 'Домбра', en: 'Dombyra' } },
+  { icon: Star,      tint: 'purple', label: { kk: 'Елтаңба ортасы', ru: 'Центр герба', en: 'Center of emblem' }, value: { kk: 'Шаңырақ', ru: 'Шанырак', en: 'Shanyraq' } },
+  { icon: Palette,   tint: 'sky',    label: { kk: 'Ту түсі', ru: 'Цвет флага', en: 'Flag color' }, value: { kk: 'Көк', ru: 'Голубой', en: 'Sky blue' } },
+  { icon: Mountain,  tint: 'pink',   label: { kk: 'Ең биік шыңы', ru: 'Высшая точка', en: 'Highest peak' }, value: { kk: 'Хан Тәңірі', ru: 'Хан-Тенгри', en: 'Khan Tengri' } },
 ]
 
 const COUNTRIES: Country[] = [
@@ -142,6 +162,7 @@ export default function CountriesPage() {
 
   const [phase, setPhase] = useState<'browse' | 'quiz' | 'done'>('browse')
   const [selected, setSelected] = useState<Country | null>(null)
+  const [search, setSearch] = useState('')
   const [quiz, setQuiz] = useState<Question[]>([])
   const [qi, setQi] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
@@ -176,43 +197,56 @@ export default function CountriesPage() {
 
   // ── Country detail dashboard ──
   if (phase === 'browse' && selected) {
-    return <CountryDetail c={selected} lang={lang} onBack={() => setSelected(null)} />
+    return <CountryDetail c={selected} lang={lang} onBack={() => setSelected(null)} onQuiz={startQuiz} />
   }
 
   // ── Browse / learn ──
   if (phase === 'browse') {
+    const s = search.trim().toLowerCase()
+    const list = s ? COUNTRIES.filter(c => c.name[lang].toLowerCase().includes(s) || c.capital[lang].toLowerCase().includes(s)) : COUNTRIES
     return (
-      <div className="min-h-screen pb-8" style={{ background: '#EDE8F8' }}>
+      <div className="min-h-screen pb-28" style={{ background: BG }}>
         <header className="px-4 pt-5 pb-3 flex items-center gap-3 max-w-2xl mx-auto">
           <button onClick={() => router.push('/')}
-            className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">✕</button>
+            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0" style={{ color: MUTED }}>
+            <X size={18} />
+          </button>
           <div className="flex-1">
-            <h1 className="text-xl font-black text-gray-900 leading-tight">🌍 {t('countries_title', lang)}</h1>
-            <p className="text-xs text-gray-400">{t('countries_more', lang)}</p>
+            <h1 className="text-xl font-display font-black leading-tight flex items-center gap-2" style={{ color: TEXT }}>
+              <Globe size={22} style={{ color: ACCENT }} /> {t('countries_title', lang)}
+            </h1>
+            <p className="text-xs" style={{ color: MUTED }}>{t('countries_more', lang)}</p>
           </div>
         </header>
 
         <main className="px-4 max-w-2xl mx-auto flex flex-col gap-3">
+          {/* Search */}
+          <div className="flex items-center gap-2 bg-white rounded-full px-4 py-3 shadow-sm">
+            <Search size={18} style={{ color: MUTED }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('countries_search', lang)}
+              className="flex-1 bg-transparent outline-none text-base font-semibold" style={{ color: TEXT }} />
+          </div>
+          <p className="text-xs font-bold px-1" style={{ color: MUTED }}>{list.length} {t('countries_count', lang)}</p>
+
           <div className="grid grid-cols-2 gap-3">
-            {COUNTRIES.map(c => (
+            {list.map(c => (
               <button key={c.code} onClick={() => { playTap(); setSelected(c) }}
-                className="bg-white rounded-2xl p-3 shadow-sm flex flex-col gap-2 text-left active:scale-[0.98] transition-transform">
+                className="bg-white rounded-2xl shadow-sm overflow-hidden text-left active:scale-[0.98] transition-transform">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={flagUrl(c.code)} alt={c.name[lang]} className="w-full h-20 object-contain rounded-xl border border-gray-100 bg-gray-50 p-1" loading="lazy" />
-                <div>
-                  <p className="font-black text-gray-900 text-sm leading-tight">{c.name[lang]}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{t('countries_capital', lang)}: {c.capital[lang]}</p>
+                <img src={flagUrl(c.code)} alt={c.name[lang]} className="w-full aspect-[3/2] object-cover" loading="lazy" />
+                <div className="p-3">
+                  <p className="font-display font-black text-base leading-tight" style={{ color: TEXT }}>{c.name[lang]}</p>
+                  <p className="text-sm mt-1 flex items-center gap-1" style={{ color: MUTED }}>
+                    <MapPin size={14} style={{ color: ACCENT }} /> {c.capital[lang]}
+                  </p>
                 </div>
               </button>
             ))}
+            {list.length === 0 && <p className="col-span-2 text-center py-10" style={{ color: MUTED }}>—</p>}
           </div>
-
-          <button onClick={startQuiz}
-            className="w-full mt-2 py-4 rounded-2xl font-black text-white text-base active:scale-[0.98] transition-all shadow-sm"
-            style={{ background: 'linear-gradient(180deg, #8B6FD4 0%, #7B5CBF 100%)' }}>
-            🎯 {t('countries_start', lang)}
-          </button>
         </main>
+
+        <StickyCTA label={t('countries_start', lang)} onClick={startQuiz} />
       </div>
     )
   }
@@ -222,19 +256,18 @@ export default function CountriesPage() {
     const pct = Math.round((score / quiz.length) * 100)
     const medal = pct >= 90 ? '🥇' : pct >= 60 ? '🥈' : pct >= 30 ? '🥉' : '🎯'
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: '#EDE8F8' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: BG }}>
         <div className="text-6xl mb-4">{medal}</div>
-        <h2 className="text-2xl font-black text-gray-900 mb-1">{t('countries_result', lang)}</h2>
-        <p className="text-gray-500 mb-2">{score} / {quiz.length} · {pct}%</p>
-        <p className="text-[#7B5CBF] font-black text-xl mb-10">+{score * 3} XP</p>
+        <h2 className="text-2xl font-display font-black mb-1" style={{ color: TEXT }}>{t('countries_result', lang)}</h2>
+        <p className="mb-2" style={{ color: MUTED }}>{score} / {quiz.length} · {pct}%</p>
+        <p className="font-display font-black text-xl mb-10" style={{ color: ACCENT }}>+{score * 3} XP</p>
         <div className="flex gap-3 w-full max-w-xs">
           <button onClick={() => setPhase('browse')}
-            className="flex-1 py-3.5 rounded-2xl bg-white border-2 border-gray-200 text-gray-700 font-bold active:scale-95">
+            className="flex-1 py-3.5 rounded-2xl bg-white border-2 font-display font-black active:scale-95" style={{ color: TEXT, borderColor: '#E2E0F0' }}>
             {t('game_home', lang)}
           </button>
           <button onClick={startQuiz}
-            className="flex-1 py-3.5 rounded-2xl text-white font-black active:scale-95"
-            style={{ background: '#7B5CBF' }}>
+            className="flex-1 py-3.5 rounded-2xl text-white font-display font-black active:scale-95" style={{ background: GRAD }}>
             {t('game_again', lang)}
           </button>
         </div>
@@ -247,32 +280,33 @@ export default function CountriesPage() {
   const optionLabel = (c: Country) => (q.type === 'capital' ? c.capital[lang] : c.name[lang])
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#EDE8F8' }}>
-      {/* progress */}
+    <div className="min-h-screen flex flex-col" style={{ background: BG }}>
       <header className="px-4 pt-5 pb-3 max-w-md mx-auto w-full">
         <div className="flex items-center gap-3">
           <button onClick={() => setPhase('browse')}
-            className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">✕</button>
+            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0" style={{ color: MUTED }}>
+            <X size={18} />
+          </button>
           <div className="flex-1 flex gap-1">
             {quiz.map((_, i) => (
-              <div key={i} className={`h-2 flex-1 rounded-full ${i < qi ? 'bg-[#7B5CBF]' : i === qi ? 'bg-[#B39DDB]' : 'bg-gray-200'}`} />
+              <div key={i} className="h-2 flex-1 rounded-full" style={{ background: i < qi ? ACCENT : i === qi ? '#B9AEF0' : '#DAD7EC' }} />
             ))}
           </div>
-          <span className="text-sm font-bold text-gray-500 shrink-0">{score}✓</span>
+          <span className="text-sm font-bold shrink-0" style={{ color: MUTED }}>{score}✓</span>
         </div>
       </header>
 
       <main className="flex-1 flex flex-col px-4 max-w-md mx-auto w-full gap-4 pt-2">
         {/* Question card */}
         <div className="bg-white rounded-3xl px-5 py-6 shadow-sm flex flex-col items-center gap-3">
-          <p className="text-[10px] font-black text-gray-400 tracking-[0.15em] uppercase">{t(QLABEL[q.type], lang)}</p>
+          <p className="text-[10px] font-black tracking-[0.15em] uppercase" style={{ color: MUTED }}>{t(QLABEL[q.type], lang)}</p>
           {q.type === 'flag' ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={flagUrl(q.country.code)} alt="" className="w-44 h-28 object-contain rounded-2xl border border-gray-100 bg-gray-50 shadow p-2" />
           ) : q.type === 'capital' ? (
-            <p className="text-2xl font-black text-gray-900 text-center">{q.country.name[lang]}</p>
+            <p className="text-2xl font-display font-black text-center" style={{ color: TEXT }}>{q.country.name[lang]}</p>
           ) : (
-            <p className="text-2xl font-black text-gray-900 text-center">{q.country.capital[lang]}</p>
+            <p className="text-2xl font-display font-black text-center" style={{ color: TEXT }}>{q.country.capital[lang]}</p>
           )}
         </div>
 
@@ -281,15 +315,15 @@ export default function CountriesPage() {
           {q.options.map(c => {
             const isCorrect = c.code === q.country.code
             const isPicked = picked === c.code
-            let cls = 'bg-white border-2 border-gray-200 text-gray-800'
+            let style: CSSProperties = { background: '#fff', color: TEXT, borderColor: '#E2E0F0' }
             if (picked) {
-              if (isCorrect) cls = 'bg-emerald-500 border-emerald-500 text-white'
-              else if (isPicked) cls = 'bg-red-400 border-red-400 text-white'
-              else cls = 'bg-white border-gray-200 text-gray-400'
+              if (isCorrect) style = { background: '#22C55E', color: '#fff', borderColor: '#22C55E' }
+              else if (isPicked) style = { background: '#F87171', color: '#fff', borderColor: '#F87171' }
+              else style = { background: '#fff', color: MUTED, borderColor: '#E2E0F0' }
             }
             return (
               <button key={c.code} onClick={() => { playTap(); pick(c) }} disabled={!!picked}
-                className={`${cls} rounded-2xl py-4 px-4 text-lg font-bold text-left transition-all active:scale-[0.98] flex items-center gap-3`}>
+                className="rounded-2xl py-4 px-4 text-lg font-display font-bold text-left border-2 transition-all active:scale-[0.98] flex items-center gap-3" style={style}>
                 {q.type === 'whose' && (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={flagUrl(c.code)} alt="" className="w-9 h-6 object-contain rounded shrink-0 border border-black/10 bg-gray-50" />
@@ -304,81 +338,137 @@ export default function CountriesPage() {
   )
 }
 
-// ── Country detail dashboard ──
-function CountryDetail({ c, lang, onBack }: { c: Country; lang: Lang; onBack: () => void }) {
+// ── Sticky bottom call-to-action ──
+function StickyCTA({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <div className="min-h-screen pb-10" style={{ background: '#EDE8F8' }}>
-      <header className="px-4 pt-5 pb-3 flex items-center gap-3 max-w-2xl mx-auto">
-        <button onClick={onBack}
-          className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center text-gray-600 font-black text-lg shrink-0">←</button>
-        <h1 className="text-xl font-black text-gray-900 flex-1 truncate">{c.name[lang]}</h1>
-      </header>
-
-      <main className="px-4 max-w-2xl mx-auto flex flex-col gap-4">
-        {/* Flag hero + about */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm flex flex-col items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={flagUrl(c.code)} alt={c.name[lang]} className="w-48 h-32 object-contain rounded-2xl border border-gray-100 bg-gray-50 p-2 shadow" />
-          <p className="text-2xl font-black text-gray-900 text-center">{c.name[lang]}</p>
-          <p className="text-sm text-gray-500 text-center leading-snug">{c.about[lang]}</p>
-        </div>
-
-        {/* Key facts */}
-        <div className="grid grid-cols-3 gap-3">
-          <Stat icon="🏛️" label={t('countries_capital', lang)} value={c.capital[lang]} />
-          <Stat icon="👥" label={t('countries_pop', lang)} value={fmtPop(c.pop, lang)} />
-          <Stat icon="📐" label={t('countries_area', lang)} value={fmtArea(c.area, lang)} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Stat icon="💰" label={t('countries_currency', lang)} value={c.currency[lang]} />
-          <Stat icon="🗣️" label={t('countries_language', lang)} value={c.language[lang]} />
-        </div>
-
-        {/* State symbols (Kazakhstan) */}
-        {c.symbols && (
-          <>
-            <p className="text-[11px] font-black text-gray-400 tracking-[0.12em] uppercase mt-1">{t('kz_symbols_label', lang)}</p>
-            <div className="grid grid-cols-2 gap-3">
-              {c.symbols.map((s, i) => (
-                <div key={i} className="bg-white rounded-2xl p-3 shadow-sm flex items-center gap-3">
-                  <span className="text-2xl shrink-0">{s.emoji}</span>
-                  <div className="min-w-0">
-                    <p className="text-[11px] text-gray-400 leading-tight">{s.label[lang]}</p>
-                    <p className="font-black text-gray-900 text-sm leading-tight truncate">{s.value[lang]}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Regions + centers (Kazakhstan) */}
-        {c.regions && (
-          <>
-            <p className="text-[11px] font-black text-gray-400 tracking-[0.12em] uppercase mt-1">
-              {t('kz_regions_label', lang)} · {c.regions.length}
-            </p>
-            <div className="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 overflow-hidden">
-              {c.regions.map((r, i) => (
-                <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <span className="text-sm font-bold text-gray-800 min-w-0 truncate">{r.name[lang]}</span>
-                  <span className="text-sm text-gray-500 shrink-0">{r.center[lang]}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </main>
+    <div className="fixed inset-x-0 bottom-0 z-10 px-4 pb-5 pt-6"
+      style={{ background: `linear-gradient(to top, ${BG} 55%, transparent)` }}>
+      <div className="max-w-2xl mx-auto">
+        <button onClick={onClick}
+          className="w-full py-4 rounded-2xl text-white font-display font-black text-base flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+          style={{ background: GRAD, boxShadow: '0 8px 22px rgba(99,102,232,0.35)' }}>
+          <Target size={20} /> {label}
+        </button>
+      </div>
     </div>
   )
 }
 
-function Stat({ icon, label, value }: { icon: string; label: string; value: string }) {
+// ── Icon chip ──
+function Chip({ icon: Icon, tint, size = 'md' }: { icon: LucideIcon; tint: TintKey; size?: 'md' | 'sm' }) {
+  const c = TINTS[tint]
+  const dim = size === 'md' ? 'w-11 h-11' : 'w-10 h-10'
   return (
-    <div className="bg-white rounded-2xl p-3 shadow-sm flex flex-col gap-1">
-      <span className="text-lg leading-none">{icon}</span>
-      <p className="text-[10px] text-gray-400 uppercase tracking-wide leading-tight">{label}</p>
-      <p className="font-black text-gray-900 text-sm leading-tight">{value}</p>
+    <span className={`${dim} rounded-xl flex items-center justify-center shrink-0`} style={{ background: c.bg }}>
+      <Icon size={size === 'md' ? 22 : 20} style={{ color: c.fg }} />
+    </span>
+  )
+}
+
+// ── Country detail dashboard ──
+function CountryDetail({ c, lang, onBack, onQuiz }: { c: Country; lang: Lang; onBack: () => void; onQuiz: () => void }) {
+  const [regionsOpen, setRegionsOpen] = useState(false)
+  return (
+    <div className="min-h-screen pb-28" style={{ background: BG }}>
+      {/* Flag hero */}
+      <div className="relative h-60 max-w-2xl mx-auto overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={flagUrl(c.code)} alt={c.name[lang]} className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0.05) 45%, transparent)' }} />
+        <button onClick={onBack}
+          className="absolute top-5 left-4 w-10 h-10 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
+          style={{ background: 'rgba(255,255,255,0.22)' }}>
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="absolute left-4 bottom-4 text-4xl font-display font-black text-white drop-shadow-md pr-4">{c.name[lang]}</h1>
+      </div>
+
+      {/* Content sheet */}
+      <main className="relative -mt-6 rounded-t-[28px] px-4 pt-6 max-w-2xl mx-auto" style={{ background: BG }}>
+        <p className="text-base leading-snug mb-4" style={{ color: '#5C617A' }}>{c.about[lang]}</p>
+
+        {/* Key facts */}
+        <div className="grid grid-cols-3 gap-3">
+          <StatTile icon={Landmark} tint="blue" label={t('countries_capital', lang)} value={c.capital[lang]} />
+          <StatTile icon={Users} tint="green" label={t('countries_pop', lang)} value={fmtPop(c.pop, lang)} />
+          <StatTile icon={Maximize2} tint="amber" label={t('countries_area', lang)} value={fmtArea(c.area, lang)} />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <InfoRow icon={Coins} tint="purple" label={t('countries_currency', lang)} value={c.currency[lang]} />
+          <InfoRow icon={Languages} tint="sky" label={t('countries_language', lang)} value={c.language[lang]} />
+        </div>
+
+        {/* State symbols */}
+        {c.symbols && (
+          <>
+            <SectionHeader label={t('kz_symbols_label', lang)} />
+            <div className="grid grid-cols-2 gap-3">
+              {c.symbols.map((s, i) => (
+                <InfoRow key={i} icon={s.icon} tint={s.tint} label={s.label[lang]} value={s.value[lang]} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Regions + centers */}
+        {c.regions && (
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden mt-5">
+            <button onClick={() => setRegionsOpen(o => !o)} className="w-full flex items-center gap-2.5 px-4 py-4">
+              <span className="w-1 h-4 rounded-full" style={{ background: ACCENT }} />
+              <span className="font-display font-black text-sm tracking-wide uppercase" style={{ color: TEXT }}>{t('kz_regions_label', lang)}</span>
+              <span className="text-xs font-black px-2 py-0.5 rounded-full" style={{ background: TINTS.purple.bg, color: TINTS.purple.fg }}>{c.regions.length}</span>
+              <ChevronDown size={20} className="ml-auto transition-transform" style={{ color: MUTED, transform: regionsOpen ? 'rotate(180deg)' : 'none' }} />
+            </button>
+            {regionsOpen ? (
+              <div className="border-t" style={{ borderColor: '#EFEDF8' }}>
+                {c.regions.map((r, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5" style={i ? { borderTop: '1px solid #F3F1FA' } : undefined}>
+                    <span className="text-sm font-bold min-w-0 truncate" style={{ color: TEXT }}>{r.name[lang]}</span>
+                    <span className="text-sm shrink-0" style={{ color: MUTED }}>{r.center[lang]}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="px-4 pb-4 text-sm" style={{ color: MUTED }}>{t('kz_regions_tap', lang)}</p>
+            )}
+          </div>
+        )}
+      </main>
+
+      <StickyCTA label={t('countries_test', lang)} onClick={onQuiz} />
+    </div>
+  )
+}
+
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 mt-6 mb-3">
+      <span className="w-1 h-4 rounded-full" style={{ background: ACCENT }} />
+      <span className="font-display font-black text-sm tracking-wide uppercase" style={{ color: TEXT }}>{label}</span>
+    </div>
+  )
+}
+
+function StatTile({ icon, tint, label, value }: { icon: LucideIcon; tint: TintKey; label: string; value: string }) {
+  return (
+    <div className="bg-white rounded-2xl p-3 shadow-sm flex flex-col gap-2">
+      <Chip icon={icon} tint={tint} />
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-wide leading-tight" style={{ color: MUTED }}>{label}</p>
+        <p className="font-display font-black text-sm leading-tight mt-0.5" style={{ color: TEXT }}>{value}</p>
+      </div>
+    </div>
+  )
+}
+
+function InfoRow({ icon, tint, label, value }: { icon: LucideIcon; tint: TintKey; label: string; value: string }) {
+  return (
+    <div className="bg-white rounded-2xl p-3 shadow-sm flex items-center gap-3">
+      <Chip icon={icon} tint={tint} size="sm" />
+      <div className="min-w-0">
+        <p className="text-[10px] font-black uppercase tracking-wide leading-tight" style={{ color: MUTED }}>{label}</p>
+        <p className="font-display font-black text-sm leading-tight mt-0.5 truncate" style={{ color: TEXT }}>{value}</p>
+      </div>
     </div>
   )
 }
