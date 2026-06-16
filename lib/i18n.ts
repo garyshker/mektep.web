@@ -335,16 +335,14 @@ export const I18N = {
   countries_q_whose:  { ru: 'Чья это столица?',           kk: 'Бұл қай елдің астанасы?',    en: 'Whose capital is this?' },
   countries_result:   { ru: 'Результат',                  kk: 'Нәтиже',                     en: 'Result' },
 
-  kz_title:           { ru: 'Казахстан',                  kk: 'Қазақстан',                  en: 'Kazakhstan' },
-  kz_subtitle:        { ru: 'Области и символы',          kk: 'Облыстар мен рәміздер',      en: 'Regions & symbols' },
+  countries_area:     { ru: 'Площадь',                    kk: 'Ауданы',                     en: 'Area' },
+  countries_currency: { ru: 'Валюта',                     kk: 'Валюта',                     en: 'Currency' },
+  countries_language: { ru: 'Язык',                       kk: 'Тілі',                       en: 'Language' },
+  countries_km2:      { ru: 'км²',                        kk: 'км²',                        en: 'km²' },
+  countries_more:     { ru: 'Нажми на страну, чтобы узнать больше', kk: 'Толығырақ білу үшін елді бас', en: 'Tap a country to learn more' },
   kz_regions_label:   { ru: 'Области и центры',           kk: 'Облыстар мен орталықтар',    en: 'Regions & centers' },
   kz_symbols_label:   { ru: 'Государственные символы',    kk: 'Мемлекеттік рәміздер',       en: 'State symbols' },
   kz_center:          { ru: 'Центр',                      kk: 'Орталығы',                   en: 'Center' },
-  kz_start:           { ru: 'Начать викторину',           kk: 'Викторинаны бастау',         en: 'Start quiz' },
-  kz_result:          { ru: 'Результат',                  kk: 'Нәтиже',                     en: 'Result' },
-  kz_q_center:        { ru: 'Какой центр у области?',     kk: 'Облыстың орталығы қандай?',  en: 'What is the region’s center?' },
-  kz_q_region:        { ru: 'Центр какой области?',       kk: 'Бұл қай облыстың орталығы?', en: 'Center of which region?' },
-  kz_q_symbol:        { ru: 'Символ Казахстана',          kk: 'Қазақстан рәмізі',           en: 'Symbol of Kazakhstan' },
 
   // Reset password page
   reset_title:        { ru: 'Новый пароль',               kk: 'Жаңа құпиясөз',              en: 'New password' },

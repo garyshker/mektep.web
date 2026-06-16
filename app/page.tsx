@@ -56,7 +56,6 @@ const ACTIVITIES: { icon: string; name: L3; sub: L3; color: string; border: stri
   { icon: '🎵', name: { kk: 'Саймон', ru: 'Саймон', en: 'Simon' }, sub: { kk: 'Түстерді қайтала', ru: 'Повтори цвета', en: 'Repeat colors' }, color: '#EDE7FB', border: '#C9B8F0', path: '/game/simon' },
   { icon: '🪨', name: { kk: 'Тоғыз құмалақ', ru: 'Тоғыз құмалақ', en: 'Togyz Kumalak' }, sub: { kk: 'Ұлттық ойын', ru: 'Нац. игра', en: 'National game' }, color: '#F5E9D8', border: '#D9B98A', path: '/game/togyz' },
   { icon: '🌍', name: { kk: 'Елдер', ru: 'Страны', en: 'Countries' }, sub: { kk: 'ТМД елдері', ru: 'Страны СНГ', en: 'CIS countries' }, color: '#E7F0FB', border: '#A9CBF0', path: '/game/countries' },
-  { icon: '🇰🇿', name: { kk: 'Қазақстан', ru: 'Казахстан', en: 'Kazakhstan' }, sub: { kk: 'Облыстар, рәміздер', ru: 'Области, символы', en: 'Regions, symbols' }, color: '#E2F2F7', border: '#A6D8E6', path: '/game/kazakhstan' },
 ]
 
 function getWeekStart(): Date {
