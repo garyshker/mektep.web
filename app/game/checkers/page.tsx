@@ -29,6 +29,10 @@ function initBoard(): Board {
 }
 
 const clone = (b: Board): Board => b.map(row => row.slice())
+const otherColor = (c: Color): Color => (c === 'w' ? 'b' : 'w')
+const randomColor = (): Color => (Math.random() < 0.5 ? 'w' : 'b')
+// What an online room stores in its `state` jsonb.
+type RoomState = { board: Board; hostColor: Color }
 const promotes = (color: Color, r: number) => (color === 'w' && r === 0) || (color === 'b' && r === 7)
 
 // ── Single-step captures from (r,c). `captured` = squares already taken this
@@ -175,19 +179,21 @@ function minimax(b: Board, color: Color, depth: number, alpha: number, beta: num
   return best
 }
 
-function pickAiMove(b: Board, level: Level): Move | null {
-  const moves = legalMoves(b, 'b')
+function pickAiMove(b: Board, level: Level, aiColor: Color = 'b'): Move | null {
+  const opp: Color = aiColor === 'b' ? 'w' : 'b'
+  const moves = legalMoves(b, aiColor)
   if (!moves.length) return null
 
   // Easy — any legal move at random (captures are still forced by the rules)
   if (level === 'easy') return moves[Math.floor(Math.random() * moves.length)]
 
-  // Hard — minimax with alpha-beta lookahead
+  // Hard — minimax with alpha-beta lookahead. evaluate() is from black's
+  // perspective, so black maximises and white minimises it.
   if (level === 'hard') {
-    let best = moves[0], bestScore = -Infinity
+    let best = moves[0], bestScore = aiColor === 'b' ? -Infinity : Infinity
     for (const m of [...moves].sort(() => Math.random() - 0.5)) {
-      const s = minimax(applyMove(b, m), 'w', 5, -Infinity, Infinity)
-      if (s > bestScore) { bestScore = s; best = m }
+      const s = minimax(applyMove(b, m), opp, 5, -Infinity, Infinity)
+      if (aiColor === 'b' ? s > bestScore : s < bestScore) { bestScore = s; best = m }
     }
     return best
   }
@@ -199,9 +205,10 @@ function pickAiMove(b: Board, level: Level): Move | null {
     const best = captures.filter(m => m.captured.length === max)
     return best[Math.floor(Math.random() * best.length)]
   }
-  const safe = moves.filter(m => !sideHasCapture(applyMove(b, m), 'w'))
+  const safe = moves.filter(m => !sideHasCapture(applyMove(b, m), opp))
   const pool = safe.length ? safe : moves
-  const score = (m: Move) => (m.king ? 100 : 0) + m.to[0]
+  const adv = (m: Move) => aiColor === 'b' ? m.to[0] : 7 - m.to[0]   // toward own promotion row
+  const score = (m: Move) => (m.king ? 100 : 0) + adv(m)
   const maxS = Math.max(...pool.map(score))
   const top = pool.filter(m => score(m) === maxS)
   return top[Math.floor(Math.random() * top.length)]
@@ -272,7 +279,10 @@ export default function CheckersPage() {
   const [joinCode, setJoinCode] = useState('')
   const [onlineErr, setOnlineErr] = useState('')
   const [oppLeft, setOppLeft] = useState(false)
-  const roomRef = useRef<{ code: string; color: Color } | null>(null)   // stable for callbacks
+  const [myAiColor, setMyAiColor] = useState<Color>('w')                 // human's colour vs computer
+  const [hostChoice, setHostChoice] = useState<'w' | 'b' | 'random'>('w')// host's colour choice when creating a room
+  const roomRef = useRef<{ code: string; color: Color; isHost: boolean } | null>(null)  // stable for callbacks
+  const hostColorRef = useRef<Color>('w')                                // current host colour (flips each rematch)
   const waitingRef = useRef(false)                                       // true while it's the opponent's move
   const bothSeenRef = useRef(false)                                      // both players have been present
   const myIdRef = useRef<string | null>(null)
@@ -293,7 +303,7 @@ export default function CheckersPage() {
 
   // Whose turn is controlled by a human right now
   const humanTurn = mode === 'local'
-    || (mode === 'ai' && turn === 'w')
+    || (mode === 'ai' && turn === myAiColor)
     || (mode === 'online' && online?.phase === 'playing' && turn === online.color)
   const mustCapture = humanTurn && sideHasCapture(board, turn) && chain.length === 0
 
@@ -305,17 +315,20 @@ export default function CheckersPage() {
     }
   }, [turn, board, winner, mode])
 
-  // AI move (only in single-player mode)
+  // AI move (only in single-player mode). AI plays whatever colour the human didn't pick.
   useEffect(() => {
-    if (winner || mode !== 'ai' || turn !== 'b') return
+    if (winner || mode !== 'ai') return
+    const aiColor = otherColor(myAiColor)
+    if (turn !== aiColor) return
     const id = setTimeout(() => {
-      const m = pickAiMove(boardRef.current, levelRef.current)
-      if (!m) { setWinner('w'); return }
-      m.captured.length ? playTap() : playTap()
+      const m = pickAiMove(boardRef.current, levelRef.current, aiColor)
+      if (!m) { setWinner(myAiColor); return }   // AI has no move → human wins
+      playTap()
       setBoard(applyMove(boardRef.current, m))
-      setTurn('w')
+      setTurn(myAiColor)
     }, 550)
     return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turn, winner])
 
   // Award XP once on a win vs computer
@@ -326,7 +339,7 @@ export default function CheckersPage() {
     // later rematch is detectable as winner → null).
     if (mode === 'online' && roomRef.current) pushRoom(supabase, roomRef.current.code, { winner })
     if (mode === 'ai' || mode === 'online') {
-      const iWon = mode === 'ai' ? winner === 'w' : winner === online?.color
+      const iWon = mode === 'ai' ? winner === myAiColor : winner === online?.color
       if (iWon) {
         if (!savedRef.current) {
           savedRef.current = true
@@ -348,19 +361,23 @@ export default function CheckersPage() {
   const onlinePush = (fb: Board, next: Color) => {
     if (mode !== 'online' || !roomRef.current) return
     waitingRef.current = true
-    pushRoom(supabase, roomRef.current.code, { state: fb, turn: next })
+    const state: RoomState = { board: fb, hostColor: hostColorRef.current }
+    pushRoom(supabase, roomRef.current.code, { state, turn: next })
   }
 
   const createOnline = async () => {
     if (!myIdRef.current) return
     setOnlineErr(''); setOppLeft(false); bothSeenRef.current = false
-    setOnline({ code: '', color: 'w', oppName: null, phase: 'creating' })
-    const code = await createRoom(supabase, 'checkers', myIdRef.current, myNameRef.current, initBoard(), 'w')
-    if (!code) { setOnlineErr(t('guest_unavailable', lang)); setOnline({ code: '', color: 'w', oppName: null, phase: 'menu' }); return }
+    const hostColor: Color = hostChoice === 'random' ? randomColor() : hostChoice
+    setOnline({ code: '', color: hostColor, oppName: null, phase: 'creating' })
+    const state: RoomState = { board: initBoard(), hostColor }
+    const code = await createRoom(supabase, 'checkers', myIdRef.current, myNameRef.current, state, 'w')
+    if (!code) { setOnlineErr(t('guest_unavailable', lang)); setOnline({ code: '', color: hostColor, oppName: null, phase: 'menu' }); return }
     resetState()
-    roomRef.current = { code, color: 'w' }   // host plays white, moves first
-    waitingRef.current = false
-    setOnline({ code, color: 'w', oppName: null, phase: 'waiting' })
+    roomRef.current = { code, color: hostColor, isHost: true }
+    hostColorRef.current = hostColor
+    waitingRef.current = hostColor !== 'w'   // white always moves first
+    setOnline({ code, color: hostColor, oppName: null, phase: 'waiting' })
   }
 
   const joinOnline = async () => {
@@ -370,22 +387,33 @@ export default function CheckersPage() {
     setOnline({ code, color: 'b', oppName: null, phase: 'joining' })
     const room = await joinRoom(supabase, code, myIdRef.current, myNameRef.current)
     if (!room) { setOnlineErr(t('checkers_join_fail', lang)); setOnline({ code: '', color: 'b', oppName: null, phase: 'menu' }); return }
-    roomRef.current = { code, color: 'b' }   // guest plays black
-    waitingRef.current = true                // host (white) moves first
+    const st = room.state as RoomState
+    const hostColor: Color = st?.hostColor ?? 'w'
+    const myColor = otherColor(hostColor)   // guest gets the other colour
+    const t0 = (room.turn as Color) || 'w'
+    roomRef.current = { code, color: myColor, isHost: false }
+    hostColorRef.current = hostColor
+    waitingRef.current = t0 !== myColor
     savedRef.current = false
-    setBoard((room.state as Board) ?? initBoard())
-    setTurn((room.turn as Color) || 'w'); setSel(null); setDests([]); setChain([])
+    setBoard(st?.board ?? initBoard())
+    setTurn(t0); setSel(null); setDests([]); setChain([])
     setWinner((room.winner as Color) ?? null)
-    setOnline({ code, color: 'b', oppName: room.host_name, phase: 'playing' })
+    setOnline({ code, color: myColor, oppName: room.host_name, phase: 'playing' })
   }
 
-  // In-room rematch: reset the board and tell the opponent (winner → null).
+  // In-room rematch: swap colours (white→black→white…), reset, tell the opponent.
   const rematchOnline = () => {
     const me = roomRef.current
     if (!me) return
+    const newHost = otherColor(hostColorRef.current)
+    hostColorRef.current = newHost
+    const myColor = me.isHost ? newHost : otherColor(newHost)
+    roomRef.current = { ...me, color: myColor }
     resetState()
-    waitingRef.current = me.color !== 'w'   // white moves first
-    pushRoom(supabase, me.code, { state: initBoard(), turn: 'w', winner: null })
+    waitingRef.current = myColor !== 'w'   // white moves first
+    setOnline(o => (o ? { ...o, color: myColor } : o))
+    const state: RoomState = { board: initBoard(), hostColor: newHost }
+    pushRoom(supabase, me.code, { state, turn: 'w', winner: null })
   }
 
   const leaveOnline = () => {
@@ -399,23 +427,29 @@ export default function CheckersPage() {
     const unsub = subscribeRoom(supabase, online.code, (room: RoomRow) => {
       const me = roomRef.current
       if (!me) return
+      const st = room.state as RoomState
       // Guest joined → host starts playing
       if (room.guest_id && online.phase === 'waiting') {
         setOnline(o => (o ? { ...o, oppName: room.guest_name, phase: 'playing' } : o))
       }
-      // Opponent started a rematch (winner cleared + board reset)
+      // Opponent started a rematch (winner cleared + board reset; colours may have swapped)
       if (!room.winner && winnerRef.current) {
+        const newHost = st?.hostColor ?? hostColorRef.current
+        hostColorRef.current = newHost
+        const myColor = me.isHost ? newHost : otherColor(newHost)   // idempotent (reads authoritative state)
+        roomRef.current = { ...me, color: myColor }
         savedRef.current = false
         setWinner(null); setOppLeft(false)
-        setBoard(room.state as Board); setTurn(room.turn as Color)
+        setBoard(st?.board ?? initBoard()); setTurn(room.turn as Color)
         setSel(null); setDests([]); setChain([])
-        waitingRef.current = room.turn !== me.color
+        setOnline(o => (o ? { ...o, color: myColor } : o))
+        waitingRef.current = (room.turn as Color) !== myColor
         return
       }
-      if (room.winner) { setBoard(room.state as Board); setWinner(room.winner as Color); return }
+      if (room.winner) { setBoard(st?.board ?? boardRef.current); setWinner(room.winner as Color); return }
       // Opponent handed the turn back to me — apply their position
       if (waitingRef.current && room.turn === me.color) {
-        setBoard(room.state as Board)
+        setBoard(st?.board ?? boardRef.current)
         setTurn(room.turn as Color)
         setSel(null); setDests([]); setChain([])
         waitingRef.current = false
@@ -496,15 +530,15 @@ export default function CheckersPage() {
 
   const destSet = new Set(dests.map(m => key(m.to[0], m.to[1])))
   const chainSet = new Set(chain.map(([r, c]) => key(r, c)))
-  // Black (the online guest) sees the board from their side — rotate 180°.
-  const flip = mode === 'online' && online?.color === 'b'
+  // The black player sees the board from their side — rotate 180°.
+  const flip = (mode === 'online' && online?.color === 'b') || (mode === 'ai' && myAiColor === 'b')
 
   const winText = (w: Color) =>
     mode === 'online'
       ? (w === online?.color ? t('checkers_you_win_o', lang) : t('checkers_you_lose_o', lang))
       : mode === 'local'
         ? (w === 'w' ? t('checkers_white_win', lang) : t('checkers_black_win', lang))
-        : (w === 'w' ? t('checkers_you_win', lang) : t('checkers_you_lose', lang))
+        : (w === myAiColor ? t('checkers_you_win', lang) : t('checkers_you_lose', lang))
 
   const status =
     winner ? winText(winner) :
@@ -512,7 +546,7 @@ export default function CheckersPage() {
       ? (turn === online?.color ? t('checkers_your_turn', lang) : t('checkers_opp_turn', lang))
       : mode === 'local'
         ? (turn === 'w' ? t('checkers_white_turn', lang) : t('checkers_black_turn', lang))
-        : (turn === 'w' ? t('checkers_your_turn', lang) : t('checkers_ai_turn', lang))
+        : (turn === myAiColor ? t('checkers_your_turn', lang) : t('checkers_ai_turn', lang))
 
   // ── Mode-selection menu ──
   if (mode === null) {
@@ -546,8 +580,22 @@ export default function CheckersPage() {
           <p className="text-muted-foreground text-center mt-1.5 mb-7">{t('checkers_pick_mode', lang)}</p>
 
           <div className="w-full flex flex-col gap-3">
-            {/* vs computer — pick difficulty */}
+            {/* vs computer — pick your colour + difficulty */}
             <p className="text-muted-foreground/70 text-[11px] font-display font-black tracking-widest uppercase px-1">
+              {t('checkers_your_color', lang)}
+            </p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {(['w', 'b'] as Color[]).map(col => (
+                <button key={col} onClick={() => { playTap(); setMyAiColor(col) }}
+                  className="bg-card border-2 rounded-[var(--radius-lg)] py-3 flex items-center justify-center gap-2 font-display font-black text-foreground text-sm transition-all"
+                  style={{ borderColor: myAiColor === col ? 'var(--primary)' : 'var(--border)', opacity: myAiColor === col ? 1 : 0.55 }}>
+                  <Disc white={col === 'w'} size={22} />
+                  {t(col === 'w' ? 'checkers_white' : 'checkers_black', lang)}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-muted-foreground/70 text-[11px] font-display font-black tracking-widest uppercase px-1 mt-1">
               {t('checkers_difficulty', lang)}
             </p>
             <div className="grid grid-cols-3 gap-2.5">
@@ -675,6 +723,19 @@ export default function CheckersPage() {
             <span className="w-8 h-8 border-4 border-muted border-t-foreground rounded-full animate-spin" />
           ) : (
             <div className="w-full flex flex-col gap-3">
+              <p className="text-muted-foreground/70 text-[11px] font-display font-black tracking-widest uppercase px-1">
+                {t('checkers_your_color', lang)}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {([['w', 'checkers_white'], ['b', 'checkers_black'], ['random', 'checkers_random']] as const).map(([opt, key]) => (
+                  <button key={opt} onClick={() => { playTap(); setHostChoice(opt) }}
+                    className="bg-card border-2 rounded-[var(--radius)] py-2.5 flex items-center justify-center gap-1.5 font-display font-black text-foreground text-xs transition-all"
+                    style={{ borderColor: hostChoice === opt ? 'var(--primary)' : 'var(--border)', opacity: hostChoice === opt ? 1 : 0.55 }}>
+                    {opt === 'random' ? <span className="text-base leading-none">🎲</span> : <Disc white={opt === 'w'} size={18} />}
+                    {t(key, lang)}
+                  </button>
+                ))}
+              </div>
               <button onClick={createOnline}
                 className="w-full py-4 rounded-[var(--radius-lg)] text-white font-display font-black text-base active:scale-[0.98] transition-transform shadow-[var(--shadow-sm)]"
                 style={{ background: 'var(--gradient-hero)' }}>
@@ -812,12 +873,12 @@ export default function CheckersPage() {
             <div className="text-5xl">
               {mode === 'online' ? (winner === online?.color ? '🏆' : '😔')
                 : mode === 'local' ? (winner === 'w' ? '⚪' : '⚫')
-                : (winner === 'w' ? '🏆' : '🤖')}
+                : (winner === myAiColor ? '🏆' : '🤖')}
             </div>
             <h2 className="text-2xl font-black text-white text-center px-6">
               {winText(winner)}
             </h2>
-            {((mode === 'ai' && winner === 'w') || (mode === 'online' && winner === online?.color)) && (
+            {((mode === 'ai' && winner === myAiColor) || (mode === 'online' && winner === online?.color)) && (
               <p className="text-amber-300 font-bold">+30 XP</p>
             )}
             <div className="flex gap-3">
