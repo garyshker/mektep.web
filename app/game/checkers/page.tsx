@@ -153,31 +153,57 @@ function applyMove(b: Board, m: Move): Board {
 // ── Simple AI for black ──────────────────────────────────────────────────────
 type Level = 'easy' | 'medium' | 'hard'
 
-// Board value from black's (AI) perspective
+const MAN = 100, KING = 180, MATE = 1_000_000
+
+// Board value from black's perspective (positive favours black).
 function evaluate(b: Board): number {
   let s = 0
   for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
     const p = b[r][c]; if (!p) continue
-    let v = p.king ? 60 : 34
-    if (!p.king) v += (p.color === 'b' ? r : 7 - r) * 1.2   // advancement toward promotion
+    let v = p.king ? KING : MAN
+    if (!p.king) {
+      const adv = p.color === 'b' ? r : 7 - r          // distance advanced toward promotion (0..7)
+      v += adv * 4
+      // a man guarding its own back row blocks the enemy from crowning
+      if ((p.color === 'b' && r === 0) || (p.color === 'w' && r === 7)) v += 16
+    } else {
+      v += (3.5 - Math.abs(3.5 - c)) + (3.5 - Math.abs(3.5 - r))   // centralise kings
+    }
+    v += (c >= 2 && c <= 5) ? 4 : 0                    // central files are stronger
     s += p.color === 'b' ? v : -v
   }
   return s
 }
 
-function minimax(b: Board, color: Color, depth: number, alpha: number, beta: number): number {
+// Captures first (Russian rule makes them mandatory), then promotions — good
+// move ordering makes alpha-beta prune far more, so we can search deeper.
+function ordered(moves: Move[]): Move[] {
+  return [...moves].sort((a, c) => (c.captured.length - a.captured.length) || (Number(c.king) - Number(a.king)))
+}
+
+// Alpha-beta with quiescence: never stop evaluating while a capture is forced,
+// so the engine doesn't misjudge a position mid-exchange (the horizon effect).
+let searchDeadline = Infinity
+const TIMEOUT = Symbol('timeout')
+
+function minimax(b: Board, color: Color, depth: number, alpha: number, beta: number, ply: number): number {
+  if (clockMs() > searchDeadline) throw TIMEOUT   // abort cleanly; caller keeps the last full depth
   const moves = legalMoves(b, color)
-  if (moves.length === 0) return color === 'b' ? -100000 + depth : 100000 - depth  // side to move has lost
-  if (depth === 0) return evaluate(b)
+  if (moves.length === 0) return color === 'b' ? -MATE + ply : MATE - ply   // side to move has lost
+  const forcedCapture = moves[0].captured.length > 0
+  if ((depth <= 0 && !forcedCapture) || ply > 28) return evaluate(b)
+  const ms = ordered(moves)
   if (color === 'b') {
     let best = -Infinity
-    for (const m of moves) { best = Math.max(best, minimax(applyMove(b, m), 'w', depth - 1, alpha, beta)); alpha = Math.max(alpha, best); if (alpha >= beta) break }
+    for (const m of ms) { best = Math.max(best, minimax(applyMove(b, m), 'w', depth - 1, alpha, beta, ply + 1)); alpha = Math.max(alpha, best); if (alpha >= beta) break }
     return best
   }
   let best = Infinity
-  for (const m of moves) { best = Math.min(best, minimax(applyMove(b, m), 'b', depth - 1, alpha, beta)); beta = Math.min(beta, best); if (alpha >= beta) break }
+  for (const m of ms) { best = Math.min(best, minimax(applyMove(b, m), 'b', depth - 1, alpha, beta, ply + 1)); beta = Math.min(beta, best); if (alpha >= beta) break }
   return best
 }
+
+const clockMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
 
 function pickAiMove(b: Board, level: Level, aiColor: Color = 'b'): Move | null {
   const opp: Color = aiColor === 'b' ? 'w' : 'b'
@@ -187,13 +213,29 @@ function pickAiMove(b: Board, level: Level, aiColor: Color = 'b'): Move | null {
   // Easy — any legal move at random (captures are still forced by the rules)
   if (level === 'easy') return moves[Math.floor(Math.random() * moves.length)]
 
-  // Hard — minimax with alpha-beta lookahead. evaluate() is from black's
-  // perspective, so black maximises and white minimises it.
+  // Hard — "grandmaster": iterative deepening + alpha-beta + quiescence within a
+  // time budget. evaluate() is from black's perspective, so black maximises and
+  // white minimises it. Works for either AI colour.
   if (level === 'hard') {
-    let best = moves[0], bestScore = aiColor === 'b' ? -Infinity : Infinity
-    for (const m of [...moves].sort(() => Math.random() - 0.5)) {
-      const s = minimax(applyMove(b, m), opp, 5, -Infinity, Infinity)
-      if (aiColor === 'b' ? s > bestScore : s < bestScore) { bestScore = s; best = m }
+    const maximize = aiColor === 'b'
+    searchDeadline = clockMs() + 900
+    let pv = ordered(moves)            // search order, refined to "best first" each pass
+    let best = pv[0]
+    try {
+      for (let depth = 2; depth <= 22; depth++) {
+        let localBest = pv[0], localScore = maximize ? -Infinity : Infinity
+        for (const m of pv) {
+          const s = minimax(applyMove(b, m), opp, depth - 1, -Infinity, Infinity, 1)
+          if (maximize ? s > localScore : s < localScore) { localScore = s; localBest = m }
+        }
+        best = localBest                                    // this depth fully searched
+        pv = [localBest, ...pv.filter(m => m !== localBest)]
+        if (Math.abs(localScore) > MATE - 1000) break       // forced win/loss found — stop early
+      }
+    } catch (e) {
+      if (e !== TIMEOUT) throw e                            // ran out of time → keep last full depth
+    } finally {
+      searchDeadline = Infinity
     }
     return best
   }
