@@ -21,15 +21,16 @@ export default function TrainPage() {
       <main className="max-w-lg lg:max-w-2xl mx-auto px-4 grid grid-cols-2 gap-3">
         {/* Smart math — adaptive engine + mastery */}
         {([
-          { path: '/train/smart-add', key: 'train_smart_add' as const },
-          { path: '/train/smart-sub', key: 'train_smart_sub' as const },
-          { path: '/train/smart-mul', key: 'train_smart_mul' as const },
-          { path: '/train/smart-div', key: 'train_smart_div' as const },
+          { path: '/train/smart-add', key: 'train_smart_add' as const, emoji: '🧠' },
+          { path: '/train/smart-sub', key: 'train_smart_sub' as const, emoji: '🧠' },
+          { path: '/train/smart-mul', key: 'train_smart_mul' as const, emoji: '🧠' },
+          { path: '/train/smart-div', key: 'train_smart_div' as const, emoji: '🧠' },
+          { path: '/train/kazakh', key: 'train_kazakh' as const, emoji: '📖' },
         ]).map(s => (
           <button key={s.path} onClick={() => router.push(s.path)}
             className="col-span-2 rounded-[var(--radius)] p-4 flex items-center gap-4 text-left shadow-[var(--shadow-md)] active:translate-y-[-2px] transition-transform"
             style={{ background: 'var(--gradient-hero)' }}>
-            <span className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">🧠</span>
+            <span className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">{s.emoji}</span>
             <div className="flex-1 min-w-0">
               <p className="font-display font-black text-white text-base">{t(s.key, lang)}</p>
               <p className="text-white/75 text-xs flex items-center gap-1">

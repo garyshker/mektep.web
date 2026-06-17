@@ -192,6 +192,14 @@ export const I18N = {
   sm_help_borrow:     { ru: 'Смотри, как занять десяток:',  kk: 'Ондықты қалай алуды қара:',   en: 'See how to borrow a ten:' },
   sm_help_mul:        { ru: 'Умножение — это повтор сложения:', kk: 'Көбейту — қосуды қайталау:', en: 'Multiplication is repeated addition:' },
   sm_help_div:        { ru: 'Деление обратно умножению:',   kk: 'Бөлу — көбейтуге кері әрекет:', en: 'Division is the reverse of multiplication:' },
+  train_kazakh:       { ru: 'Казахские слова',             kk: 'Қазақ сөздері',              en: 'Kazakh words' },
+  kaz_pick_theme:     { ru: 'Выбери тему',                 kk: 'Тақырыпты таңда',            en: 'Pick a theme' },
+  kaz_q_recognition:  { ru: 'Что это значит?',             kk: 'Бұл нені білдіреді?',        en: 'What does it mean?' },
+  kaz_q_production:   { ru: 'Как это по-казахски?',        kk: 'Қазақша қалай?',             en: 'How do you say it in Kazakh?' },
+  kaz_q_listening:    { ru: 'Послушай и выбери слово',     kk: 'Тыңда да сөзді таңда',       en: 'Listen and pick the word' },
+  kaz_listen:         { ru: 'Послушать',                   kk: 'Тыңдау',                     en: 'Listen' },
+  kaz_mastered:       { ru: 'освоено',                     kk: 'меңгерілді',                 en: 'mastered' },
+  kaz_words_count:    { ru: 'слов',                        kk: 'сөз',                        en: 'words' },
 
   // Parent progress dashboard
   dash_title:         { ru: 'Прогресс ребёнка',            kk: 'Бала прогресі',              en: "Child's progress" },
