@@ -59,9 +59,15 @@ export default function LoginPage() {
       console.error('signInAnonymously error:', error)
       setError(t('guest_unavailable', lang)); setLoading(false); return
     }
-    const base = lang === 'kk' ? 'Қонақ' : lang === 'en' ? 'Guest' : 'Гость'
-    const suffix = data.user.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase()
-    await supabase.from('profiles').upsert({ id: data.user.id, name: `${base} ${suffix}`, grade: 2, language: lang })
+    // Readable guest name: <day><month><seq>, e.g. "17JN01" (17 June, 1st guest).
+    const now = new Date()
+    const MON = ['JA', 'FE', 'MR', 'AP', 'MY', 'JN', 'JL', 'AU', 'SE', 'OC', 'NO', 'DE']
+    const dayCode = `${String(now.getDate()).padStart(2, '0')}${MON[now.getMonth()]}`
+    let seq: string
+    const { data: n } = await supabase.rpc('next_guest_seq', { p_day: dayCode })
+    if (typeof n === 'number') seq = String(n).padStart(2, '0')
+    else seq = data.user.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase() // fallback before migration
+    await supabase.from('profiles').upsert({ id: data.user.id, name: `${dayCode}${seq}`, grade: 2, language: lang })
     router.push('/')
   }
 
