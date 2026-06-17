@@ -329,7 +329,7 @@ export default function CheckersPage() {
     }, 550)
     return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [turn, winner])
+  }, [turn, winner, mode, myAiColor])
 
   // Award XP once on a win vs computer
   const savedRef = useRef(false)
