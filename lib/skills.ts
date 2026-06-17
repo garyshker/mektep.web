@@ -2,6 +2,7 @@
 // Skill taxonomy + diagnostic distractors + mastery math + bucket picker.
 
 import type { ByLang } from './lessons/types'
+import type { I18NKey } from './i18n'
 
 export type AddSkill = 'add_1d' | 'add_2d_no_carry' | 'add_2d_carry'
 
@@ -293,4 +294,23 @@ export function diagnoseDivision(a: number, b: number, typed: number): string | 
   if (typed === b) return 'gave_divisor'
   if (typed === ans - 1 || typed === ans + 1) return 'off_by_one'
   return 'random_guess'
+}
+
+// ── Ladder registry ───────────────────────────────────────────────────────────
+// Single source of truth: every adaptive trainer ladder. The progress dashboard
+// and any other consumer should iterate this so new ladders appear automatically.
+export type SkillLadder = { id: string; titleKey: I18NKey; trainerPath: string; ladder: string[]; label: Record<string, ByLang> }
+export const SKILL_LADDERS: SkillLadder[] = [
+  { id: 'add', titleKey: 'train_add', trainerPath: '/train/smart-add', ladder: ADD_LADDER, label: ADD_SKILL_LABEL },
+  { id: 'sub', titleKey: 'train_sub', trainerPath: '/train/smart-sub', ladder: SUB_LADDER, label: SUB_SKILL_LABEL },
+  { id: 'mul', titleKey: 'train_smart_mul', trainerPath: '/train/smart-mul', ladder: MUL_LADDER, label: MUL_SKILL_LABEL },
+  { id: 'div', titleKey: 'train_smart_div', trainerPath: '/train/smart-div', ladder: DIV_LADDER, label: DIV_SKILL_LABEL },
+]
+
+// All skill ids across every ladder, and a flat id→label map.
+export const ALL_SKILL_IDS: string[] = SKILL_LADDERS.flatMap(l => l.ladder)
+export const SKILL_LABEL_ALL: Record<string, ByLang> = Object.assign({}, ...SKILL_LADDERS.map(l => l.label))
+// Which trainer a given skill belongs to (for "practice this" links).
+export function trainerPathForSkill(skill: string): string {
+  return SKILL_LADDERS.find(l => l.ladder.includes(skill))?.trainerPath ?? '/train/smart-add'
 }

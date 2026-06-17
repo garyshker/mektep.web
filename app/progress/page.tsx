@@ -5,14 +5,13 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useLang } from '@/lib/useLang'
 import { t, type I18NKey } from '@/lib/i18n'
-import { ADD_LADDER, ADD_SKILL_LABEL, SUB_LADDER, SUB_SKILL_LABEL, ERROR_TAG_LABEL, type SkillStat } from '@/lib/skills'
+import { SKILL_LADDERS, ALL_SKILL_IDS, SKILL_LABEL_ALL, trainerPathForSkill, ERROR_TAG_LABEL, type SkillStat } from '@/lib/skills'
 import type { ByLang } from '@/lib/lessons/types'
 import { ChevronLeft, Zap, Target, Flame, Lightbulb, ArrowRight } from 'lucide-react'
 
 type Row = { skill_id: string; mastery_level: number; total_correct: number; total_attempts: number; last_error_tag: string | null }
 
-const ALL_SKILLS = [...ADD_LADDER, ...SUB_LADDER]
-const SKILL_LABEL: Record<string, ByLang> = { ...ADD_SKILL_LABEL, ...SUB_SKILL_LABEL }
+const ALL_SKILLS = ALL_SKILL_IDS
 
 export default function ProgressDashboard() {
   const router = useRouter()
@@ -60,9 +59,14 @@ export default function ProgressDashboard() {
   const attempts = ALL_SKILLS.reduce((n, s) => n + (stats[s]?.attempts ?? 0), 0)
   const accuracy = attempts > 0 ? Math.round((solved / attempts) * 100) : 0
 
-  // weakest attempted skill drives the "focus" block
-  const weakest = [...attempted].sort((x, y) => (stats[x]!.mastery) - (stats[y]!.mastery))[0]
-  const allMastered = hasData && attempted.every(s => stats[s]!.mastery >= 0.8)
+  // skills the child hasn't mastered yet — the "where they struggle" list
+  const troubleSpots = attempted
+    .filter(s => stats[s]!.mastery < 0.8)
+    .sort((x, y) => stats[x]!.mastery - stats[y]!.mastery)
+    .slice(0, 6)
+  const allMastered = hasData && troubleSpots.length === 0
+  // only show a radar for an operation the child has actually practised
+  const activeLadders = SKILL_LADDERS.filter(l => l.ladder.some(s => (stats[s]?.attempts ?? 0) > 0))
 
   return (
     <div className="min-h-screen bg-background pb-12">
@@ -97,31 +101,43 @@ export default function ProgressDashboard() {
               <Stat icon={<Flame size={20} fill="currentColor" style={{ color: 'var(--warning)' }} />} value={String(streak)} label={t('dash_stat_streak', lang)} tint="var(--warning)" />
             </div>
 
-            {/* Skill radars — one per operation */}
-            <RadarCard titleKey="train_add" ladder={ADD_LADDER} label={ADD_SKILL_LABEL} stats={stats} lang={lang} />
-            <RadarCard titleKey="train_sub" ladder={SUB_LADDER} label={SUB_SKILL_LABEL} stats={stats} lang={lang} />
+            {/* Skill radars — one per practised operation (new ladders appear automatically) */}
+            {activeLadders.map(l => (
+              <RadarCard key={l.id} titleKey={l.titleKey} ladder={l.ladder} label={l.label} stats={stats} lang={lang} />
+            ))}
 
-            {/* Focus / actionable insight */}
-            <div className="rounded-[var(--radius-lg)] p-5 shadow-[var(--shadow-sm)]" style={{ background: 'color-mix(in oklch, var(--primary) 9%, var(--card))' }}>
-              <div className="flex items-center gap-2 mb-2">
+            {/* Where the child struggles — specific weak topics + the mistake */}
+            <div className="bg-card rounded-[var(--radius-lg)] p-5 shadow-[var(--shadow-sm)]">
+              <div className="flex items-center gap-2 mb-3">
                 <Lightbulb size={18} style={{ color: 'var(--primary)' }} />
-                <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase">{t('dash_focus', lang)}</p>
+                <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase">
+                  {allMastered ? t('dash_focus', lang) : t('dash_trouble', lang)}
+                </p>
               </div>
               {allMastered ? (
                 <p className="text-foreground font-semibold leading-relaxed">{t('dash_focus_good', lang)}</p>
               ) : (
-                <p className="text-foreground leading-relaxed">
-                  <span className="font-display font-black">{SKILL_LABEL[weakest][lang]} — {Math.round(stats[weakest]!.mastery * 100)}%.</span>{' '}
-                  {stats[weakest]!.lastErrorTag && ERROR_TAG_LABEL[stats[weakest]!.lastErrorTag!]
-                    ? ERROR_TAG_LABEL[stats[weakest]!.lastErrorTag!][lang]
-                    : ''}
-                </p>
+                <div className="flex flex-col gap-2.5">
+                  {troubleSpots.map(s => {
+                    const m = Math.round(stats[s]!.mastery * 100)
+                    const color = m >= 40 ? 'var(--accent)' : 'var(--destructive)'
+                    const tag = stats[s]!.lastErrorTag
+                    const desc = tag && ERROR_TAG_LABEL[tag] ? ERROR_TAG_LABEL[tag][lang] : null
+                    return (
+                      <button key={s} onClick={() => router.push(trainerPathForSkill(s))}
+                        className="w-full flex items-start gap-3 rounded-[var(--radius)] p-3 text-left active:scale-[0.99] transition-transform"
+                        style={{ background: 'color-mix(in oklch, var(--primary) 6%, var(--card))' }}>
+                        <span className="shrink-0 mt-0.5 w-12 text-center px-2 py-0.5 rounded-full text-[11px] font-black text-white tabular" style={{ background: color }}>{m}%</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-display font-black text-foreground text-sm leading-tight">{SKILL_LABEL_ALL[s][lang]}</p>
+                          {desc && <p className="text-xs text-muted-foreground leading-snug mt-0.5">{desc}</p>}
+                        </div>
+                        <ArrowRight size={16} className="text-muted-foreground shrink-0 mt-1.5" />
+                      </button>
+                    )
+                  })}
+                </div>
               )}
-              <button onClick={() => router.push((SUB_LADDER as readonly string[]).includes(weakest) ? '/train/smart-sub' : '/train/smart-add')}
-                className="mt-4 px-4 py-2.5 rounded-[var(--radius)] font-display font-black text-white text-sm active:scale-95 transition-transform flex items-center gap-2"
-                style={{ background: 'var(--primary)' }}>
-                {t('dash_try', lang)} <ArrowRight size={16} />
-              </button>
             </div>
           </>
         )}

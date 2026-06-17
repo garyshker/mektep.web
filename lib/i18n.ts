@@ -198,6 +198,7 @@ export const I18N = {
   dash_open:          { ru: 'Прогресс ребёнка',            kk: 'Бала прогресі',              en: "Child's progress" },
   dash_radar:         { ru: 'Карта навыков',               kk: 'Дағдылар картасы',           en: 'Skill map' },
   dash_focus:         { ru: 'Над чем работаем сейчас',     kk: 'Қазір немен айналысамыз',    en: 'What we focus on now' },
+  dash_trouble:       { ru: 'Где ребёнок ошибается',       kk: 'Бала қай жерде қателеседі',  en: 'Where your child struggles' },
   dash_focus_good:    { ru: 'Отличная база! Двигаемся к новым темам.', kk: 'Тамаша негіз! Жаңа тақырыптарға көшеміз.', en: 'Great base! Moving on to new topics.' },
   dash_stat_solved:   { ru: 'Решено',                      kk: 'Шешілді',                    en: 'Solved' },
   dash_stat_acc:      { ru: 'Точность',                    kk: 'Дәлдік',                     en: 'Accuracy' },
