@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { ALL_LESSONS, SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
+import { completeQuest, fetchTodayQuests, QUEST_XP } from '@/lib/quests'
 import { Flame, Zap, Play, ChevronRight, Check, Target, UserPlus } from 'lucide-react'
 import { GAME_ICONS, SUBJECT_ICONS } from '@/components/GameIcons'
 import type { User } from '@supabase/supabase-js'
@@ -74,16 +75,11 @@ function isSameDay(a: Date, b: Date) {
     a.getDate() === b.getDate()
 }
 
-function todayKey() {
-  const d = new Date()
-  return `daily_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 const DAILY_TASKS: { id: string; label: L3; sub: L3; xp: number }[] = [
-  { id: 'lesson', label: { kk: 'Бір сабақты аяқта', ru: 'Пройди урок', en: 'Finish a lesson' }, sub: { kk: '≈ 8 мин', ru: '≈ 8 мин', en: '≈ 8 min' }, xp: 10 },
-  { id: 'words',  label: { kk: '5 жаңа сөзді үйрен', ru: 'Выучи 5 слов', en: 'Learn 5 words' }, sub: { kk: 'Қазақ тілі', ru: 'Казахский', en: 'Kazakh' }, xp: 15 },
-  { id: 'game',   label: { kk: 'Жылдам ойынды өт', ru: 'Сыграй в быстрый счёт', en: 'Play quick math' }, sub: { kk: '60 секунд', ru: '60 секунд', en: '60 seconds' }, xp: 20 },
-  { id: 'duel',   label: { kk: 'Достарыңмен ойна', ru: 'Сыграй 1v1', en: 'Play 1v1' }, sub: { kk: '1v1 дуэль', ru: '1v1 дуэль', en: '1v1 duel' }, xp: 25 },
+  { id: 'lesson', label: { kk: 'Бір сабақты аяқта', ru: 'Пройди урок', en: 'Finish a lesson' }, sub: { kk: '≈ 8 мин', ru: '≈ 8 мин', en: '≈ 8 min' }, xp: QUEST_XP.lesson },
+  { id: 'words',  label: { kk: '5 жаңа сөзді үйрен', ru: 'Выучи 5 слов', en: 'Learn 5 words' }, sub: { kk: 'Қазақ тілі', ru: 'Казахский', en: 'Kazakh' }, xp: QUEST_XP.words },
+  { id: 'game',   label: { kk: 'Жылдам ойынды өт', ru: 'Сыграй в быстрый счёт', en: 'Play quick math' }, sub: { kk: '60 секунд', ru: '60 секунд', en: '60 seconds' }, xp: QUEST_XP.game },
+  { id: 'duel',   label: { kk: 'Достарыңмен ойна', ru: 'Сыграй 1v1', en: 'Play 1v1' }, sub: { kk: '1v1 дуэль', ru: '1v1 дуэль', en: '1v1 duel' }, xp: QUEST_XP.duel },
 ]
 
 export default function HomePage() {
@@ -144,12 +140,10 @@ export default function HomePage() {
       setWeekDays(completedDays)
       setCompletedToday(todayBool)
 
-      // Daily tasks state from localStorage
-      const key = todayKey()
-      let stored: Record<string, boolean> = {}
-      try { stored = JSON.parse(localStorage.getItem(key) ?? '{}') } catch { stored = {} }
-      if (todayBool) stored['lesson'] = true
-      const doneTasks = new Set(Object.keys(stored).filter(k => stored[k]))
+      // Daily quests — server-backed (see lib/quests.ts)
+      const doneTasks = await fetchTodayQuests(supabase)
+      // Bridge: a lesson finished today (lesson_progress) counts as the lesson quest.
+      if (todayBool && !doneTasks.has('lesson')) { await completeQuest(supabase, 'lesson'); doneTasks.add('lesson') }
       setDailyDone(doneTasks)
 
       setLoading(false)

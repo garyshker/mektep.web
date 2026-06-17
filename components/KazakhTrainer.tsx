@@ -9,6 +9,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { speak } from '@/lib/speak'
 import { pickSkill, updateStat, type SkillStat } from '@/lib/skills'
+import { completeQuest } from '@/lib/quests'
 import {
   VOCAB_THEMES, skillIdOf, meaningOf, buildVocabQuestion,
   type VocabTheme, type VocabQuestion,
@@ -107,6 +108,7 @@ export function KazakhTrainer() {
     persist(curSkill.current, updated)
     if (ok) {
       setCorrect(c => c + 1)
+      if (correct + 1 === 5) completeQuest(supabase, 'words')   // "learn 5 words" daily quest
       setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
       playCorrect()
     } else {

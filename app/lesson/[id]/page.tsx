@@ -7,6 +7,7 @@ import { LESSONS_BY_ID } from '@/lib/lessons'
 import type { Question } from '@/lib/lessons'
 import type { ByLang } from '@/lib/lessons/types'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
+import { completeQuest } from '@/lib/quests'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { speak } from '@/lib/speak'
@@ -212,6 +213,7 @@ export default function LessonPage() {
         await supabase.from('profiles')
           .update({ xp: (prof?.xp ?? 0) + earned, streak: newStreak, last_active: tStr })
           .eq('id', user.id)
+        completeQuest(supabase, 'lesson')
       }
       setCompletion({ earnedXp: earned, streak: newStreak, streakUp })
       setDone(true)

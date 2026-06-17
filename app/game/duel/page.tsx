@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
+import { completeQuest } from '@/lib/quests'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 
@@ -160,7 +161,9 @@ export default function DuelPage() {
 
   // Save XP on finish
   useEffect(() => {
-    if (phase !== 'done' || myScore === 0 || !myId) return
+    if (phase !== 'done' || !myId) return
+    completeQuest(supabase, 'duel')   // played a 1v1 today, regardless of score
+    if (myScore === 0) return
     const save = async () => {
       const xp = myScore * 3
       const { data } = await supabase.from('profiles').select('xp').eq('id', myId).single()

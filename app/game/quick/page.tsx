@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong } from '@/lib/sounds'
+import { completeQuest } from '@/lib/quests'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 
@@ -101,6 +102,7 @@ export default function QuickGamePage() {
       const xp = score * 5
       const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
       await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + xp }).eq('id', user.id)
+      completeQuest(supabase, 'game')
     }
     save()
   }, [phase])
