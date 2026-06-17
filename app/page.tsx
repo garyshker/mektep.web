@@ -8,7 +8,7 @@ import { ALL_LESSONS, SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { completeQuest, fetchTodayQuests, QUEST_XP } from '@/lib/quests'
-import { Flame, Zap, Play, ChevronRight, Check, Target, UserPlus } from 'lucide-react'
+import { Flame, Zap, Play, ChevronRight, Check, Target, UserPlus, Shield } from 'lucide-react'
 import { GAME_ICONS, SUBJECT_ICONS } from '@/components/GameIcons'
 import type { User } from '@supabase/supabase-js'
 
@@ -35,7 +35,7 @@ const WEEKDAYS: Record<string, string[]> = {
 }
 const todayIdx = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1 }
 
-type Profile = { name: string; grade: number; xp: number; streak: number; language?: string; avatar_url?: string | null }
+type Profile = { name: string; grade: number; xp: number; streak: number; language?: string; avatar_url?: string | null; freeze_count?: number }
 
 const AVATAR_COLORS = ['#22C55E', '#F59E0B', '#3B82F6', '#8B5CF6', '#EF4444', '#EC4899']
 function avatarColor(name: string) {
@@ -107,7 +107,7 @@ export default function HomePage() {
       const today = new Date()
 
       const [{ data: profileData }, { data: progress }, { data: weekProgress }] = await Promise.all([
-        supabase.from('profiles').select('name, grade, xp, streak, language, avatar_url').eq('id', user.id).single(),
+        supabase.from('profiles').select('name, grade, xp, streak, language, avatar_url, freeze_count').eq('id', user.id).single(),
         supabase.from('lesson_progress').select('lesson_id, stars').eq('user_id', user.id),
         supabase.from('lesson_progress').select('completed_at').eq('user_id', user.id)
           .gte('completed_at', weekStart.toISOString()),
@@ -190,6 +190,13 @@ export default function HomePage() {
             <Flame size={16} fill="currentColor" style={{ color: 'var(--warning)' }} />
             <span className="font-black text-xs tabular" style={{ color: 'var(--warning)' }}>{streak}</span>
           </div>
+          {/* Streak freezes (shields) */}
+          {(profile?.freeze_count ?? 0) > 0 && (
+            <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))' }} title={t('streak_freeze', lang)}>
+              <Shield size={15} fill="currentColor" style={{ color: 'var(--primary)' }} />
+              <span className="font-black text-xs tabular" style={{ color: 'var(--primary)' }}>{profile?.freeze_count}</span>
+            </div>
+          )}
           {/* XP */}
           <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--xp) 18%, var(--card))' }}>
             <Zap size={16} fill="currentColor" style={{ color: 'var(--xp)' }} />

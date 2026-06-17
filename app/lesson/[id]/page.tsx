@@ -105,7 +105,7 @@ export default function LessonPage() {
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [correctCount, setCorrectCount] = useState(0)
   const [done, setDone] = useState(false)
-  const [completion, setCompletion] = useState<{ earnedXp: number; streak: number; streakUp: boolean }>({ earnedXp: 0, streak: 0, streakUp: false })
+  const [completion, setCompletion] = useState<{ earnedXp: number; streak: number; streakUp: boolean; streakSaved: boolean }>({ earnedXp: 0, streak: 0, streakUp: false, streakSaved: false })
 
   // per-type state
   const [selected, setSelected] = useState<string | null>(null)
@@ -189,7 +189,7 @@ export default function LessonPage() {
       const final = correctCount
       const earned = 15 + final * 5
       const stars = final >= total ? 3 : final >= total - 2 ? 2 : 1
-      let newStreak = 0, streakUp = false
+      let newStreak = 0, streakUp = false, streakSaved = false
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         // Keep the best stars on replays
@@ -200,22 +200,28 @@ export default function LessonPage() {
           user_id: user.id, lesson_id: lesson.id, subject_id: lesson.subjectId,
           stars: bestStars, xp_earned: earned,
         })
-        // XP accumulates; streak bumps once per day
+        // XP accumulates; streak bumps once per day. A "freeze" forgives exactly
+        // one missed day so the streak survives.
         const { data: prof } = await supabase.from('profiles')
-          .select('xp, streak, last_active').eq('id', user.id).single()
+          .select('xp, streak, last_active, freeze_count').eq('id', user.id).single()
         const today = new Date(), yest = new Date(); yest.setDate(today.getDate() - 1)
-        const tStr = ymd(today), yStr = ymd(yest)
+        const twoAgo = new Date(); twoAgo.setDate(today.getDate() - 2)
+        const tStr = ymd(today), yStr = ymd(yest), twoStr = ymd(twoAgo)
         newStreak = prof?.streak ?? 0
+        let freezes = prof?.freeze_count ?? 0
         if (prof?.last_active !== tStr) {
-          newStreak = prof?.last_active === yStr ? newStreak + 1 : 1
+          if (prof?.last_active === yStr) newStreak += 1                                  // consecutive day
+          else if (prof?.last_active === twoStr && freezes > 0) { newStreak += 1; freezes -= 1; streakSaved = true }  // freeze saves it
+          else newStreak = 1                                                               // streak broke
           streakUp = true
+          if (newStreak % 7 === 0) freezes = Math.min(3, freezes + 1)                      // earn a freeze each week
         }
         await supabase.from('profiles')
-          .update({ xp: (prof?.xp ?? 0) + earned, streak: newStreak, last_active: tStr })
+          .update({ xp: (prof?.xp ?? 0) + earned, streak: newStreak, last_active: tStr, freeze_count: freezes })
           .eq('id', user.id)
         completeQuest(supabase, 'lesson')
       }
-      setCompletion({ earnedXp: earned, streak: newStreak, streakUp })
+      setCompletion({ earnedXp: earned, streak: newStreak, streakUp, streakSaved })
       setDone(true)
       return
     }
@@ -234,6 +240,7 @@ export default function LessonPage() {
         xp={completion.earnedXp}
         streak={completion.streak}
         streakUp={completion.streakUp}
+        streakSaved={completion.streakSaved}
         onLessons={() => router.push('/lessons')}
         onAgain={() => { setIdx(0); setCorrectCount(0); setFeedback(null); setSelected(null); setDone(false) }}
       />

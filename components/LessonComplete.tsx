@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import confetti from 'canvas-confetti'
-import { Flame, Target, Zap, CheckCircle2, ArrowRight } from 'lucide-react'
+import { Flame, Target, Zap, CheckCircle2, ArrowRight, Shield } from 'lucide-react'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import type { CSSProperties } from 'react'
@@ -25,10 +25,10 @@ function useCountUp(target: number, ms = 800) {
 }
 
 export function LessonComplete({
-  stars, correct, total, xp, streak, streakUp, onLessons, onAgain,
+  stars, correct, total, xp, streak, streakUp, streakSaved = false, onLessons, onAgain,
 }: {
   stars: number; correct: number; total: number; xp: number
-  streak: number; streakUp: boolean
+  streak: number; streakUp: boolean; streakSaved?: boolean
   onLessons: () => void; onAgain: () => void
 }) {
   const lang = useLang()
@@ -76,16 +76,23 @@ export function LessonComplete({
       </div>
 
       {/* Streak */}
-      <div className="flex items-center gap-2 rounded-full px-4 py-2 mb-10"
-        style={{ background: 'color-mix(in oklch, var(--warning) 14%, var(--card))' }}>
-        <Flame size={18} fill="currentColor" style={{ color: 'var(--warning)' }} />
-        {streakUp ? (
-          <span className="font-black text-sm tabular" style={{ color: 'var(--warning)' }}>
-            {streak - 1} <span className="opacity-50">→</span> {streak} · {t('streak_days', lang)}
-          </span>
-        ) : (
-          <span className="font-black text-sm tabular" style={{ color: 'var(--warning)' }}>
-            {streak} · {t('streak_days', lang)}
+      <div className="flex flex-col items-center gap-2 mb-10">
+        <div className="flex items-center gap-2 rounded-full px-4 py-2"
+          style={{ background: 'color-mix(in oklch, var(--warning) 14%, var(--card))' }}>
+          <Flame size={18} fill="currentColor" style={{ color: 'var(--warning)' }} />
+          {streakUp ? (
+            <span className="font-black text-sm tabular" style={{ color: 'var(--warning)' }}>
+              {streak - 1} <span className="opacity-50">→</span> {streak} · {t('streak_days', lang)}
+            </span>
+          ) : (
+            <span className="font-black text-sm tabular" style={{ color: 'var(--warning)' }}>
+              {streak} · {t('streak_days', lang)}
+            </span>
+          )}
+        </div>
+        {streakSaved && (
+          <span className="flex items-center gap-1.5 text-xs font-black animate-mk-pop-in" style={{ color: 'var(--primary)' }}>
+            <Shield size={14} fill="currentColor" /> {t('streak_saved', lang)}
           </span>
         )}
       </div>

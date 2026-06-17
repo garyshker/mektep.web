@@ -81,6 +81,8 @@ export const I18N = {
   not_found:          { ru: 'Урок не найден',             kk: 'Сабақ табылмады',            en: 'Lesson not found' },
   complete_sub:       { ru: 'Отличная работа!',           kk: 'Тамаша жұмыс!',              en: 'Great job!' },
   streak_days:        { ru: 'Серия дней',                 kk: 'Күндік серия',               en: 'Day streak' },
+  streak_saved:       { ru: 'Серия спасена заморозкой!',  kk: 'Серия мұздатумен сақталды!', en: 'Streak saved by a freeze!' },
+  streak_freeze:      { ru: 'Заморозка',                  kk: 'Мұздату',                    en: 'Freeze' },
 
   // Profile
   days_streak:        { ru: 'Дней подряд',                kk: 'Күн қатарынан',              en: 'Day streak' },
