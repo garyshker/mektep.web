@@ -268,6 +268,7 @@ export const I18N = {
   checkers_waiting:   { ru: 'Ждём соперника…',            kk: 'Қарсыласты күтудеміз…',      en: 'Waiting for opponent…' },
   checkers_enter_code:{ ru: 'Введи код',                  kk: 'Кодты енгіз',                en: 'Enter code' },
   checkers_join_fail: { ru: 'Комната не найдена или занята', kk: 'Бөлме табылмады немесе бос емес', en: 'Room not found or full' },
+  checkers_opp_left:  { ru: 'Соперник вышел из игры',      kk: 'Қарсылас ойыннан шықты',     en: 'Opponent left the game' },
   checkers_you_win_o: { ru: 'Ты выиграл! 🏆',             kk: 'Сен жеңдің! 🏆',             en: 'You win! 🏆' },
   checkers_you_lose_o:{ ru: 'Соперник выиграл',           kk: 'Қарсылас жеңді',             en: 'Opponent wins' },
   checkers_ai_turn:   { ru: 'Ход компьютера…',            kk: 'Компьютер ойлауда…',         en: 'Computer is thinking…' },

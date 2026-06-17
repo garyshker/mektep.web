@@ -16,9 +16,8 @@ export type RoomRow<S = unknown> = {
   winner: string | null
 }
 
-// No ambiguous characters (0/O, 1/I) — easier to read aloud / type.
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-const genCode = () => Array.from({ length: 4 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('')
+// 4-digit numeric code — easy for kids to read aloud and type.
+const genCode = () => String(Math.floor(1000 + Math.random() * 9000))
 
 export async function createRoom(
   sb: SupabaseClient, game: string, hostId: string, hostName: string, state: unknown, turn: string,
@@ -59,14 +58,24 @@ export async function pushRoom(
 
 // Subscribe to a room's changes; returns an unsubscribe fn. Combines a realtime
 // channel with a polling fallback so it still works if websockets are blocked.
+// Pass `presenceKey` to also track who's connected — `onPresence(count)` fires
+// with the number of present members (used to detect an opponent leaving).
 export function subscribeRoom(
   sb: SupabaseClient, code: string, onChange: (room: RoomRow) => void,
+  opts?: { presenceKey?: string; onPresence?: (count: number) => void },
 ): () => void {
-  const channel = sb
-    .channel(`room-${code}`)
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${code}` },
-      payload => onChange(payload.new as RoomRow))
-    .subscribe()
+  const channel = sb.channel(`room-${code}`,
+    opts?.presenceKey ? { config: { presence: { key: opts.presenceKey } } } : undefined)
+  channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${code}` },
+    payload => onChange(payload.new as RoomRow))
+  if (opts?.onPresence) {
+    channel.on('presence', { event: 'sync' }, () => {
+      opts.onPresence!(Object.keys(channel.presenceState()).length)
+    })
+  }
+  channel.subscribe(status => {
+    if (status === 'SUBSCRIBED' && opts?.presenceKey) channel.track({ at: Date.now() })
+  })
   const iv = setInterval(async () => { const r = await fetchRoom(sb, code); if (r) onChange(r) }, 2000)
   return () => { try { channel.unsubscribe() } catch { /* ignore */ } clearInterval(iv) }
 }
