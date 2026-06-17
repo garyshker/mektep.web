@@ -18,7 +18,7 @@ export type SmartConfig = {
   skillLabel: Record<string, ByLang>
   gen: (skill: string) => { a: number; b: number }
   options: (a: number, b: number) => TaggedOption[]
-  op: '+' | '-'
+  op: '+' | '-' | '×' | '÷'
   helpSkill: string            // skill that triggers the visual help
   helpTag: string              // error tag that also triggers it
   helpHintKey: I18NKey
@@ -30,7 +30,7 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
   const router = useRouter()
   const supabase = createClient()
   const lang = useLang()
-  const opG = config.op === '+' ? '+' : '−'
+  const opG = config.op === '+' ? '+' : config.op === '-' ? '−' : config.op
 
   const [stats, setStats] = useState<Record<string, SkillStat>>({})
   const statsRef = useRef<Record<string, SkillStat>>({})
@@ -175,7 +175,9 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
         {showHelp ? (
           <div className="bg-card rounded-3xl px-5 py-5 shadow-[var(--shadow-md)] flex flex-col gap-3">
             <p className="text-sm font-bold text-foreground text-center">{t(config.helpHintKey, lang)}</p>
-            <NumberLineSolver a={cur.a} op={config.op} b={cur.b} />
+            {config.op === '+' || config.op === '-'
+              ? <NumberLineSolver a={cur.a} op={config.op} b={cur.b} />
+              : <MulDivHelp a={cur.a} op={config.op} b={cur.b} />}
           </div>
         ) : (
           <div className="bg-card rounded-3xl px-5 py-7 shadow-[var(--shadow-md)]">
@@ -252,6 +254,33 @@ function MasteryPanel({ stats, lang, ladder, skillLabel, current }: {
           )
         })}
       </div>
+    </div>
+  )
+}
+
+// Visual help for × and ÷ (no number line): repeated addition for ×, fact family for ÷.
+function MulDivHelp({ a, op, b }: { a: number; op: '×' | '÷'; b: number }) {
+  const box = 'rounded-2xl p-4 text-center'
+  const boxBg = { background: 'color-mix(in oklch, var(--primary) 8%, var(--card))' }
+  if (op === '×') {
+    const reps = Math.min(a, b), val = Math.max(a, b)   // fewer terms to read
+    const terms = Array.from({ length: reps }, () => val).join(' + ')
+    return (
+      <div className={box} style={boxBg}>
+        <p className="text-[26px] sm:text-3xl font-display font-black tabular-nums leading-none text-foreground">
+          {a} × {b} = <span style={{ color: 'var(--success)' }}>{a * b}</span>
+        </p>
+        <p className="text-base font-bold mt-2 leading-snug text-muted-foreground tabular-nums">{terms} = {a * b}</p>
+      </div>
+    )
+  }
+  const q = a / b
+  return (
+    <div className={box} style={boxBg}>
+      <p className="text-[26px] sm:text-3xl font-display font-black tabular-nums leading-none text-foreground">
+        {a} ÷ {b} = <span style={{ color: 'var(--success)' }}>{q}</span>
+      </p>
+      <p className="text-base font-bold mt-2 leading-snug text-muted-foreground tabular-nums">{b} × {q} = {a}</p>
     </div>
   )
 }

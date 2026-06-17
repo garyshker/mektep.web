@@ -23,6 +23,8 @@ export default function TrainPage() {
         {([
           { path: '/train/smart-add', key: 'train_smart_add' as const },
           { path: '/train/smart-sub', key: 'train_smart_sub' as const },
+          { path: '/train/smart-mul', key: 'train_smart_mul' as const },
+          { path: '/train/smart-div', key: 'train_smart_div' as const },
         ]).map(s => (
           <button key={s.path} onClick={() => router.push(s.path)}
             className="col-span-2 rounded-[var(--radius)] p-4 flex items-center gap-4 text-left shadow-[var(--shadow-md)] active:translate-y-[-2px] transition-transform"

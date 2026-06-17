@@ -26,6 +26,10 @@ export const ERROR_TAG_LABEL: Record<string, ByLang> = {
   off_by_one:      { ru: 'Небольшие промахи в счёте на единицу.', kk: 'Санауда бір санға қателеседі.', en: 'Small off-by-one counting slips.' },
   extra_ten:       { ru: 'Иногда прибавляет лишний десяток.', kk: 'Кейде артық ондық қосады.', en: 'Sometimes adds an extra ten.' },
   random_guess:    { ru: 'Пока угадывает — нужно закрепить счёт.', kk: 'Әзірге болжайды — санауды бекіту керек.', en: 'Still guessing — needs to cement counting.' },
+  table_neighbor:  { ru: 'Путает соседние факты в таблице умножения (например, 7×8 и 7×7).', kk: 'Көбейту кестесіндегі көрші фактілерді шатастырады (мысалы, 7×8 және 7×7).', en: 'Mixes up neighbouring facts in the times table (e.g. 7×8 vs 7×7).' },
+  used_addition:   { ru: 'Иногда складывает вместо умножения.', kk: 'Кейде көбейтудің орнына қосады.', en: 'Sometimes adds instead of multiplying.' },
+  one_group_off:   { ru: 'Ошибается на одну группу при умножении.', kk: 'Көбейткенде бір топқа қателеседі.', en: 'Off by one group when multiplying.' },
+  gave_divisor:    { ru: 'При делении называет делитель вместо частного.', kk: 'Бөлгенде бөлінді орнына бөлгішті айтады.', en: 'Gives the divisor instead of the quotient when dividing.' },
 }
 
 // Diagnose a free-typed answer (cleaner signal than MC — almost no lucky guesses)
@@ -201,6 +205,92 @@ export function diagnoseSubtraction(a: number, b: number, typed: number): string
   const ss = Math.abs(Math.floor(a / 10) - Math.floor(b / 10)) * 10 + Math.abs((a % 10) - (b % 10))
   if (typed === ss && ss !== ans) return 'subtracted_smaller'
   if (typed === a + b) return 'wrong_operation'
+  if (typed === ans - 1 || typed === ans + 1) return 'off_by_one'
+  return 'random_guess'
+}
+
+// ── Multiplication (times tables 2–9) ─────────────────────────────────────────
+export type MulSkill = 'mul_easy' | 'mul_mid' | 'mul_hard'
+export const MUL_LADDER: MulSkill[] = ['mul_easy', 'mul_mid', 'mul_hard']
+const MUL_SET: Record<MulSkill, number[]> = { mul_easy: [2, 3, 4, 5], mul_mid: [6, 7], mul_hard: [8, 9] }
+
+export const MUL_SKILL_LABEL: Record<MulSkill, ByLang> = {
+  mul_easy: { ru: 'Таблица 2–5', kk: '2–5 кестесі', en: 'Tables 2–5' },
+  mul_mid:  { ru: 'Таблица 6–7', kk: '6–7 кестесі', en: 'Tables 6–7' },
+  mul_hard: { ru: 'Таблица 8–9', kk: '8–9 кестесі', en: 'Tables 8–9' },
+}
+
+export function genMultiplication(skill: MulSkill): { a: number; b: number } {
+  const set = MUL_SET[skill]
+  const a = set[Math.floor(Math.random() * set.length)]
+  return { a, b: ri(2, 9) }
+}
+
+export function multiplicationOptions(a: number, b: number): TaggedOption[] {
+  const ans = a * b
+  const out: TaggedOption[] = []
+  const push = (v: number, tag: string) => {
+    if (Number.isInteger(v) && v > 0 && v !== ans && !out.some(o => o.value === String(v))) out.push({ value: String(v), tag })
+  }
+  push(a * (b + 1), 'table_neighbor')   // the next fact in the table
+  push(a * (b - 1), 'table_neighbor')   // the previous fact
+  push(a + b, 'used_addition')          // added instead of multiplying
+  push(ans + a, 'one_group_off')        // one extra group
+  push(ans - a, 'one_group_off')        // one group short
+  push(ans + 1, 'near'); push(ans - 1, 'near')
+  const distractors = out.slice(0, 3)
+  const all: TaggedOption[] = [{ value: String(ans), tag: 'correct' }, ...distractors]
+  for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[all[i], all[j]] = [all[j], all[i]] }
+  return all
+}
+
+export function diagnoseMultiplication(a: number, b: number, typed: number): string | null {
+  const ans = a * b
+  if (typed === ans) return null
+  if (typed === a * (b + 1) || typed === a * (b - 1)) return 'table_neighbor'
+  if (typed === a + b) return 'used_addition'
+  if (typed === ans + a || typed === ans - a) return 'one_group_off'
+  return 'random_guess'
+}
+
+// ── Division (inverse of the tables; whole-number quotients) ───────────────────
+export type DivSkill = 'div_easy' | 'div_mid' | 'div_hard'
+export const DIV_LADDER: DivSkill[] = ['div_easy', 'div_mid', 'div_hard']
+const DIV_SET: Record<DivSkill, number[]> = { div_easy: [2, 3, 4, 5], div_mid: [6, 7], div_hard: [8, 9] }
+
+export const DIV_SKILL_LABEL: Record<DivSkill, ByLang> = {
+  div_easy: { ru: 'Деление 2–5', kk: '2–5-ке бөлу', en: 'Divide by 2–5' },
+  div_mid:  { ru: 'Деление 6–7', kk: '6–7-ге бөлу', en: 'Divide by 6–7' },
+  div_hard: { ru: 'Деление 8–9', kk: '8–9-ға бөлу', en: 'Divide by 8–9' },
+}
+
+export function genDivision(skill: DivSkill): { a: number; b: number } {
+  const set = DIV_SET[skill]
+  const b = set[Math.floor(Math.random() * set.length)]
+  const q = ri(2, 9)
+  return { a: b * q, b }   // a ÷ b = q, always whole
+}
+
+export function divisionOptions(a: number, b: number): TaggedOption[] {
+  const ans = a / b
+  const out: TaggedOption[] = []
+  const push = (v: number, tag: string) => {
+    if (Number.isInteger(v) && v > 0 && v !== ans && !out.some(o => o.value === String(v))) out.push({ value: String(v), tag })
+  }
+  push(b, 'gave_divisor')               // answered with the divisor
+  push(ans + 1, 'off_by_one'); push(ans - 1, 'off_by_one')
+  push(ans + 2, 'near'); push(ans - 2, 'near')
+  push(b + 1, 'near')
+  const distractors = out.slice(0, 3)
+  const all: TaggedOption[] = [{ value: String(ans), tag: 'correct' }, ...distractors]
+  for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[all[i], all[j]] = [all[j], all[i]] }
+  return all
+}
+
+export function diagnoseDivision(a: number, b: number, typed: number): string | null {
+  const ans = a / b
+  if (typed === ans) return null
+  if (typed === b) return 'gave_divisor'
   if (typed === ans - 1 || typed === ans + 1) return 'off_by_one'
   return 'random_guess'
 }

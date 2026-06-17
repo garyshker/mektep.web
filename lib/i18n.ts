@@ -184,10 +184,14 @@ export const I18N = {
   train_eq:           { ru: 'Уравнения',                  kk: 'Теңдеулер',                  en: 'Equations' },
   train_smart_add:    { ru: 'Умное сложение',             kk: 'Ақылды қосу',                en: 'Smart addition' },
   train_smart_sub:    { ru: 'Умное вычитание',            kk: 'Ақылды алу',                 en: 'Smart subtraction' },
+  train_smart_mul:    { ru: 'Таблица умножения',          kk: 'Көбейту кестесі',            en: 'Times tables' },
+  train_smart_div:    { ru: 'Деление',                    kk: 'Бөлу',                       en: 'Division' },
   sm_adaptive:        { ru: 'Подстраивается под тебя',    kk: 'Саған бейімделеді',          en: 'Adapts to you' },
   sm_mastery:         { ru: 'Усвоение',                   kk: 'Меңгеру',                    en: 'Mastery' },
   sm_help_carry:      { ru: 'Смотри, как переносить десяток:', kk: 'Ондықты қалай көшіруді қара:', en: 'See how to carry the ten:' },
   sm_help_borrow:     { ru: 'Смотри, как занять десяток:',  kk: 'Ондықты қалай алуды қара:',   en: 'See how to borrow a ten:' },
+  sm_help_mul:        { ru: 'Умножение — это повтор сложения:', kk: 'Көбейту — қосуды қайталау:', en: 'Multiplication is repeated addition:' },
+  sm_help_div:        { ru: 'Деление обратно умножению:',   kk: 'Бөлу — көбейтуге кері әрекет:', en: 'Division is the reverse of multiplication:' },
 
   // Parent progress dashboard
   dash_title:         { ru: 'Прогресс ребёнка',            kk: 'Бала прогресі',              en: "Child's progress" },
