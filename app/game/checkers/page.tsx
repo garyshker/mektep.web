@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Users, Puzzle, ChevronRight, X } from 'lucide-react'
+import { Users, Puzzle, ChevronRight, X, Globe, Copy, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
+import { createRoom, joinRoom, subscribeRoom, pushRoom, type RoomRow } from '@/lib/realtime/room'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Color = 'w' | 'b'
@@ -251,7 +252,7 @@ export default function CheckersPage() {
   const supabase = createClient()
   const lang = useLang()
 
-  const [mode, setMode] = useState<'ai' | 'local' | 'puzzles' | null>(null)
+  const [mode, setMode] = useState<'ai' | 'local' | 'puzzles' | 'online' | null>(null)
   const [level, setLevel] = useState<Level>('medium')
   const [board, setBoard] = useState<Board>(initBoard)
   const [turn, setTurn] = useState<Color>('w')
@@ -264,8 +265,31 @@ export default function CheckersPage() {
   const levelRef = useRef(level)
   levelRef.current = level
 
+  // ── Online 1v1 state ──
+  type OnlinePhase = 'menu' | 'creating' | 'waiting' | 'joining' | 'playing'
+  const [online, setOnline] = useState<{ code: string; color: Color; oppName: string | null; phase: OnlinePhase } | null>(null)
+  const [joinCode, setJoinCode] = useState('')
+  const [onlineErr, setOnlineErr] = useState('')
+  const roomRef = useRef<{ code: string; color: Color } | null>(null)   // stable for callbacks
+  const waitingRef = useRef(false)                                       // true while it's the opponent's move
+  const myIdRef = useRef<string | null>(null)
+  const myNameRef = useRef('')
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      myIdRef.current = user.id
+      const { data } = await supabase.from('profiles').select('name').eq('id', user.id).single()
+      myNameRef.current = data?.name || 'Player'
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Whose turn is controlled by a human right now
-  const humanTurn = mode === 'local' || (mode === 'ai' && turn === 'w')
+  const humanTurn = mode === 'local'
+    || (mode === 'ai' && turn === 'w')
+    || (mode === 'online' && online?.phase === 'playing' && turn === online.color)
   const mustCapture = humanTurn && sideHasCapture(board, turn) && chain.length === 0
 
   // End-of-turn / win detection happens when turn flips to a side with no moves
@@ -292,18 +316,81 @@ export default function CheckersPage() {
   // Award XP once on a win vs computer
   const savedRef = useRef(false)
   useEffect(() => {
-    if (winner === 'w' && mode === 'ai' && !savedRef.current) {
-      savedRef.current = true
+    if (!winner) return
+    if (mode === 'ai' || mode === 'online') {
+      const iWon = mode === 'ai' ? winner === 'w' : winner === online?.color
+      if (iWon) {
+        if (!savedRef.current) {
+          savedRef.current = true
+          ;(async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+            const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
+            await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + 30 }).eq('id', user.id)
+          })()
+        }
+        playCorrect()
+      } else playWrong()
+    } else {
       playCorrect()
-      ;(async () => {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
-        await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + 30 }).eq('id', user.id)
-      })()
     }
-    if (winner === 'b') playWrong()
   }, [winner])
+
+  // Push the resolved position to the opponent after my turn ends.
+  const onlinePush = (fb: Board, next: Color) => {
+    if (mode !== 'online' || !roomRef.current) return
+    waitingRef.current = true
+    pushRoom(supabase, roomRef.current.code, { state: fb, turn: next })
+  }
+
+  const createOnline = async () => {
+    if (!myIdRef.current) return
+    setOnlineErr(''); setOnline({ code: '', color: 'w', oppName: null, phase: 'creating' })
+    const code = await createRoom(supabase, 'checkers', myIdRef.current, myNameRef.current, initBoard(), 'w')
+    if (!code) { setOnlineErr(t('guest_unavailable', lang)); setOnline({ code: '', color: 'w', oppName: null, phase: 'menu' }); return }
+    resetState()
+    roomRef.current = { code, color: 'w' }   // host plays white, moves first
+    waitingRef.current = false
+    setOnline({ code, color: 'w', oppName: null, phase: 'waiting' })
+  }
+
+  const joinOnline = async () => {
+    const code = joinCode.trim().toUpperCase()
+    if (code.length < 4 || !myIdRef.current) return
+    setOnlineErr(''); setOnline({ code, color: 'b', oppName: null, phase: 'joining' })
+    const room = await joinRoom(supabase, code, myIdRef.current, myNameRef.current)
+    if (!room) { setOnlineErr(t('checkers_join_fail', lang)); setOnline({ code: '', color: 'b', oppName: null, phase: 'menu' }); return }
+    roomRef.current = { code, color: 'b' }   // guest plays black
+    waitingRef.current = true                // host (white) moves first
+    savedRef.current = false
+    setBoard((room.state as Board) ?? initBoard())
+    setTurn((room.turn as Color) || 'w'); setSel(null); setDests([]); setChain([])
+    setWinner((room.winner as Color) ?? null)
+    setOnline({ code, color: 'b', oppName: room.host_name, phase: 'playing' })
+  }
+
+  // Subscribe to room updates: opponent joining + their moves.
+  useEffect(() => {
+    if (mode !== 'online' || !online?.code) return
+    const unsub = subscribeRoom(supabase, online.code, (room: RoomRow) => {
+      const me = roomRef.current
+      if (!me) return
+      // Guest joined → host starts playing
+      if (room.guest_id && online.phase === 'waiting') {
+        setOnline(o => (o ? { ...o, oppName: room.guest_name, phase: 'playing' } : o))
+      }
+      if (room.winner) { setBoard(room.state as Board); setWinner(room.winner as Color); return }
+      // Opponent handed the turn back to me — apply their position
+      if (waitingRef.current && room.turn === me.color) {
+        setBoard(room.state as Board)
+        setTurn(room.turn as Color)
+        setSel(null); setDests([]); setChain([])
+        waitingRef.current = false
+      }
+    })
+    return unsub
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, online?.code, online?.phase])
 
   const selectPiece = (r: number, c: number) => {
     if (mustCapture) {
@@ -352,10 +439,12 @@ export default function CheckersPage() {
       for (const [cr, cc] of newChain) final[cr][cc] = null
       setBoard(final); setChain([]); setSel(null); setDests([])
       setTurn(next)
+      onlinePush(final, next)
     } else {
       const nb = applyMove(board, move)
       setBoard(nb); setSel(null); setDests([])
       setTurn(next)
+      onlinePush(nb, next)
     }
   }
 
@@ -370,15 +459,19 @@ export default function CheckersPage() {
   const chainSet = new Set(chain.map(([r, c]) => key(r, c)))
 
   const winText = (w: Color) =>
-    mode === 'local'
-      ? (w === 'w' ? t('checkers_white_win', lang) : t('checkers_black_win', lang))
-      : (w === 'w' ? t('checkers_you_win', lang) : t('checkers_you_lose', lang))
+    mode === 'online'
+      ? (w === online?.color ? t('checkers_you_win_o', lang) : t('checkers_you_lose_o', lang))
+      : mode === 'local'
+        ? (w === 'w' ? t('checkers_white_win', lang) : t('checkers_black_win', lang))
+        : (w === 'w' ? t('checkers_you_win', lang) : t('checkers_you_lose', lang))
 
   const status =
     winner ? winText(winner) :
-    mode === 'local'
-      ? (turn === 'w' ? t('checkers_white_turn', lang) : t('checkers_black_turn', lang))
-      : (turn === 'w' ? t('checkers_your_turn', lang) : t('checkers_ai_turn', lang))
+    mode === 'online'
+      ? (turn === online?.color ? t('checkers_your_turn', lang) : t('checkers_opp_turn', lang))
+      : mode === 'local'
+        ? (turn === 'w' ? t('checkers_white_turn', lang) : t('checkers_black_turn', lang))
+        : (turn === 'w' ? t('checkers_your_turn', lang) : t('checkers_ai_turn', lang))
 
   // ── Mode-selection menu ──
   if (mode === null) {
@@ -440,6 +533,20 @@ export default function CheckersPage() {
               <ChevronRight size={20} className="text-muted-foreground shrink-0" />
             </button>
 
+            {/* online 1v1 */}
+            <button onClick={() => { playTap(); setOnlineErr(''); setJoinCode(''); setMode('online'); setOnline({ code: '', color: 'w', oppName: null, phase: 'menu' }) }}
+              className="w-full bg-card border-2 border-border rounded-[var(--radius-lg)] px-4 py-4 flex items-center gap-3.5 text-left shadow-[var(--shadow-sm)] active:scale-[0.98] transition-transform">
+              <span className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: 'color-mix(in oklch, var(--success) 18%, transparent)', color: 'var(--success)' }}>
+                <Globe size={22} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-black text-foreground text-[15px]">{t('checkers_online', lang)}</p>
+                <p className="text-muted-foreground text-xs truncate">{t('checkers_online_sub', lang)}</p>
+              </div>
+              <ChevronRight size={20} className="text-muted-foreground shrink-0" />
+            </button>
+
             {/* puzzles */}
             <button onClick={() => { playTap(); setMode('puzzles') }}
               className="w-full bg-card border-2 border-border rounded-[var(--radius-lg)] px-4 py-4 flex items-center gap-3.5 text-left shadow-[var(--shadow-sm)] active:scale-[0.98] transition-transform">
@@ -491,11 +598,76 @@ export default function CheckersPage() {
     )
   }
 
+  // ── Online lobby (create / join / waiting) ──
+  if (mode === 'online' && online && online.phase !== 'playing') {
+    const leave = () => { roomRef.current = null; waitingRef.current = false; setOnline(null); setMode(null); resetState() }
+    const busy = online.phase === 'creating' || online.phase === 'joining'
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center px-5 py-6">
+        <div className="w-full max-w-md flex items-center gap-3 mb-2">
+          <button onClick={leave} aria-label={t('game_back', lang)}
+            className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground active:scale-90 transition-transform">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-lg font-display font-black text-foreground">{t('checkers_online', lang)}</h1>
+        </div>
+
+        <div className="flex-1 w-full max-w-md flex flex-col items-center justify-center gap-5">
+          <div className="w-20 h-20 rounded-[24px] flex items-center justify-center shadow-[var(--shadow-md)]"
+            style={{ background: 'var(--gradient-hero)', color: 'white' }}>
+            <Globe size={38} />
+          </div>
+
+          {online.phase === 'waiting' ? (
+            <>
+              <p className="text-muted-foreground text-sm">{t('checkers_share_code', lang)}</p>
+              <button onClick={() => { navigator.clipboard?.writeText(online.code).catch(() => {}); playTap() }}
+                className="flex items-center gap-3 bg-card border-2 border-border rounded-[var(--radius-lg)] px-6 py-4 shadow-[var(--shadow-sm)] active:scale-95 transition-transform">
+                <span className="text-4xl font-display font-black tracking-[0.2em] text-foreground">{online.code}</span>
+                <Copy size={20} className="text-muted-foreground" />
+              </button>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="w-4 h-4 border-2 border-muted-foreground/40 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm font-semibold">{t('checkers_waiting', lang)}</span>
+              </div>
+            </>
+          ) : busy ? (
+            <span className="w-8 h-8 border-4 border-muted border-t-foreground rounded-full animate-spin" />
+          ) : (
+            <div className="w-full flex flex-col gap-3">
+              <button onClick={createOnline}
+                className="w-full py-4 rounded-[var(--radius-lg)] text-white font-display font-black text-base active:scale-[0.98] transition-transform shadow-[var(--shadow-sm)]"
+                style={{ background: 'var(--gradient-hero)' }}>
+                {t('checkers_create', lang)}
+              </button>
+              <div className="flex items-center gap-3 my-1">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground font-bold">{t('checkers_join', lang)}</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+              <div className="flex gap-2">
+                <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
+                  placeholder={t('checkers_enter_code', lang)} maxLength={4}
+                  className="flex-1 bg-card border-2 border-border rounded-[var(--radius)] px-4 py-3 text-center text-2xl font-display font-black tracking-[0.2em] text-foreground outline-none uppercase" />
+                <button onClick={joinOnline} disabled={joinCode.trim().length < 4}
+                  className="px-5 rounded-[var(--radius)] text-white font-display font-black active:scale-95 transition-transform disabled:opacity-40"
+                  style={{ background: 'var(--primary)' }}>
+                  {t('checkers_join', lang)}
+                </button>
+              </div>
+              {onlineErr && <p className="text-sm text-center font-semibold" style={{ color: 'var(--destructive)' }}>{onlineErr}</p>}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-5" style={{ background: '#312E2B' }}>
       {/* Header */}
       <div className="w-full max-w-md flex items-center gap-3 mb-3">
-        <button onClick={() => { resetState(); setMode(null) }}
+        <button onClick={() => { resetState(); setMode(null); setOnline(null) }}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">✕</button>
         <div className="flex-1">
           <h1 className="text-lg font-black text-white leading-tight">{t('checkers_title', lang)}</h1>
@@ -597,18 +769,22 @@ export default function CheckersPage() {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4"
             style={{ background: 'rgba(20,16,12,0.86)' }}>
             <div className="text-5xl">
-              {mode === 'local' ? (winner === 'w' ? '⚪' : '⚫') : (winner === 'w' ? '🏆' : '🤖')}
+              {mode === 'online' ? (winner === online?.color ? '🏆' : '😔')
+                : mode === 'local' ? (winner === 'w' ? '⚪' : '⚫')
+                : (winner === 'w' ? '🏆' : '🤖')}
             </div>
             <h2 className="text-2xl font-black text-white text-center px-6">
               {winText(winner)}
             </h2>
-            {winner === 'w' && mode === 'ai' && <p className="text-amber-300 font-bold">+30 XP</p>}
+            {((mode === 'ai' && winner === 'w') || (mode === 'online' && winner === online?.color)) && (
+              <p className="text-amber-300 font-bold">+30 XP</p>
+            )}
             <div className="flex gap-3">
               <button onClick={() => router.push('/')}
                 className="px-6 py-3 rounded-2xl bg-white/15 text-white font-bold active:scale-95">
                 {t('game_home', lang)}
               </button>
-              <button onClick={restart}
+              <button onClick={() => { if (mode === 'online') { roomRef.current = null; setOnline(null); setMode(null); resetState() } else restart() }}
                 className="px-6 py-3 rounded-2xl bg-amber-400 text-gray-900 font-black active:scale-95">
                 {t('game_again', lang)}
               </button>
