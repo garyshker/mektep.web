@@ -228,6 +228,9 @@ export const I18N = {
   column_sub_intro:   { ru: 'Вычитаем столбиком! Не хватает единиц — занимаем десяток. 🦉', kk: 'Бағанмен азайтамыз! Бірлік жетпесе — ондық аламыз. 🦉', en: "Let's subtract in a column! Short on ones? Borrow a ten. 🦉" },
   column_check:       { ru: 'Проверить',                  kk: 'Тексеру',                    en: 'Check' },
   column_skip:        { ru: 'Пропустить пример',          kk: 'Мысалды өткізу',             en: 'Skip this one' },
+  round_done_title:   { ru: 'Раунд пройден!',             kk: 'Раунд бітті!',               en: 'Round complete!' },
+  round_continue:     { ru: 'Ещё 10',                     kk: 'Тағы 10',                    en: '10 more' },
+  round_enough:       { ru: 'Хватит',                     kk: 'Болды',                      en: 'Done' },
   column_oops:        { ru: 'Почти! Проверь ещё раз. 🦉', kk: 'Дерлік! Тағы тексер. 🦉',    en: 'Almost! Check again. 🦉' },
   sova_thinking:      { ru: 'Сова думает…',               kk: 'Үкі ойлануда…',              en: 'Owl is thinking…' },
 
