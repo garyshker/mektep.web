@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  /* core — soft lavender app surface, near-black ink */
-  --background: oklch(0.93 0.02 292);
-  --foreground: oklch(0.18 0.02 260);
+  /* core — clean sky-tinted white surface, blue ink */
+  --background: oklch(0.975 0.006 220);
+  --foreground: oklch(0.20 0.025 240);
   --card: oklch(1 0 0);
-  --border: oklch(0.92 0.01 95);
-  --muted: oklch(0.96 0.008 95);
-  --muted-foreground: oklch(0.52 0.015 260);
+  --border: oklch(0.91 0.008 225);
+  --muted: oklch(0.95 0.01 225);
+  --muted-foreground: oklch(0.50 0.02 235);
 
-  /* brand — kazakh blue (flag) + steppe gold, green kept (hybrid) */
-  --primary: oklch(0.62 0.18 240);
+  /* brand — kazakh flag turquoise-blue + steppe gold (green dropped from brand) */
+  --primary: oklch(0.66 0.13 220);
   --primary-foreground: oklch(1 0 0);
-  --primary-glow: oklch(0.72 0.16 230);
-  --primary-deep: oklch(0.42 0.16 245);        /* pop-shadow for blue */
+  --primary-glow: oklch(0.78 0.11 208);
+  --primary-deep: oklch(0.46 0.12 224);        /* pop-shadow for blue */
 
-  --accent: oklch(0.78 0.16 85);
-  --accent-foreground: oklch(0.18 0.02 260);
-  --accent-deep: oklch(0.60 0.16 70);
+  --accent: oklch(0.80 0.15 85);
+  --accent-foreground: oklch(0.20 0.025 240);
+  --accent-deep: oklch(0.62 0.16 70);
 
-  --brand: oklch(0.72 0.19 145);               /* current green identity */
+  --brand: oklch(0.68 0.12 205);               /* teal accent (de-greened) */
   --brand-foreground: oklch(1 0 0);
-  --brand-deep: oklch(0.55 0.17 145);
+  --brand-deep: oklch(0.46 0.13 222);          /* deep blue — CTA pop-shadow */
 
   --success: oklch(0.68 0.18 145);
   --success-foreground: oklch(1 0 0);
@@ -31,15 +31,15 @@
   --xp: oklch(0.74 0.17 85);
 
   /* gradients */
-  --gradient-hero: linear-gradient(135deg, oklch(0.62 0.18 240), oklch(0.72 0.16 200));
+  --gradient-hero: linear-gradient(135deg, oklch(0.66 0.13 220), oklch(0.74 0.12 205));
   --gradient-gold: linear-gradient(135deg, oklch(0.82 0.16 85), oklch(0.74 0.18 70));
-  --gradient-success: linear-gradient(135deg, oklch(0.72 0.18 150), oklch(0.65 0.18 140));
+  --gradient-success: linear-gradient(135deg, oklch(0.63 0.15 222), oklch(0.55 0.15 236));
 
   /* shadows — soft, plus duolingo-style pop */
   --shadow-sm: 0 1px 2px oklch(0.18 0.02 260 / 0.04);
   --shadow-md: 0 4px 12px oklch(0.18 0.02 260 / 0.06);
   --shadow-pop: 0 4px 0 oklch(0.18 0.02 260 / 0.14);
-  --shadow-glow: 0 0 32px oklch(0.62 0.18 240 / 0.35);
+  --shadow-glow: 0 0 32px oklch(0.66 0.13 220 / 0.35);
 
   /* radii */
   --radius-sm: 12px;
