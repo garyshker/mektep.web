@@ -7,6 +7,7 @@ import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t, type I18NKey } from '@/lib/i18n'
 import { NumberLineSolver } from '@/components/NumberLineSolver'
+import { useRound, RoundDots, RoundMilestone } from '@/components/round'
 import { pickSkill, updateStat, type SkillStat, type TaggedOption } from '@/lib/skills'
 import type { ByLang } from '@/lib/lessons/types'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -52,6 +53,16 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
     setCur({ skill, a, b, options: config.options(a, b) })
     setPicked(null); setShowHelp(false)
   }
+
+  // Save XP in chunks (per finished round) so quitting after a milestone never loses it.
+  const bankXp = async (n: number) => {
+    if (n <= 0 || !userIdRef.current) return
+    const { data } = await supabase.from('profiles').select('xp').eq('id', userIdRef.current).single()
+    await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + n }).eq('id', userIdRef.current)
+  }
+  const rnd = useRound(bankXp)
+  // A problem just concluded (answered or skipped): total is counted in pick(); advance or milestone.
+  const finishProblem = (wasCorrect: boolean) => rnd.conclude(wasCorrect, nextProblem)
 
   useEffect(() => {
     const init = async () => {
@@ -106,7 +117,7 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
       setCorrect(c => c + 1)
       setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
       playCorrect()
-      setTimeout(nextProblem, 650)
+      setTimeout(() => finishProblem(true), 650)
     } else {
       setStreak(0)
       playWrong()
@@ -114,15 +125,14 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
     }
   }
 
-  const stop = async () => {
-    setEnded(true)
-    const xp = correct * 2
-    if (xp > 0 && userIdRef.current) {
-      const { data } = await supabase.from('profiles').select('xp').eq('id', userIdRef.current).single()
-      await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + xp }).eq('id', userIdRef.current)
-    }
+  const stop = () => { rnd.bankPartial(); setEnded(true) }
+  const restart = () => { setCorrect(0); setTotal(0); setStreak(0); setBest(0); setEnded(false); rnd.resetRound(); nextProblem() }
+
+  // ── Round milestone (every ROUND problems) ──
+  if (rnd.milestone) {
+    return <RoundMilestone lang={lang} roundCorrect={rnd.roundCorrect} streak={streak}
+      onContinue={() => rnd.continueRound(nextProblem)} onFinish={() => { rnd.setMilestone(false); setEnded(true) }} />
   }
-  const restart = () => { setCorrect(0); setTotal(0); setStreak(0); setBest(0); setEnded(false); nextProblem() }
 
   if (ended) {
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0
@@ -170,6 +180,9 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
       </header>
 
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4 max-w-md mx-auto w-full">
+        {/* Round progress — a visible finish line of ROUND dots */}
+        <RoundDots done={rnd.roundDone} />
+
         <MasteryPanel stats={stats} lang={lang} ladder={config.ladder} skillLabel={config.skillLabel} current={cur.skill} />
 
         {showHelp ? (
@@ -211,7 +224,7 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
         </div>
 
         {picked && cur.options.find(o => o.value === picked)?.tag !== 'correct' && (
-          <button onClick={nextProblem}
+          <button onClick={() => finishProblem(false)}
             className="pop-btn w-full font-display text-white font-black text-xl rounded-[var(--radius)] py-4 flex items-center justify-center gap-2"
             style={{ background: 'var(--primary)', ['--pop-shadow' as string]: 'var(--primary-deep)' } as CSSProperties}>
             {t('next', lang)} <ArrowRight size={20} />

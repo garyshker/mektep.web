@@ -18,6 +18,7 @@ import { t, type Lang, type I18NKey } from '@/lib/i18n'
 import { genAddition, diagnoseAddition, genSubtraction, diagnoseSubtraction } from '@/lib/skills'
 import { logAdditionAttempt, logSubtractionAttempt } from '@/lib/mastery'
 import { askCoach } from '@/lib/tutor-client'
+import { useRound, RoundDots, RoundMilestone } from '@/components/round'
 import { X, Flame, Square } from 'lucide-react'
 
 type Op = 'add' | 'sub'
@@ -69,9 +70,6 @@ const PRAISE: Record<Lang, string[]> = {
 const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)]
 const digits = (v: string, n: number) => v.replace(/\D/g, '').slice(-n)
 
-// Kids tire of an endless drill — give them a visible finish line and a win every 10.
-const ROUND = 10
-
 export function ColumnMath({ op = 'add' }: { op?: Op }) {
   const router = useRouter()
   const supabase = createClient()
@@ -93,9 +91,6 @@ export function ColumnMath({ op = 'add' }: { op?: Op }) {
   const [streak, setStreak] = useState(0)
   const [best, setBest] = useState(0)
   const [ended, setEnded] = useState(false)
-  const [roundDone, setRoundDone] = useState(0)    // problems finished this round (0..ROUND)
-  const [roundCorrect, setRoundCorrect] = useState(0)
-  const [milestone, setMilestone] = useState(false) // showing the per-round celebration
 
   const onesRef = useRef<HTMLInputElement>(null)
   const tensRef = useRef<HTMLInputElement>(null)
@@ -117,6 +112,7 @@ export function ColumnMath({ op = 'add' }: { op?: Op }) {
     const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
     await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + n }).eq('id', user.id)
   }
+  const rnd = useRound(bankXp)
 
   const next = () => {
     setStatus('idle'); setOnes(''); setTens(''); setCarry(''); setBorrow('')
@@ -125,17 +121,8 @@ export function ColumnMath({ op = 'add' }: { op?: Op }) {
     setTimeout(() => onesRef.current?.focus(), 60)
   }
 
-  // A problem just concluded (solved or skipped). Advance, or surface the round
-  // milestone every ROUND problems — banking that round's XP right away.
-  const conclude = (wasCorrect: boolean) => {
-    const done = roundDone + 1
-    const roundC = roundCorrect + (wasCorrect ? 1 : 0)
-    setTotal(n => n + 1)
-    setRoundDone(done)
-    if (wasCorrect) setRoundCorrect(roundC)
-    if (done >= ROUND) { bankXp(roundC * 2); setMilestone(true) }
-    else next()
-  }
+  // A problem just concluded (solved or skipped): count it, then advance or hit a milestone.
+  const finishProblem = (wasCorrect: boolean) => { setTotal(n => n + 1); rnd.conclude(wasCorrect, next) }
 
   const check = async () => {
     if (status === 'right' || busy || !prob || !ones) return
@@ -149,7 +136,7 @@ export function ColumnMath({ op = 'add' }: { op?: Op }) {
       setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
       setSova(pick(PRAISE[lang] ?? PRAISE.ru))
       playCorrect()
-      setTimeout(() => conclude(true), 1000)
+      setTimeout(() => finishProblem(true), 1000)
     } else {
       setStatus('wrong'); setStreak(0); playWrong()
       const tag = cfg.diagnose(prob.a, prob.b, typed) ?? undefined
@@ -168,42 +155,17 @@ export function ColumnMath({ op = 'add' }: { op?: Op }) {
     }
   }
 
-  // Stop mid-round: bank just the current unfinished round (completed rounds were
-  // already banked at their milestones).
-  const stop = () => { bankXp(roundCorrect * 2); setEnded(true) }
-  // Finish from a milestone: that round's XP is already banked, so just end.
-  const finish = () => { setMilestone(false); setEnded(true) }
-  const continueRound = () => { setMilestone(false); setRoundDone(0); setRoundCorrect(0); next() }
+  const stop = () => { rnd.bankPartial(); setEnded(true) }
   const restart = () => {
     setCorrect(0); setTotal(0); setStreak(0); setBest(0); setEnded(false)
-    setRoundDone(0); setRoundCorrect(0); setMilestone(false)
+    rnd.resetRound()
     next()
   }
 
   // ── Round milestone (every ROUND problems) ──
-  if (milestone) {
-    const pct = Math.round((roundCorrect / ROUND) * 100)
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: 'var(--background)' }}>
-        <div className="text-6xl mb-4 animate-mk-pop-in">{roundCorrect >= 9 ? '🏆' : roundCorrect >= 7 ? '🎉' : '💪'}</div>
-        <h2 className="text-2xl font-display font-black text-foreground mb-1">{t('round_done_title', lang)}</h2>
-        <p className="text-muted-foreground mb-1 tabular">{roundCorrect} / {ROUND} · {pct}%</p>
-        <p className="font-black tabular mb-1" style={{ color: 'var(--warning)' }}>🔥 {streak}</p>
-        <p className="font-black text-xl mb-10 tabular" style={{ color: 'var(--primary)' }}>+{roundCorrect * 2} XP</p>
-        <div className="flex gap-3 w-full max-w-xs">
-          <button onClick={finish}
-            className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] font-display font-black"
-            style={{ background: 'var(--card)', color: 'var(--foreground)', ['--pop-shadow' as string]: 'var(--border)' } as CSSProperties}>
-            {t('round_enough', lang)}
-          </button>
-          <button onClick={continueRound}
-            className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] text-white font-display font-black"
-            style={{ background: 'var(--gradient-hero)', ['--pop-shadow' as string]: 'var(--primary-deep)' } as CSSProperties}>
-            {t('round_continue', lang)}
-          </button>
-        </div>
-      </div>
-    )
+  if (rnd.milestone) {
+    return <RoundMilestone lang={lang} roundCorrect={rnd.roundCorrect} streak={streak}
+      onContinue={() => rnd.continueRound(next)} onFinish={() => { rnd.setMilestone(false); setEnded(true) }} />
   }
 
   // ── Ended summary ──
@@ -270,12 +232,7 @@ export function ColumnMath({ op = 'add' }: { op?: Op }) {
 
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4 max-w-md mx-auto w-full">
         {/* Round progress — a visible finish line of ROUND dots */}
-        <div className="flex justify-center gap-1.5">
-          {Array.from({ length: ROUND }).map((_, i) => (
-            <span key={i} className="w-2.5 h-2.5 rounded-full transition-colors"
-              style={{ background: i < roundDone ? 'var(--success)' : 'color-mix(in oklch, var(--foreground) 14%, var(--card))' }} />
-          ))}
-        </div>
+        <RoundDots done={rnd.roundDone} />
 
         {/* Сова speech bubble */}
         <div className="flex items-start gap-2.5">
@@ -356,7 +313,7 @@ export function ColumnMath({ op = 'add' }: { op?: Op }) {
               {t('column_check', lang)}
             </button>
             {attempt >= 3 && status === 'wrong' && (
-              <button onClick={() => conclude(false)}
+              <button onClick={() => finishProblem(false)}
                 className="mx-auto text-xs font-display font-black px-4 py-2 rounded-full active:scale-95 transition-transform"
                 style={{ color: 'var(--muted-foreground)' }}>
                 {t('column_skip', lang)} →

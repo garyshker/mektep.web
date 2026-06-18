@@ -8,6 +8,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { genEquation, genEquationExample, type EqProblem } from '@/lib/trainers'
 import { EquationSolver } from '@/components/EquationSolver'
+import { useRound, RoundDots, RoundMilestone } from '@/components/round'
 import { X, Flame, Square, ArrowRight, Lightbulb, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
@@ -31,6 +32,19 @@ export default function EquationTrainer() {
 
   const next = () => { setStatus('idle'); setInput(''); setExample(null); setPk(k => k + 1); setProblem(genEquation()) }
 
+  // Save XP in chunks (per finished round) so quitting after a milestone never loses it.
+  const bankXp = async (n: number) => {
+    if (n <= 0) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
+    await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + n }).eq('id', user.id)
+  }
+  const rnd = useRound(bankXp)
+
+  // A problem just concluded (solved or skipped): count it, then advance or hit a milestone.
+  const finishProblem = (wasCorrect: boolean) => { setTotal(n => n + 1); rnd.conclude(wasCorrect, next) }
+
   const toggleHow = () => {
     playTap()
     setExample(ex => (ex ? null : problem ? genEquationExample(problem) : null))
@@ -39,31 +53,27 @@ export default function EquationTrainer() {
   const check = () => {
     if (status !== 'idle' || !problem || !input.trim()) return
     playTap()
-    setTotal(n => n + 1)
     if (input.trim() === String(problem.answer)) {
       setStatus('right'); setCorrect(c => c + 1)
       setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
       playCorrect()
-      setTimeout(next, 850)
+      setTimeout(() => finishProblem(true), 850)
     } else {
       setStatus('wrong'); setStreak(0); playWrong()
     }
   }
 
-  const stop = async () => {
-    setEnded(true)
-    const xp = correct * 2
-    if (xp > 0) {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
-        await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + xp }).eq('id', user.id)
-      }
-    }
-  }
+  const stop = () => { rnd.bankPartial(); setEnded(true) }
   const restart = () => {
     setCorrect(0); setTotal(0); setStreak(0); setBest(0); setEnded(false)
+    rnd.resetRound()
     setStatus('idle'); setInput(''); setExample(null); setPk(k => k + 1); setProblem(genEquation())
+  }
+
+  // ── Round milestone (every ROUND problems) ──
+  if (rnd.milestone) {
+    return <RoundMilestone lang={lang} roundCorrect={rnd.roundCorrect} streak={streak}
+      onContinue={() => rnd.continueRound(next)} onFinish={() => { rnd.setMilestone(false); setEnded(true) }} />
   }
 
   // ── Ended summary ──
@@ -118,6 +128,9 @@ export default function EquationTrainer() {
       </header>
 
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4 max-w-md mx-auto w-full">
+        {/* Round progress — a visible finish line of ROUND dots */}
+        <RoundDots done={rnd.roundDone} />
+
         {/* Equation / solver */}
         <div className="bg-card rounded-3xl px-5 py-6 shadow-[var(--shadow-md)]">
           {status === 'wrong' ? (
@@ -189,7 +202,7 @@ export default function EquationTrainer() {
               <p className="text-center font-semibold text-foreground">
                 {t('correct_answer', lang)} <span className="font-black" style={{ color: 'var(--success)' }}>x = {problem.answer}</span>
               </p>
-              <button onClick={next}
+              <button onClick={() => finishProblem(false)}
                 className="pop-btn w-full font-display text-white font-black text-xl rounded-[var(--radius)] py-4 flex items-center justify-center gap-2"
                 style={{ background: 'var(--primary)', ['--pop-shadow' as string]: 'var(--primary-deep)' } as CSSProperties}>
                 {t('next', lang)} <ArrowRight size={20} />
