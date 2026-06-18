@@ -43,22 +43,27 @@ export default function TrainPage() {
           </button>
         ))}
 
-        {/* Column addition — Сова-coached, carry over ten */}
-        <button onClick={() => router.push('/train/column')}
-          className="col-span-2 rounded-[var(--radius)] p-4 flex items-center gap-4 text-left border-2 active:translate-y-[-2px] transition-transform"
-          style={{ background: 'color-mix(in oklch, var(--warning) 10%, var(--card))', borderColor: 'color-mix(in oklch, var(--warning) 30%, var(--card))' }}>
-          <span className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0"
-            style={{ background: 'color-mix(in oklch, var(--warning) 20%, transparent)' }}>🦉</span>
-          <div className="flex-1 min-w-0">
-            <p className="font-display font-black text-foreground text-base">{t('column_title', lang)}</p>
-            <p className="text-muted-foreground text-xs flex items-center gap-1">
-              <InfinityIcon size={12} /> {t('column_subtitle', lang)}
-            </p>
-          </div>
-          <span className="text-xs font-black flex items-center gap-0.5 shrink-0" style={{ color: 'var(--warning)' }}>
-            {t('game_go', lang)} <ChevronRight size={14} />
-          </span>
-        </button>
+        {/* Column add / subtract — Сова-coached, carry & borrow */}
+        {([
+          { path: '/train/column',     title: 'column_add_title' as const, sub: 'column_subtitle' as const },
+          { path: '/train/column-sub', title: 'column_sub_title' as const, sub: 'column_sub_subtitle' as const },
+        ]).map(c => (
+          <button key={c.path} onClick={() => router.push(c.path)}
+            className="rounded-[var(--radius)] p-4 flex flex-col gap-2 text-left border-2 active:translate-y-[-2px] transition-transform"
+            style={{ background: 'color-mix(in oklch, var(--warning) 10%, var(--card))', borderColor: 'color-mix(in oklch, var(--warning) 30%, var(--card))' }}>
+            <span className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl"
+              style={{ background: 'color-mix(in oklch, var(--warning) 20%, transparent)' }}>🦉</span>
+            <div>
+              <p className="font-display font-black text-foreground text-sm">{t(c.title, lang)}</p>
+              <p className="text-muted-foreground text-[11px] flex items-center gap-1">
+                <InfinityIcon size={12} /> {t(c.sub, lang)}
+              </p>
+            </div>
+            <span className="text-[11px] font-black flex items-center gap-0.5 self-start" style={{ color: 'var(--warning)' }}>
+              {t('game_go', lang)} <ChevronRight size={13} />
+            </span>
+          </button>
+        ))}
 
         {/* Equations — its own page with the animated solver */}
         <button onClick={() => router.push('/train/equations')}

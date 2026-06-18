@@ -1,5 +1,5 @@
 import { ColumnMath } from '@/components/ColumnMath'
 
-export default function ColumnPage() {
-  return <ColumnMath />
+export default function ColumnAddPage() {
+  return <ColumnMath op="add" />
 }

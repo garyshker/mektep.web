@@ -219,10 +219,13 @@ export const I18N = {
   train_best:         { ru: 'Лучшая серия',               kk: 'Үздік серия',                en: 'Best streak' },
   train_stop:         { ru: 'Стоп',                       kk: 'Тоқта',                      en: 'Stop' },
 
-  // Column addition (Сова coach)
-  column_title:       { ru: 'Столбиком',                  kk: 'Бағанмен',                   en: 'Column math' },
+  // Column add / subtract (Сова coach)
+  column_add_title:   { ru: 'Сложение столбиком',         kk: 'Бағанмен қосу',              en: 'Column addition' },
+  column_sub_title:   { ru: 'Вычитание столбиком',        kk: 'Бағанмен азайту',            en: 'Column subtraction' },
   column_subtitle:    { ru: 'Переход через десяток с Совой', kk: 'Совамен ондыққа ауысу',   en: 'Carry-over with Owl' },
+  column_sub_subtitle:{ ru: 'Занимание десятка с Совой',  kk: 'Совамен ондық алу',          en: 'Borrowing with Owl' },
   column_intro:       { ru: 'Сложим столбиком! Сначала единицы. 🦉', kk: 'Бағанмен қосайық! Алдымен бірліктер. 🦉', en: "Let's add in a column! Ones first. 🦉" },
+  column_sub_intro:   { ru: 'Вычитаем столбиком! Не хватает единиц — занимаем десяток. 🦉', kk: 'Бағанмен азайтамыз! Бірлік жетпесе — ондық аламыз. 🦉', en: "Let's subtract in a column! Short on ones? Borrow a ten. 🦉" },
   column_check:       { ru: 'Проверить',                  kk: 'Тексеру',                    en: 'Check' },
   column_skip:        { ru: 'Пропустить пример',          kk: 'Мысалды өткізу',             en: 'Skip this one' },
   column_oops:        { ru: 'Почти! Проверь ещё раз. 🦉', kk: 'Дерлік! Тағы тексер. 🦉',    en: 'Almost! Check again. 🦉' },

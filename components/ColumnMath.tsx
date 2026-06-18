@@ -1,10 +1,12 @@
 'use client'
 
-// ColumnMath — the first Сова-coached mini-game (task type #1: column addition
-// with carry over ten). Code owns the truth: genAddition('add_2d_carry') builds
-// the problem, diagnoseAddition classifies the slip, logAdditionAttempt feeds the
-// SRS. Сова (the LLM) owns only the *voice* — a short Socratic hint on a wrong
-// answer, never the number. Correct answers get instant static praise (no round-trip).
+// ColumnMath — Сова-coached column arithmetic. One component, two operations:
+//   • op="add" → addition with carry over ten   (genAddition 'add_2d_carry')
+//   • op="sub" → subtraction with borrowing      (genSubtraction 'sub_2d_borrow')
+//
+// Code owns the truth: the generators build the problem, diagnose*() classifies
+// the slip, log*Attempt feeds the SRS. Сова (the LLM) only voices a Socratic hint
+// on a wrong answer — never the number. Correct answers get instant static praise.
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -12,30 +14,72 @@ import type { CSSProperties } from 'react'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
-import { t, type Lang } from '@/lib/i18n'
-import { genAddition, diagnoseAddition } from '@/lib/skills'
-import { logAdditionAttempt } from '@/lib/mastery'
+import { t, type Lang, type I18NKey } from '@/lib/i18n'
+import { genAddition, diagnoseAddition, genSubtraction, diagnoseSubtraction } from '@/lib/skills'
+import { logAdditionAttempt, logSubtractionAttempt } from '@/lib/mastery'
 import { askCoach } from '@/lib/tutor-client'
 import { X, Flame, Square } from 'lucide-react'
 
+type Op = 'add' | 'sub'
+type SB = ReturnType<typeof createClient>
+
+interface OpCfg {
+  gen: () => { a: number; b: number }
+  answer: (a: number, b: number) => number
+  diagnose: (a: number, b: number, typed: number) => string | null
+  log: (sb: SB, a: number, b: number, answered: number) => void
+  sign: string
+  topic: string
+  titleKey: I18NKey
+  subtitleKey: I18NKey
+  introKey: I18NKey
+}
+
+const CFG: Record<Op, OpCfg> = {
+  add: {
+    gen: () => genAddition('add_2d_carry'),
+    answer: (a, b) => a + b,
+    diagnose: diagnoseAddition,
+    log: logAdditionAttempt,
+    sign: '+',
+    topic: 'column_addition_transition',
+    titleKey: 'column_add_title',
+    subtitleKey: 'column_subtitle',
+    introKey: 'column_intro',
+  },
+  sub: {
+    gen: () => genSubtraction('sub_2d_borrow'),
+    answer: (a, b) => a - b,
+    diagnose: diagnoseSubtraction,
+    log: logSubtractionAttempt,
+    sign: '−',
+    topic: 'column_subtraction_borrow',
+    titleKey: 'column_sub_title',
+    subtitleKey: 'column_sub_subtitle',
+    introKey: 'column_sub_intro',
+  },
+}
+
 // Instant, free praise for a clean column — no LLM round-trip (mirrors lib/tutor.ts).
 const PRAISE: Record<Lang, string[]> = {
-  ru: ['Чисто решено! 🌟', 'Десяток-гость на месте! 🦉', 'Вот это столбик! 🚀', 'Точно в цель! 🎯'],
+  ru: ['Чисто решено! 🌟', 'Десяток на месте! 🦉', 'Вот это столбик! 🚀', 'Точно в цель! 🎯'],
   kk: ['Тап-таза! 🌟', 'Ондық орнында! 🦉', 'Міне, бағана! 🚀', 'Дөп тапты! 🎯'],
-  en: ['Clean solve! 🌟', 'Carried ten landed! 🦉', 'Great column! 🚀', 'Bullseye! 🎯'],
+  en: ['Clean solve! 🌟', 'Ten landed right! 🦉', 'Great column! 🚀', 'Bullseye! 🎯'],
 }
 const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)]
-const onlyDigit = (v: string) => v.replace(/\D/g, '').slice(-1)
+const digits = (v: string, n: number) => v.replace(/\D/g, '').slice(-n)
 
-export function ColumnMath() {
+export function ColumnMath({ op = 'add' }: { op?: Op }) {
   const router = useRouter()
   const supabase = createClient()
   const lang = useLang()
+  const cfg = CFG[op]
 
   const [prob, setProb] = useState<{ a: number; b: number } | null>(null)
   const [ones, setOnes] = useState('')
   const [tens, setTens] = useState('')
-  const [carry, setCarry] = useState('')
+  const [carry, setCarry] = useState('')   // add: carried 1 · sub: reduced tens (scratch)
+  const [borrow, setBorrow] = useState('') // sub only: ones after borrowing, e.g. 13 (scratch)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
   const [attempt, setAttempt] = useState(1)        // per-problem, drives Сова's escalation
   const [counted, setCounted] = useState(false)    // this problem already added to `total`?
@@ -49,32 +93,33 @@ export function ColumnMath() {
   const [ended, setEnded] = useState(false)
 
   const onesRef = useRef<HTMLInputElement>(null)
-  const carryRef = useRef<HTMLInputElement>(null)
   const tensRef = useRef<HTMLInputElement>(null)
+  const carryRef = useRef<HTMLInputElement>(null)
 
   // Mount: build the first problem (client-only — Math.random would mismatch on SSR).
   // Re-runs only to refresh Сова's intro line if the language flips; never clobbers
   // a problem in progress.
   useEffect(() => {
-    setProb(p => p ?? genAddition('add_2d_carry'))
-    setSova(s => (s ? s : t('column_intro', lang)))
-  }, [lang])
+    setProb(p => p ?? cfg.gen())
+    setSova(s => (s ? s : t(cfg.introKey, lang)))
+  }, [lang, cfg])
 
   const next = () => {
-    setStatus('idle'); setOnes(''); setTens(''); setCarry('')
-    setAttempt(1); setCounted(false); setSova(t('column_intro', lang))
-    setProb(genAddition('add_2d_carry'))
+    setStatus('idle'); setOnes(''); setTens(''); setCarry(''); setBorrow('')
+    setAttempt(1); setCounted(false); setSova(t(cfg.introKey, lang))
+    setProb(cfg.gen())
     setTimeout(() => onesRef.current?.focus(), 60)
   }
 
   const check = async () => {
-    if (status === 'right' || busy || !prob || !ones || !tens) return
+    if (status === 'right' || busy || !prob || !ones) return
     playTap()
     if (!counted) { setTotal(n => n + 1); setCounted(true) }
     const typed = Number(tens) * 10 + Number(ones)
-    logAdditionAttempt(supabase, prob.a, prob.b, typed)   // fire-and-forget → SRS
+    const ans = cfg.answer(prob.a, prob.b)
+    cfg.log(supabase, prob.a, prob.b, typed)   // fire-and-forget → SRS
 
-    if (typed === prob.a + prob.b) {
+    if (typed === ans) {
       setStatus('right'); setCorrect(c => c + 1)
       setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
       setSova(pick(PRAISE[lang] ?? PRAISE.ru))
@@ -82,11 +127,11 @@ export function ColumnMath() {
       setTimeout(next, 1000)
     } else {
       setStatus('wrong'); setStreak(0); playWrong()
-      const tag = diagnoseAddition(prob.a, prob.b, typed) ?? undefined
+      const tag = cfg.diagnose(prob.a, prob.b, typed) ?? undefined
       setBusy(true)
       const line = await askCoach({
         lang,
-        task: { topic: 'column_addition_transition', question: `${prob.a} + ${prob.b}`, expected_answer: prob.a + prob.b },
+        task: { topic: cfg.topic, question: `${prob.a} ${cfg.sign} ${prob.b}`, expected_answer: ans },
         student_input: typed,
         attempt_number: Math.min(attempt, 3),
         error_tag: tag,
@@ -120,7 +165,7 @@ export function ColumnMath() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: 'var(--background)' }}>
         <div className="text-6xl mb-4 animate-mk-pop-in">{best >= 15 ? '🥇' : best >= 8 ? '🥈' : '🦉'}</div>
-        <h2 className="text-2xl font-display font-black text-foreground mb-1">🦉 {t('column_title', lang)}</h2>
+        <h2 className="text-2xl font-display font-black text-foreground mb-1">🦉 {t(cfg.titleKey, lang)}</h2>
         <p className="text-muted-foreground mb-1 tabular">{correct} / {total} · {pct}%</p>
         <p className="font-black tabular mb-1" style={{ color: 'var(--warning)' }}>🔥 {t('train_best', lang)}: {best}</p>
         <p className="font-black text-xl mb-10 tabular" style={{ color: 'var(--primary)' }}>+{correct * 2} XP</p>
@@ -151,7 +196,12 @@ export function ColumnMath() {
   const inAnim = status === 'right' ? 'animate-mk-pop' : status === 'wrong' ? 'animate-mk-shake' : ''
 
   const digitCell = 'w-16 h-16 flex items-center justify-center text-4xl font-display font-black tabular-nums text-foreground'
+  const resultBox = `w-16 h-16 rounded-2xl border-2 text-center text-4xl font-display font-black tabular-nums focus:outline-none transition-colors ${inAnim}`
+  const scratchStyle: CSSProperties = {
+    borderColor: 'color-mix(in oklch, var(--warning) 55%, var(--card))', color: 'var(--warning)', background: 'transparent',
+  }
   const clearWrong = () => { if (status === 'wrong') setStatus('idle') }
+  const canCheck = ones !== '' && (op === 'sub' || tens !== '')
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -161,8 +211,8 @@ export function ColumnMath() {
           className="w-9 h-9 rounded-full bg-card shadow-[var(--shadow-sm)] flex items-center justify-center text-muted-foreground shrink-0">
           <X size={18} />
         </button>
-        <div className="flex-1">
-          <h1 className="font-display font-black text-foreground text-base leading-tight">🦉 {t('column_title', lang)}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display font-black text-foreground text-base leading-tight truncate">🦉 {t(cfg.titleKey, lang)}</h1>
           <p className="text-xs text-muted-foreground tabular">{correct} / {total}</p>
         </div>
         <div className="flex items-center gap-1 rounded-full pl-1.5 pr-2.5 py-1" style={{ background: 'color-mix(in oklch, var(--warning) 16%, var(--card))' }}>
@@ -187,25 +237,34 @@ export function ColumnMath() {
         {/* Column */}
         <div className="bg-card rounded-3xl px-5 py-7 shadow-[var(--shadow-md)] flex justify-center">
           <div className="inline-grid items-center gap-x-1" style={{ gridTemplateColumns: '2.25rem 4rem 4rem' }}>
-            {/* carry row — small "guest ten" note above the tens column */}
+            {/* scratch row — carry (add) / borrow notes (sub). Optional helper, not graded. */}
             <div />
             <div className="flex justify-center">
               <input ref={carryRef} type="text" inputMode="numeric" value={carry}
-                onChange={e => { const v = onlyDigit(e.target.value); setCarry(v); clearWrong(); if (v) tensRef.current?.focus() }}
+                onChange={e => { const v = digits(e.target.value, 1); setCarry(v); clearWrong(); if (v && op === 'add') tensRef.current?.focus() }}
                 onKeyDown={e => e.key === 'Enter' && check()}
-                aria-label="carry"
+                aria-label={op === 'add' ? 'carry' : 'reduced tens'}
                 className="w-9 h-9 rounded-full border-2 border-dashed text-center text-lg font-display font-black tabular-nums focus:outline-none"
-                style={{ borderColor: 'color-mix(in oklch, var(--warning) 55%, var(--card))', color: 'var(--warning)', background: 'transparent' }} />
+                style={scratchStyle} />
             </div>
-            <div />
+            <div className="flex justify-center">
+              {op === 'sub' && (
+                <input type="text" inputMode="numeric" value={borrow}
+                  onChange={e => { setBorrow(digits(e.target.value, 2)); clearWrong() }}
+                  onKeyDown={e => e.key === 'Enter' && check()}
+                  aria-label="borrowed ones"
+                  className="w-12 h-9 rounded-2xl border-2 border-dashed text-center text-lg font-display font-black tabular-nums focus:outline-none"
+                  style={scratchStyle} />
+              )}
+            </div>
 
             {/* first operand */}
             <div />
             <div className={digitCell}>{aT}</div>
             <div className={digitCell}>{aO}</div>
 
-            {/* plus + second operand */}
-            <div className="flex items-center justify-center text-3xl font-display font-black" style={{ color: 'var(--accent)' }}>+</div>
+            {/* sign + second operand */}
+            <div className="flex items-center justify-center text-3xl font-display font-black" style={{ color: 'var(--accent)' }}>{cfg.sign}</div>
             <div className={digitCell}>{bT}</div>
             <div className={digitCell}>{bO}</div>
 
@@ -216,18 +275,18 @@ export function ColumnMath() {
             <div />
             <div className="flex justify-center">
               <input ref={tensRef} type="text" inputMode="numeric" value={tens}
-                onChange={e => { setTens(onlyDigit(e.target.value)); clearWrong() }}
+                onChange={e => { setTens(digits(e.target.value, 1)); clearWrong() }}
                 onKeyDown={e => e.key === 'Enter' && check()}
                 aria-label="tens"
-                className={`w-16 h-16 rounded-2xl border-2 text-center text-4xl font-display font-black tabular-nums focus:outline-none transition-colors ${inAnim}`}
+                className={resultBox}
                 style={{ borderColor: inBorder, background: inBg, color: 'var(--foreground)' }} />
             </div>
             <div className="flex justify-center">
               <input ref={onesRef} type="text" inputMode="numeric" value={ones}
-                onChange={e => { const v = onlyDigit(e.target.value); setOnes(v); clearWrong(); if (v) carryRef.current?.focus() }}
+                onChange={e => { const v = digits(e.target.value, 1); setOnes(v); clearWrong(); if (v) (op === 'add' ? carryRef : tensRef).current?.focus() }}
                 onKeyDown={e => e.key === 'Enter' && check()}
                 aria-label="ones" autoFocus
-                className={`w-16 h-16 rounded-2xl border-2 text-center text-4xl font-display font-black tabular-nums focus:outline-none transition-colors ${inAnim}`}
+                className={resultBox}
                 style={{ borderColor: inBorder, background: inBg, color: 'var(--foreground)' }} />
             </div>
           </div>
@@ -236,7 +295,7 @@ export function ColumnMath() {
         {/* Check + skip */}
         {status !== 'right' && (
           <div className="flex flex-col gap-3">
-            <button onClick={check} disabled={!ones || !tens || busy}
+            <button onClick={check} disabled={!canCheck || busy}
               className="pop-btn w-full font-display text-white font-black text-2xl rounded-[var(--radius)] py-4 disabled:opacity-50"
               style={{ background: 'var(--gradient-success)', ['--pop-shadow' as string]: 'var(--brand-deep)' } as CSSProperties}>
               {t('column_check', lang)}
