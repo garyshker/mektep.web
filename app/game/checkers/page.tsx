@@ -310,9 +310,9 @@ export default function CheckersPage() {
   const [chain, setChain] = useState<Pt[]>([])      // squares captured so far this turn (still shown, faded)
   const [winner, setWinner] = useState<Color | null>(null)
   const boardRef = useRef(board)
-  boardRef.current = board
+  useEffect(() => { boardRef.current = board }, [board])
   const levelRef = useRef(level)
-  levelRef.current = level
+  useEffect(() => { levelRef.current = level }, [level])
   const winnerRef = useRef<Color | null>(null)   // current winner, for callbacks (synced in an effect)
 
   // ── Online 1v1 state ──

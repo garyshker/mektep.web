@@ -104,7 +104,7 @@ function reviewDelayMs(streak: number): number {
   return REVIEW_DAYS[idx] * 86_400_000
 }
 
-export function updateStat(prev: SkillStat | undefined, correct: boolean, errorTag: string | undefined, nowMs: number): SkillStat {
+export function updateStat(prev: SkillStat | undefined, correct: boolean, errorTag: string | undefined, nowMs: number = Date.now()): SkillStat {
   const p = prev ?? { mastery: 0, streak: 0, recentWrong: 0, attempts: 0, correct: 0 }
   const mastery = Math.max(0, Math.min(1, p.mastery * 0.75 + (correct ? 1 : 0) * 0.25))
   const streak = correct ? p.streak + 1 : 0

@@ -149,6 +149,9 @@ export default function SnakePage() {
     }
   }, [cellSize])
 
+  // tick restarts its own interval when the speed changes; route that through a
+  // ref so the callback doesn't reference itself before it's declared.
+  const tickRef = useRef<() => void>(() => {})
   const tick = useCallback(() => {
     const s = stateRef.current
     s.dir = s.nextDir
@@ -192,7 +195,7 @@ export default function SnakePage() {
         setTarget(s.target)
         // Restart interval with new speed
         clearInterval(animRef.current!)
-        animRef.current = setInterval(tick, s.speed)
+        animRef.current = setInterval(() => tickRef.current(), s.speed)
       } else {
         playWrong()
         // Shrink 2 segments as penalty (min length 1)
@@ -205,6 +208,8 @@ export default function SnakePage() {
 
     draw()
   }, [draw])
+
+  useEffect(() => { tickRef.current = tick }, [tick])
 
   const startGame = useCallback(() => {
     const initSnake: Pos[] = [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }]

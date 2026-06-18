@@ -116,9 +116,9 @@ export default function TicTacToePage() {
   const [line, setLine] = useState<number[] | null>(null)
   const [score, setScore] = useState({ X: 0, O: 0, draw: 0 })
   const boardRef = useRef(board)
-  boardRef.current = board
+  useEffect(() => { boardRef.current = board }, [board])
   const levelRef = useRef(level)
-  levelRef.current = level
+  useEffect(() => { levelRef.current = level }, [level])
 
   const humanTurn = mode === 'local' || (mode === 'ai' && turn === 'X')
 

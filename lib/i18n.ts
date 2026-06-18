@@ -219,6 +219,15 @@ export const I18N = {
   train_best:         { ru: 'Лучшая серия',               kk: 'Үздік серия',                en: 'Best streak' },
   train_stop:         { ru: 'Стоп',                       kk: 'Тоқта',                      en: 'Stop' },
 
+  // Column addition (Сова coach)
+  column_title:       { ru: 'Столбиком',                  kk: 'Бағанмен',                   en: 'Column math' },
+  column_subtitle:    { ru: 'Переход через десяток с Совой', kk: 'Совамен ондыққа ауысу',   en: 'Carry-over with Owl' },
+  column_intro:       { ru: 'Сложим столбиком! Сначала единицы. 🦉', kk: 'Бағанмен қосайық! Алдымен бірліктер. 🦉', en: "Let's add in a column! Ones first. 🦉" },
+  column_check:       { ru: 'Проверить',                  kk: 'Тексеру',                    en: 'Check' },
+  column_skip:        { ru: 'Пропустить пример',          kk: 'Мысалды өткізу',             en: 'Skip this one' },
+  column_oops:        { ru: 'Почти! Проверь ещё раз. 🦉', kk: 'Дерлік! Тағы тексер. 🦉',    en: 'Almost! Check again. 🦉' },
+  sova_thinking:      { ru: 'Сова думает…',               kk: 'Үкі ойлануда…',              en: 'Owl is thinking…' },
+
   // Login / Auth
   login_welcome:      { ru: 'Добро пожаловать в',         kk: 'Қош келдің,',                en: 'Welcome to' },
   login_tagline:      { ru: 'Школа, которая помещается в кармане. Учись, следи за оценками и не теряй вдохновения.', kk: 'Қалтаңа сыятын мектеп. Оқы, бағаңды бақыла және шабытыңды жоғалтпа.', en: 'A school that fits in your pocket. Learn, track your grades and stay inspired.' },

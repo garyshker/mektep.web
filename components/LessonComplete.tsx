@@ -5,7 +5,17 @@ import confetti from 'canvas-confetti'
 import { Flame, Target, Zap, CheckCircle2, ArrowRight, Shield } from 'lucide-react'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+
+function Stat({ icon, value, label, color }: { icon: ReactNode; value: string; label: string; color: string }) {
+  return (
+    <div className="flex-1 bg-card rounded-2xl px-2 py-3 flex flex-col items-center gap-1 shadow-[var(--shadow-sm)]">
+      <span style={{ color }}>{icon}</span>
+      <span className="font-display font-black text-foreground text-lg tabular leading-none">{value}</span>
+      <span className="text-[10px] font-semibold text-muted-foreground text-center leading-tight">{label}</span>
+    </div>
+  )
+}
 
 // Ease-out count-up animation (no Date/performance needed — uses rAF timestamp)
 function useCountUp(target: number, ms = 800) {
@@ -47,14 +57,6 @@ export function LessonComplete({
     }, 150)
     return () => clearTimeout(id)
   }, [])
-
-  const Stat = ({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) => (
-    <div className="flex-1 bg-card rounded-2xl px-2 py-3 flex flex-col items-center gap-1 shadow-[var(--shadow-sm)]">
-      <span style={{ color }}>{icon}</span>
-      <span className="font-display font-black text-foreground text-lg tabular leading-none">{value}</span>
-      <span className="text-[10px] font-semibold text-muted-foreground text-center leading-tight">{label}</span>
-    </div>
-  )
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: 'var(--background)' }}>

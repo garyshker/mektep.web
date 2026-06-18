@@ -35,7 +35,7 @@ function legalHoles(s: State, p: Player): number[] {
 function applyMove(s: State, p: Player, hole: number): State {
   const ns = clone(s)
   const opp = (1 - p) as Player
-  let n = ns.holes[hole]
+  const n = ns.holes[hole]
   let last = -1
   let lastInHole = false
 
@@ -116,6 +116,72 @@ function pickAi(s: State, p: Player): number | null {
   return best
 }
 
+// ── Presentational pieces (hoisted so they aren't re-created each render) ──────
+function Ornament() {
+  return (
+    <div className="flex items-center justify-center gap-3 py-0.5 opacity-50">
+      <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, transparent, #2a1708)' }} />
+      <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+        <g stroke="#2a1708" strokeWidth="2.5" strokeLinecap="round">
+          <path d="M18 5C24 11 24 25 18 31C12 25 12 11 18 5Z" fill="rgba(0,0,0,0.08)" />
+          <circle cx="18" cy="18" r="2.4" fill="#2a1708" stroke="none" />
+        </g>
+      </svg>
+      <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, #2a1708, transparent)' }} />
+    </div>
+  )
+}
+
+function Hole({ count, isLegal, isLast, tuzOwner, popping, onClick }: {
+  count: number; isLegal: boolean; isLast: boolean; tuzOwner: Player | null; popping: boolean; onClick: () => void
+}) {
+  return (
+    <button onClick={onClick}
+      className={`relative w-full aspect-square rounded-full flex items-center justify-center transition-transform ${popping ? 'togyz-pop' : ''}`}
+      style={{
+        background: tuzOwner !== null
+          ? (tuzOwner === 0 ? 'radial-gradient(ellipse at 50% 32%, #3f7a52, #163320)' : 'radial-gradient(ellipse at 50% 32%, #8a6420, #3a2a0c)')
+          : 'radial-gradient(ellipse at 50% 32%, #4a2f1a, #23130a)',
+        boxShadow: isLegal ? '0 0 0 3px #FCD34D, inset 0 3px 8px rgba(0,0,0,0.7)' : 'inset 0 3px 8px rgba(0,0,0,0.7)',
+        outline: isLast ? '2px solid rgba(255,240,200,0.65)' : 'none',
+        cursor: isLegal ? 'pointer' : 'default',
+      }}>
+      {/* faint pebbles for texture */}
+      {count > 0 && (
+        <div className="absolute inset-0 flex flex-wrap items-center justify-center content-center gap-[2px] p-[18%] opacity-25 pointer-events-none">
+          {Array.from({ length: Math.min(count, 12) }).map((_, k) => (
+            <span key={k} style={{ width: 5, height: 5, borderRadius: '50%', background: '#F0E4C6' }} />
+          ))}
+        </div>
+      )}
+      {/* big readable count */}
+      <span className="relative font-black text-amber-50 tabular-nums leading-none"
+        style={{ fontSize: 'clamp(16px, 5.2vw, 28px)', textShadow: '0 1px 4px rgba(0,0,0,0.95)' }}>
+        {count}
+      </span>
+      {tuzOwner !== null && <span className="absolute top-0.5 left-1 text-xs text-amber-200">★</span>}
+    </button>
+  )
+}
+
+function Kazan({ p, count, popping, mode, label }: {
+  p: Player; count: number; popping: boolean; mode: 'ai' | 'local' | null; label: string
+}) {
+  return (
+    <div className={`relative self-stretch flex flex-col items-center justify-center px-1 ${popping ? 'togyz-pop' : ''}`}
+      style={{
+        width: 'clamp(50px, 16vw, 72px)', borderRadius: '34% / 12%',
+        background: 'radial-gradient(ellipse at 50% 22%, #4a2f1a, #1b0e05)',
+        boxShadow: 'inset 0 5px 16px rgba(0,0,0,0.75)',
+      }}>
+      <span className="text-amber-50 font-black tabular-nums leading-none"
+        style={{ fontSize: 'clamp(22px, 6vw, 32px)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{count}</span>
+      <span className="text-amber-200/55 text-[10px] font-bold mt-1">{label}</span>
+      <span className="text-sm">{mode === 'local' ? (p === 0 ? '1️⃣' : '2️⃣') : (p === 0 ? '⚪' : '🤖')}</span>
+    </div>
+  )
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 export default function TogyzPage() {
   const router = useRouter()
@@ -129,7 +195,7 @@ export default function TogyzPage() {
   const [lastMove, setLastMove] = useState<number | null>(null)
   const [flash, setFlash] = useState<{ hole: number; kazanP: Player | null; id: number } | null>(null)
   const stateRef = useRef(state)
-  stateRef.current = state
+  useEffect(() => { stateRef.current = state }, [state])
   const flashId = useRef(0)
 
   const humanTurn = mode === 'local' || (mode === 'ai' && turn === 0)
@@ -230,70 +296,14 @@ export default function TogyzPage() {
   const topRow = [17, 16, 15, 14, 13, 12, 11, 10, 9]   // opponent
   const botRow = [0, 1, 2, 3, 4, 5, 6, 7, 8]           // you
 
-  const Hole = ({ i }: { i: number }) => {
-    const isLegal = legal.includes(i)
-    const isLast = lastMove === i
-    const tuzOwner = state.tuz[0] === i ? 0 : state.tuz[1] === i ? 1 : null
-    const cnt = state.holes[i]
-    const popping = flash?.hole === i
-    return (
-      <button onClick={() => onHole(i)}
-        className={`relative w-full aspect-square rounded-full flex items-center justify-center transition-transform ${popping ? 'togyz-pop' : ''}`}
-        style={{
-          background: tuzOwner !== null
-            ? (tuzOwner === 0 ? 'radial-gradient(ellipse at 50% 32%, #3f7a52, #163320)' : 'radial-gradient(ellipse at 50% 32%, #8a6420, #3a2a0c)')
-            : 'radial-gradient(ellipse at 50% 32%, #4a2f1a, #23130a)',
-          boxShadow: isLegal ? '0 0 0 3px #FCD34D, inset 0 3px 8px rgba(0,0,0,0.7)' : 'inset 0 3px 8px rgba(0,0,0,0.7)',
-          outline: isLast ? '2px solid rgba(255,240,200,0.65)' : 'none',
-          cursor: isLegal ? 'pointer' : 'default',
-        }}>
-        {/* faint pebbles for texture */}
-        {cnt > 0 && (
-          <div className="absolute inset-0 flex flex-wrap items-center justify-center content-center gap-[2px] p-[18%] opacity-25 pointer-events-none">
-            {Array.from({ length: Math.min(cnt, 12) }).map((_, k) => (
-              <span key={k} style={{ width: 5, height: 5, borderRadius: '50%', background: '#F0E4C6' }} />
-            ))}
-          </div>
-        )}
-        {/* big readable count */}
-        <span className="relative font-black text-amber-50 tabular-nums leading-none"
-          style={{ fontSize: 'clamp(16px, 5.2vw, 28px)', textShadow: '0 1px 4px rgba(0,0,0,0.95)' }}>
-          {cnt}
-        </span>
-        {tuzOwner !== null && <span className="absolute top-0.5 left-1 text-xs text-amber-200">★</span>}
-      </button>
-    )
-  }
-
-  const Kazan = ({ p }: { p: Player }) => {
-    const popping = flash?.kazanP === p
-    return (
-      <div className={`relative self-stretch flex flex-col items-center justify-center px-1 ${popping ? 'togyz-pop' : ''}`}
-        style={{
-          width: 'clamp(50px, 16vw, 72px)', borderRadius: '34% / 12%',
-          background: 'radial-gradient(ellipse at 50% 22%, #4a2f1a, #1b0e05)',
-          boxShadow: 'inset 0 5px 16px rgba(0,0,0,0.75)',
-        }}>
-        <span className="text-amber-50 font-black tabular-nums leading-none"
-          style={{ fontSize: 'clamp(22px, 6vw, 32px)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{state.kazan[p]}</span>
-        <span className="text-amber-200/55 text-[10px] font-bold mt-1">{t('togyz_kazan', lang)}</span>
-        <span className="text-sm">{mode === 'local' ? (p === 0 ? '1️⃣' : '2️⃣') : (p === 0 ? '⚪' : '🤖')}</span>
-      </div>
-    )
-  }
-
-  const Ornament = () => (
-    <div className="flex items-center justify-center gap-3 py-0.5 opacity-50">
-      <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, transparent, #2a1708)' }} />
-      <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
-        <g stroke="#2a1708" strokeWidth="2.5" strokeLinecap="round">
-          <path d="M18 5C24 11 24 25 18 31C12 25 12 11 18 5Z" fill="rgba(0,0,0,0.08)" />
-          <circle cx="18" cy="18" r="2.4" fill="#2a1708" stroke="none" />
-        </g>
-      </svg>
-      <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, #2a1708, transparent)' }} />
-    </div>
-  )
+  const holeProps = (i: number) => ({
+    count: state.holes[i],
+    isLegal: legal.includes(i),
+    isLast: lastMove === i,
+    tuzOwner: (state.tuz[0] === i ? 0 : state.tuz[1] === i ? 1 : null) as Player | null,
+    popping: flash?.hole === i,
+    onClick: () => onHole(i),
+  })
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-3 py-3" style={{ background: '#2A2017' }}>
@@ -319,17 +329,17 @@ export default function TogyzPage() {
         style={{ background: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 7px), linear-gradient(150deg, #C8945A, #8E5E30)' }}>
         <div className="flex items-stretch gap-2">
           {/* opponent kazan (left) */}
-          <Kazan p={1} />
+          <Kazan p={1} count={state.kazan[1]} popping={flash?.kazanP === 1} mode={mode} label={t('togyz_kazan', lang)} />
 
           {/* rows + ornament */}
           <div className="flex-1 flex flex-col gap-1.5">
-            <div className="grid grid-cols-9 gap-1.5">{topRow.map(i => <Hole key={i} i={i} />)}</div>
+            <div className="grid grid-cols-9 gap-1.5">{topRow.map(i => <Hole key={i} {...holeProps(i)} />)}</div>
             <Ornament />
-            <div className="grid grid-cols-9 gap-1.5">{botRow.map(i => <Hole key={i} i={i} />)}</div>
+            <div className="grid grid-cols-9 gap-1.5">{botRow.map(i => <Hole key={i} {...holeProps(i)} />)}</div>
           </div>
 
           {/* your kazan (right) */}
-          <Kazan p={0} />
+          <Kazan p={0} count={state.kazan[0]} popping={flash?.kazanP === 0} mode={mode} label={t('togyz_kazan', lang)} />
         </div>
 
         {/* Win overlay */}

@@ -101,7 +101,7 @@ export function KazakhTrainer() {
     const ok = opt === cur.answer
     setPicked(opt)
     setTotal(n => n + 1)
-    const updated = updateStat(statsRef.current[curSkill.current], ok, undefined, Date.now())
+    const updated = updateStat(statsRef.current[curSkill.current], ok, undefined)
     const next = { ...statsRef.current, [curSkill.current]: updated }
     statsRef.current = next
     setStats(next)

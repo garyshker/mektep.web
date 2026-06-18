@@ -34,7 +34,7 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
 
   const [stats, setStats] = useState<Record<string, SkillStat>>({})
   const statsRef = useRef<Record<string, SkillStat>>({})
-  statsRef.current = stats
+  useEffect(() => { statsRef.current = stats }, [stats])
   const userIdRef = useRef<string | null>(null)
 
   const [cur, setCur] = useState<Current | null>(null)
@@ -96,7 +96,7 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
     const ok = opt.tag === 'correct'
     setPicked(opt.value)
     setTotal(n => n + 1)
-    const updated = updateStat(statsRef.current[cur.skill], ok, ok ? undefined : opt.tag, Date.now())
+    const updated = updateStat(statsRef.current[cur.skill], ok, ok ? undefined : opt.tag)
     const nextStats = { ...statsRef.current, [cur.skill]: updated }
     statsRef.current = nextStats
     setStats(nextStats)
