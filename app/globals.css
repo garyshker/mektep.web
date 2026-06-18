@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  /* core — clean sky-tinted white surface, blue ink */
-  --background: oklch(0.975 0.006 220);
-  --foreground: oklch(0.20 0.025 240);
-  --card: oklch(1 0 0);
-  --border: oklch(0.91 0.008 225);
-  --muted: oklch(0.95 0.01 225);
-  --muted-foreground: oklch(0.50 0.02 235);
+  /* core — warm cream surface, soft brown-ink (Ұшқын / "spark") */
+  --background: oklch(0.985 0.012 83);
+  --foreground: oklch(0.25 0.03 58);
+  --card: oklch(1 0.002 90);
+  --border: oklch(0.91 0.014 78);
+  --muted: oklch(0.955 0.016 80);
+  --muted-foreground: oklch(0.53 0.03 64);
 
-  /* brand — kazakh flag turquoise-blue + steppe gold (green dropped from brand) */
-  --primary: oklch(0.66 0.13 220);
+  /* brand — "spark" amber-orange + steppe gold; turquoise kept as a cool flag accent */
+  --primary: oklch(0.64 0.17 52);              /* spark orange */
   --primary-foreground: oklch(1 0 0);
-  --primary-glow: oklch(0.78 0.11 208);
-  --primary-deep: oklch(0.46 0.12 224);        /* pop-shadow for blue */
+  --primary-glow: oklch(0.80 0.13 70);
+  --primary-deep: oklch(0.46 0.14 45);         /* burnt-orange pop-shadow */
 
-  --accent: oklch(0.80 0.15 85);
-  --accent-foreground: oklch(0.20 0.025 240);
+  --accent: oklch(0.82 0.15 85);               /* steppe gold */
+  --accent-foreground: oklch(0.25 0.03 58);
   --accent-deep: oklch(0.62 0.16 70);
 
-  --brand: oklch(0.68 0.12 205);               /* teal accent (de-greened) */
+  --brand: oklch(0.66 0.13 218);               /* kazakh turquoise — secondary accent */
   --brand-foreground: oklch(1 0 0);
-  --brand-deep: oklch(0.46 0.13 222);          /* deep blue — CTA pop-shadow */
+  --brand-deep: oklch(0.50 0.16 45);           /* ember — primary CTA pop-shadow */
 
-  --success: oklch(0.68 0.18 145);
+  --success: oklch(0.68 0.18 145);             /* green = "correct" only */
   --success-foreground: oklch(1 0 0);
   --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(1 0 0);
@@ -31,15 +31,15 @@
   --xp: oklch(0.74 0.17 85);
 
   /* gradients */
-  --gradient-hero: linear-gradient(135deg, oklch(0.66 0.13 220), oklch(0.74 0.12 205));
+  --gradient-hero: linear-gradient(135deg, oklch(0.645 0.17 60), oklch(0.59 0.185 43));
   --gradient-gold: linear-gradient(135deg, oklch(0.82 0.16 85), oklch(0.74 0.18 70));
-  --gradient-success: linear-gradient(135deg, oklch(0.63 0.15 222), oklch(0.55 0.15 236));
+  --gradient-success: linear-gradient(135deg, oklch(0.625 0.18 54), oklch(0.565 0.19 37));
 
-  /* shadows — soft, plus duolingo-style pop */
-  --shadow-sm: 0 1px 2px oklch(0.18 0.02 260 / 0.04);
-  --shadow-md: 0 4px 12px oklch(0.18 0.02 260 / 0.06);
-  --shadow-pop: 0 4px 0 oklch(0.18 0.02 260 / 0.14);
-  --shadow-glow: 0 0 32px oklch(0.66 0.13 220 / 0.35);
+  /* shadows — soft warm, plus tactile pop */
+  --shadow-sm: 0 1px 2px oklch(0.30 0.03 60 / 0.05);
+  --shadow-md: 0 4px 12px oklch(0.30 0.03 60 / 0.07);
+  --shadow-pop: 0 4px 0 oklch(0.30 0.03 60 / 0.15);
+  --shadow-glow: 0 0 32px oklch(0.66 0.16 58 / 0.40);
 
   /* radii */
   --radius-sm: 12px;
@@ -53,12 +53,12 @@
 }
 
 .dark {
-  --background: oklch(0.18 0.02 260);
-  --foreground: oklch(0.96 0.008 95);
-  --card: oklch(0.22 0.025 260);
-  --border: oklch(0.28 0.025 260);
-  --muted: oklch(0.24 0.02 260);
-  --muted-foreground: oklch(0.68 0.015 260);
+  --background: oklch(0.19 0.018 60);
+  --foreground: oklch(0.96 0.01 90);
+  --card: oklch(0.23 0.02 60);
+  --border: oklch(0.30 0.02 60);
+  --muted: oklch(0.25 0.018 60);
+  --muted-foreground: oklch(0.70 0.015 70);
 }
 
 @theme inline {
@@ -98,7 +98,7 @@ h1, h2, h3, .display {
 /* ── "Spark" press button — tactile press + a glow bloom (replaces the Duo 3D slab) ── */
 .pop-btn {
   box-shadow:
-    0 3px 12px -3px oklch(0.20 0.025 240 / 0.14),
+    0 3px 12px -3px oklch(0.30 0.03 60 / 0.16),
     0 2px 12px -2px color-mix(in oklch, var(--pop-shadow, transparent) 28%, transparent);
   transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
