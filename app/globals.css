@@ -95,14 +95,19 @@ h1, h2, h3, .display {
 
 .tabular { font-variant-numeric: tabular-nums; }
 
-/* ── Duolingo-style "pop" button ─────────────────────────────────────────── */
+/* ── "Spark" press button — tactile press + a glow bloom (replaces the Duo 3D slab) ── */
 .pop-btn {
-  box-shadow: 0 4px 0 var(--pop-shadow, var(--border));
-  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+  box-shadow:
+    0 3px 12px -3px oklch(0.20 0.025 240 / 0.14),
+    0 2px 12px -2px color-mix(in oklch, var(--pop-shadow, transparent) 28%, transparent);
+  transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 .pop-btn:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 var(--pop-shadow, var(--border));
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(1.07);
+  box-shadow:
+    0 0 0 4px color-mix(in oklch, var(--pop-shadow, var(--primary)) 26%, transparent),
+    0 8px 26px -4px color-mix(in oklch, var(--pop-shadow, var(--primary)) 68%, transparent);
 }
 
 /* ── Keyframes ───────────────────────────────────────────────────────────── */
