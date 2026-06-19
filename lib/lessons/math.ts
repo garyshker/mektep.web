@@ -882,7 +882,7 @@ export const mathLessons: Lesson[] = [
         explainByLang: { kk: 'Бірінші × : 3×9=27\n50 − 27 = 23 ✓', ru: 'Сначала ×: 3×9=27\n50 − 27 = 23 ✓', en: 'Multiplication first: 3×9=27\n50 − 27 = 23 ✓' } },
       { kind: 'tap',
         promptByLang: { kk: 'Жауабы 20 болатын мысалдарды тап', ru: 'Найди примеры с ответом 20', en: 'Tap expressions equal to 20' },
-        words: ['4×5', '100÷5', '3×7−1', '10+10', '6×4−4', '25−5'], correctIdxs: [0, 3, 4, 5] },
+        words: ['4×5', '100÷4', '3×7−2', '10+10', '6×4−4', '25−5'], correctIdxs: [0, 3, 4, 5] },
       { kind: 'mc', big: true, prompt: '(15 − 9) × 4',
         options: ['20', '22', '24', '26'], answer: 2,
         explainByLang: { kk: '15−9=6\n6 × 4 = 24 ✓', ru: '15−9=6\n6 × 4 = 24 ✓', en: '15−9=6\n6 × 4 = 24 ✓' } },

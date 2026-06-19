@@ -25,6 +25,7 @@ export const ERROR_TAG_LABEL: Record<string, ByLang> = {
   forgot_borrow:   { ru: 'Спотыкается на занимании десятка (например, 53 − 28). Делаем упор на разбор таких примеров.', kk: 'Ондық алуда қателеседі (мысалы, 53 − 28). Осындай мысалдарды талдауға баса назар аударамыз.', en: 'Stumbles on borrowing a ten (e.g. 53 − 28). We focus on these.' },
   subtracted_smaller: { ru: 'Вычитает меньшую цифру из большей в столбик, не занимая десяток.', kk: 'Бағанада кіші санды үлкеннен алады, ондық алмайды.', en: 'Subtracts the smaller digit from the larger without borrowing.' },
   off_by_one:      { ru: 'Небольшие промахи в счёте на единицу.', kk: 'Санауда бір санға қателеседі.', en: 'Small off-by-one counting slips.' },
+  near:            { ru: 'Часто отвечает близко к верному — счёт почти закрепился, нужна точность.', kk: 'Жиі дұрысқа жақын жауап береді — санау бекіндеп қалды, дәлдік керек.', en: 'Often answers close to correct — nearly there, just needs precision.' },
   extra_ten:       { ru: 'Иногда прибавляет лишний десяток.', kk: 'Кейде артық ондық қосады.', en: 'Sometimes adds an extra ten.' },
   random_guess:    { ru: 'Пока угадывает — нужно закрепить счёт.', kk: 'Әзірге болжайды — санауды бекіту керек.', en: 'Still guessing — needs to cement counting.' },
   table_neighbor:  { ru: 'Путает соседние факты в таблице умножения (например, 7×8 и 7×7).', kk: 'Көбейту кестесіндегі көрші фактілерді шатастырады (мысалы, 7×8 және 7×7).', en: 'Mixes up neighbouring facts in the times table (e.g. 7×8 vs 7×7).' },
