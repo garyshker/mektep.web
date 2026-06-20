@@ -135,29 +135,28 @@ function Ornament() {
 function Hole({ count, isLegal, isLast, tuzOwner, popping, onClick }: {
   count: number; isLegal: boolean; isLast: boolean; tuzOwner: Player | null; popping: boolean; onClick: () => void
 }) {
-  // Lay the real kumalaqs in a roughly-square grid so the player can count them.
-  const cols = count <= 1 ? 1 : count <= 4 ? 2 : count <= 9 ? 3 : count <= 16 ? 4 : count <= 25 ? 5 : 6
-  const basis = `calc(${100 / cols}% - 3px)`
+  // Pearls keep a constant size (~3 per row); only shrink for unusually big piles.
+  const pebbleW = count <= 12 ? 27 : count <= 20 ? 21 : 16   // % of the inner cluster width
   return (
     <button onClick={onClick}
-      className={`relative w-full aspect-square rounded-full flex items-center justify-center transition-transform ${popping ? 'togyz-pop' : ''}`}
+      className={`relative w-full aspect-[3/4] rounded-full flex items-center justify-center transition-transform ${popping ? 'togyz-pop' : ''}`}
       style={{
         background: tuzOwner !== null
-          ? (tuzOwner === 0 ? 'radial-gradient(ellipse at 50% 32%, #3f7a52, #163320)' : 'radial-gradient(ellipse at 50% 32%, #8a6420, #3a2a0c)')
-          : 'radial-gradient(ellipse at 50% 32%, #4a2f1a, #23130a)',
-        boxShadow: isLegal ? '0 0 0 3px #FCD34D, inset 0 3px 8px rgba(0,0,0,0.7)' : 'inset 0 3px 8px rgba(0,0,0,0.7)',
+          ? (tuzOwner === 0 ? 'radial-gradient(ellipse at 50% 28%, #3f7a52, #163320)' : 'radial-gradient(ellipse at 50% 28%, #8a6420, #3a2a0c)')
+          : 'radial-gradient(ellipse at 50% 28%, #4a2f1a, #201007)',
+        boxShadow: isLegal ? '0 0 0 3px #FCD34D, inset 0 5px 12px rgba(0,0,0,0.72)' : 'inset 0 5px 12px rgba(0,0,0,0.72)',
         outline: isLast ? '2px solid rgba(255,240,200,0.65)' : 'none',
         cursor: isLegal ? 'pointer' : 'default',
       }}>
-      {/* the real kumalaqs — no number, count them yourself */}
+      {/* the real kumalaqs as pearls — no number, count them yourself */}
       {count > 0 && (
-        <div className="absolute inset-0 flex flex-wrap items-center justify-center content-center pointer-events-none"
-          style={{ padding: '13%', gap: cols > 4 ? '2px' : '3px' }}>
+        <div className="absolute inset-[14%] flex flex-wrap items-center justify-center content-center pointer-events-none"
+          style={{ gap: '3px' }}>
           {Array.from({ length: count }).map((_, k) => (
             <span key={k} style={{
-              width: basis, aspectRatio: '1', borderRadius: '50%',
-              background: 'radial-gradient(circle at 34% 28%, #fdf6e2, #ddc089 60%, #a9844a)',
-              boxShadow: '0 1px 1.5px rgba(0,0,0,0.55), inset 0 -1px 1px rgba(120,80,30,0.45)',
+              width: `${pebbleW}%`, aspectRatio: '1', borderRadius: '50%',
+              background: 'radial-gradient(circle at 36% 30%, #ffffff 0%, #f4eefb 28%, #ddd2ee 60%, #b8aad6 100%)',
+              boxShadow: 'inset -1px -1.5px 2px rgba(108,86,140,0.4), inset 1px 1px 1.5px rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.5)',
             }} />
           ))}
         </div>
