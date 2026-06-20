@@ -135,6 +135,9 @@ function Ornament() {
 function Hole({ count, isLegal, isLast, tuzOwner, popping, onClick }: {
   count: number; isLegal: boolean; isLast: boolean; tuzOwner: Player | null; popping: boolean; onClick: () => void
 }) {
+  // Lay the real kumalaqs in a roughly-square grid so the player can count them.
+  const cols = count <= 1 ? 1 : count <= 4 ? 2 : count <= 9 ? 3 : count <= 16 ? 4 : count <= 25 ? 5 : 6
+  const basis = `calc(${100 / cols}% - 3px)`
   return (
     <button onClick={onClick}
       className={`relative w-full aspect-square rounded-full flex items-center justify-center transition-transform ${popping ? 'togyz-pop' : ''}`}
@@ -146,20 +149,22 @@ function Hole({ count, isLegal, isLast, tuzOwner, popping, onClick }: {
         outline: isLast ? '2px solid rgba(255,240,200,0.65)' : 'none',
         cursor: isLegal ? 'pointer' : 'default',
       }}>
-      {/* faint pebbles for texture */}
+      {/* the real kumalaqs — no number, count them yourself */}
       {count > 0 && (
-        <div className="absolute inset-0 flex flex-wrap items-center justify-center content-center gap-[2px] p-[18%] opacity-25 pointer-events-none">
-          {Array.from({ length: Math.min(count, 12) }).map((_, k) => (
-            <span key={k} style={{ width: 5, height: 5, borderRadius: '50%', background: '#F0E4C6' }} />
+        <div className="absolute inset-0 flex flex-wrap items-center justify-center content-center pointer-events-none"
+          style={{ padding: '13%', gap: cols > 4 ? '2px' : '3px' }}>
+          {Array.from({ length: count }).map((_, k) => (
+            <span key={k} style={{
+              width: basis, aspectRatio: '1', borderRadius: '50%',
+              background: 'radial-gradient(circle at 34% 28%, #fdf6e2, #ddc089 60%, #a9844a)',
+              boxShadow: '0 1px 1.5px rgba(0,0,0,0.55), inset 0 -1px 1px rgba(120,80,30,0.45)',
+            }} />
           ))}
         </div>
       )}
-      {/* big readable count */}
-      <span className="relative font-black text-amber-50 tabular-nums leading-none"
-        style={{ fontSize: 'clamp(16px, 5.2vw, 28px)', textShadow: '0 1px 4px rgba(0,0,0,0.95)' }}>
-        {count}
-      </span>
-      {tuzOwner !== null && <span className="absolute top-0.5 left-1 text-xs text-amber-200">★</span>}
+      {tuzOwner !== null && (
+        <span className="relative leading-none" style={{ fontSize: 'clamp(18px, 5vw, 28px)', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.85))' }}>★</span>
+      )}
     </button>
   )
 }
@@ -321,8 +326,12 @@ export default function TogyzPage() {
         </div>
       </div>
 
-      {/* Rotate hint — portrait only */}
-      <p className="portrait:block landscape:hidden text-amber-200/60 text-xs font-semibold mb-2">{t('togyz_rotate', lang)}</p>
+      {/* Rotate hint — portrait only (board + stones read best wide) */}
+      <div className="portrait:flex landscape:hidden items-center gap-2 mb-2 px-4 py-2 rounded-full animate-pulse"
+        style={{ background: 'rgba(252,211,77,0.14)', border: '1px solid rgba(252,211,77,0.35)' }}>
+        <span className="text-base">🔄</span>
+        <span className="text-amber-200 text-xs font-bold">{t('togyz_rotate', lang)}</span>
+      </div>
 
       {/* Wooden board (horizontal) */}
       <div className="relative w-full max-w-3xl rounded-[26px] p-3 shadow-2xl"

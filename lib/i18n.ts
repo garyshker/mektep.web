@@ -368,7 +368,7 @@ export const I18N = {
   togyz_draw:         { ru: 'Ничья',                       kk: 'Тең ойын',                   en: 'Draw' },
   togyz_kazan:        { ru: 'Казан',                       kk: 'Қазан',                      en: 'Kazan' },
   togyz_rotate:       { ru: 'Поверни телефон горизонтально 📱', kk: 'Телефонды көлденең бұр 📱', en: 'Rotate your phone to landscape 📱' },
-  togyz_rules:        { ru: 'Бери камешки из своей лунки и раскладывай по кругу. Если в чужой лунке стало чётное число — забираешь их в свой казан. Кто наберёт больше 81 — победил.', kk: 'Өз ұяңнан құмалақтарды алып, шеңбер бойымен тарат. Қарсыластың ұясында жұп сан болса — оларды қазаныңа аласың. 81-ден көп жинаған жеңеді.', en: 'Take pebbles from your hole and sow them around. If an opponent hole becomes even, you take them to your kazan. First past 81 wins.' },
+  togyz_rules:        { ru: 'Бери камешки из своей лунки и раскладывай по одному по кругу. Если в чужой лунке стало чётное число — забираешь их в свой казан. А если ровно 3 — лунка становится твоим туздыком ★, и камни оттуда всегда идут к тебе. Кто наберёт больше 81 — победил.', kk: 'Өз ұяңнан құмалақтарды алып, шеңбер бойымен біреуден тарат. Қарсыластың ұясында жұп сан болса — оларды қазаныңа аласың. Ал дәл 3 болса — ұя сенің тұздығыңа ★ айналады, одан құмалақтар әрқашан саған түседі. 81-ден көп жинаған жеңеді.', en: 'Take pebbles from your hole and sow them one by one around the board. If an opponent hole becomes even, you take them to your kazan. If it becomes exactly 3, it turns into your tuzdyk ★ and its pebbles always go to you. First past 81 wins.' },
 
   // Countries
   countries_title:    { ru: 'Страны',                     kk: 'Елдер',                      en: 'Countries' },
