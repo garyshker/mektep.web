@@ -31,6 +31,7 @@ function initBoard(): Board {
 const clone = (b: Board): Board => b.map(row => row.slice())
 const otherColor = (c: Color): Color => (c === 'w' ? 'b' : 'w')
 const randomColor = (): Color => (Math.random() < 0.5 ? 'w' : 'b')
+const MOVE_LIMIT_S = 60   // online 1v1: seconds per move before auto-forfeit
 // What an online room stores in its `state` jsonb.
 type RoomState = { board: Board; hostColor: Color }
 const promotes = (color: Color, r: number) => (color === 'w' && r === 0) || (color === 'b' && r === 7)
@@ -330,6 +331,12 @@ export default function CheckersPage() {
   const myIdRef = useRef<string | null>(null)
   const myNameRef = useRef('')
 
+  // ── Online 1v1 per-move timer (60s/move; auto-forfeit on timeout) ──
+  const [moveLeft, setMoveLeft] = useState<number | null>(null)
+  const deadlineRef = useRef(0)            // epoch ms by which the current side must move
+  const timedOutRef = useRef(false)        // guards a single forfeit per turn
+  const turnRef = useRef<Color>('w')       // current turn, for the ticker closure
+
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -342,6 +349,7 @@ export default function CheckersPage() {
   }, [])
 
   useEffect(() => { winnerRef.current = winner }, [winner])
+  useEffect(() => { turnRef.current = turn }, [turn])
 
   // Whose turn is controlled by a human right now
   const humanTurn = mode === 'local'
@@ -398,6 +406,31 @@ export default function CheckersPage() {
       playCorrect()
     }
   }, [winner])
+
+  // Per-move countdown (online 1v1). A fresh 60s budget starts on every turn
+  // change and at game start; both clients track it locally.
+  useEffect(() => {
+    if (mode !== 'online' || online?.phase !== 'playing' || winner) { setMoveLeft(null); return }
+    deadlineRef.current = Date.now() + MOVE_LIMIT_S * 1000
+    timedOutRef.current = false
+    setMoveLeft(MOVE_LIMIT_S)
+  }, [turn, mode, online?.phase, winner])
+
+  // Tick the clock; whoever is still present writes the result when it hits 0,
+  // so a player who quits mid-game forfeits after a minute. The side on the
+  // clock loses — setWinner reuses the win plumbing (pushes winner + awards XP).
+  useEffect(() => {
+    if (mode !== 'online' || online?.phase !== 'playing' || winner) return
+    const iv = setInterval(() => {
+      const left = Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000))
+      setMoveLeft(left)
+      if (left <= 0 && !timedOutRef.current) {
+        timedOutRef.current = true
+        setWinner(otherColor(turnRef.current))
+      }
+    }, 500)
+    return () => clearInterval(iv)
+  }, [mode, online?.phase, winner])
 
   // Push the resolved position to the opponent after my turn ends.
   const onlinePush = (fb: Board, next: Color) => {
@@ -819,6 +852,17 @@ export default function CheckersPage() {
             {mode === 'ai' && <span className="text-white/35"> · {t(level === 'easy' ? 'sudoku_easy' : level === 'hard' ? 'sudoku_hard' : 'sudoku_medium', lang)}</span>}
           </p>
         </div>
+        {mode === 'online' && moveLeft !== null && (
+          <div className={`rounded-xl px-3 py-1.5 text-center ${moveLeft <= 10 ? 'animate-pulse' : ''}`}
+            style={{ background: moveLeft <= 10 ? 'rgba(239,68,68,0.22)' : 'rgba(255,255,255,0.1)' }}>
+            <p className="text-[9px] font-black uppercase leading-none mb-0.5"
+              style={{ color: moveLeft <= 10 ? '#fca5a5' : 'rgba(255,255,255,0.5)' }}>⏱</p>
+            <p className="text-base font-black leading-none tabular-nums"
+              style={{ color: moveLeft <= 10 ? '#fca5a5' : '#fff' }}>
+              {Math.floor(moveLeft / 60)}:{String(moveLeft % 60).padStart(2, '0')}
+            </p>
+          </div>
+        )}
         <div className="flex gap-2">
           <div className="bg-white/10 rounded-xl px-3 py-1.5 text-center">
             <p className="text-[9px] font-black text-white/50 uppercase">⚪</p>
