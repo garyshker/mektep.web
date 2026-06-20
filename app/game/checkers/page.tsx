@@ -807,9 +807,9 @@ export default function CheckersPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-5" style={{ background: '#312E2B' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-2.5 py-5" style={{ background: '#312E2B' }}>
       {/* Header */}
-      <div className="w-full max-w-md flex items-center gap-3 mb-3">
+      <div className="w-full max-w-lg flex items-center gap-3 mb-3">
         <button onClick={() => { resetState(); setMode(null); setOnline(null) }}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">✕</button>
         <div className="flex-1">
@@ -838,7 +838,7 @@ export default function CheckersPage() {
       </p>
 
       {/* Board */}
-      <div className="relative w-full max-w-md rounded-xl overflow-hidden shadow-2xl select-none ring-4 ring-black/20">
+      <div className="relative w-full max-w-lg rounded-xl overflow-hidden shadow-2xl select-none ring-4 ring-black/20">
         <div className="grid grid-cols-8 w-full">
           {Array.from({ length: 64 }).map((_, idx) => {
             const vr = Math.floor(idx / 8), vc = idx % 8       // visual position
@@ -957,7 +957,7 @@ export default function CheckersPage() {
       </div>
 
       {/* Rules */}
-      <p className="w-full max-w-md text-white/45 text-xs leading-relaxed mt-4 text-center">
+      <p className="w-full max-w-lg text-white/45 text-xs leading-relaxed mt-4 text-center">
         {t('checkers_rules', lang)}
       </p>
     </div>
