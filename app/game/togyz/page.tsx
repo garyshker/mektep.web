@@ -77,6 +77,34 @@ function applyMove(s: State, p: Player, hole: number): State {
   return ns
 }
 
+// Replay a move as a list of board snapshots (one per sown stone) so the UI can
+// animate the sowing. `spots[k]` is the hole that lights up at frame k.
+// (applyMove stays the single-shot version used by the AI search.)
+function buildFrames(s: State, p: Player, hole: number): { frames: State[]; spots: number[] } {
+  const frames: State[] = [], spots: number[] = []
+  const work = clone(s)
+  const opp = (1 - p) as Player
+  const n = work.holes[hole]
+  const dropAt = (i: number): boolean => {
+    if (work.tuz[0] === i) { work.kazan[0]++; return false }
+    if (work.tuz[1] === i) { work.kazan[1]++; return false }
+    work.holes[i]++; return true
+  }
+  const targets: number[] = []
+  if (n === 1) { work.holes[hole] = 0; targets.push((hole + 1) % 18) }
+  else { work.holes[hole] = 1; for (let k = 1; k <= n - 1; k++) targets.push((hole + k) % 18) }
+  frames.push(clone(work)); spots.push(hole)          // pickup
+  let last = -1, lastInHole = false
+  for (const tgt of targets) { lastInHole = dropAt(tgt); last = tgt; frames.push(clone(work)); spots.push(tgt) }
+  if (lastInHole && isOppRow(p, last)) {
+    const cnt = work.holes[last], col = last % 9
+    const canTuz = cnt === 3 && work.tuz[p] === null && col !== 8 && !(work.tuz[opp] !== null && (work.tuz[opp]! % 9) === col)
+    if (canTuz) { work.tuz[p] = last; work.kazan[p] += 3; work.holes[last] = 0; frames.push(clone(work)); spots.push(last) }
+    else if (cnt % 2 === 0 && cnt > 0) { work.kazan[p] += cnt; work.holes[last] = 0; frames.push(clone(work)); spots.push(last) }
+  }
+  return { frames, spots }
+}
+
 type Outcome = 0 | 1 | 'draw' | null
 function winnerByKazan(k: [number, number]): Outcome {
   return k[0] > k[1] ? 0 : k[1] > k[0] ? 1 : 'draw'
@@ -132,20 +160,25 @@ function Ornament() {
   )
 }
 
-function Hole({ count, isLegal, isLast, tuzOwner, popping, onClick }: {
-  count: number; isLegal: boolean; isLast: boolean; tuzOwner: Player | null; popping: boolean; onClick: () => void
+function Hole({ count, isLegal, isLast, active, tuzOwner, onClick }: {
+  count: number; isLegal: boolean; isLast: boolean; active: boolean; tuzOwner: Player | null; onClick: () => void
 }) {
   // Pearls keep a constant size (~3 per row); only shrink for unusually big piles.
   const pebbleW = count <= 12 ? 27 : count <= 20 ? 21 : 16   // % of the inner cluster width
   return (
     <button onClick={onClick}
-      className={`relative w-full aspect-[3/4] rounded-full flex items-center justify-center transition-transform ${popping ? 'togyz-pop' : ''}`}
+      className="relative w-full aspect-[3/4] rounded-full flex items-center justify-center"
       style={{
         background: tuzOwner !== null
           ? (tuzOwner === 0 ? 'radial-gradient(ellipse at 50% 28%, #3f7a52, #163320)' : 'radial-gradient(ellipse at 50% 28%, #8a6420, #3a2a0c)')
           : 'radial-gradient(ellipse at 50% 28%, #4a2f1a, #201007)',
-        boxShadow: isLegal ? '0 0 0 3px #FCD34D, inset 0 5px 12px rgba(0,0,0,0.72)' : 'inset 0 5px 12px rgba(0,0,0,0.72)',
-        outline: isLast ? '2px solid rgba(255,240,200,0.65)' : 'none',
+        boxShadow: active
+          ? '0 0 0 3px rgba(255,238,196,0.95), 0 0 14px rgba(255,224,150,0.55), inset 0 5px 12px rgba(0,0,0,0.5)'
+          : isLegal ? '0 0 0 3px #FCD34D, inset 0 5px 12px rgba(0,0,0,0.72)'
+          : 'inset 0 5px 12px rgba(0,0,0,0.72)',
+        outline: isLast && !active ? '2px solid rgba(255,240,200,0.65)' : 'none',
+        transform: active ? 'scale(1.06)' : 'scale(1)',
+        transition: 'transform 0.13s ease, box-shadow 0.13s ease',
         cursor: isLegal ? 'pointer' : 'default',
       }}>
       {/* the real kumalaqs as pearls — no number, count them yourself */}
@@ -197,28 +230,50 @@ export default function TogyzPage() {
   const [turn, setTurn] = useState<Player>(0)
   const [winner, setWinner] = useState<Outcome>(null)
   const [lastMove, setLastMove] = useState<number | null>(null)
-  const [flash, setFlash] = useState<{ hole: number; kazanP: Player | null; id: number } | null>(null)
+  const [activeHole, setActiveHole] = useState<number | null>(null)   // hole getting a stone right now
+  const [kazanPop, setKazanPop] = useState<Player | null>(null)
   const stateRef = useRef(state)
   useEffect(() => { stateRef.current = state }, [state])
-  const flashId = useRef(0)
+  const animatingRef = useRef(false)
+  const animTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (animTimerRef.current) clearTimeout(animTimerRef.current) }, [])
 
   const humanTurn = mode === 'local' || (mode === 'ai' && turn === 0)
 
   const commitMove = (p: Player, hole: number) => {
-    const before = stateRef.current.kazan[p]
-    const moved = applyMove(stateRef.current, p, hole)
+    if (animatingRef.current) return
+    const base = stateRef.current
+    const { frames, spots } = buildFrames(base, p, hole)
+    const moved = frames[frames.length - 1]
     const next = (1 - p) as Player
     const { state: fin, winner: w } = resolveEnd(moved, next)
-    const gained = fin.kazan[p] - before
-    gained > 0 ? playCorrect() : playTap()      // capture vs sow sound
-    flashId.current++
-    const id = flashId.current
-    setFlash({ hole, kazanP: gained > 0 ? p : null, id })
-    setTimeout(() => setFlash(f => (f && f.id === id ? null : f)), 450)
-    setState(fin)
+    const captured = moved.kazan[p] > base.kazan[p]
+
     setLastMove(hole)
-    if (w !== null) { setWinner(w); return }
-    setTurn(next)
+    animatingRef.current = true
+    playTap()                                          // pickup
+    // Smooth but a touch fast: ~1s total, clamped per stone.
+    const step = Math.max(55, Math.min(120, Math.round(950 / frames.length)))
+    let i = 0
+    const run = () => {
+      setState(frames[i])
+      setActiveHole(spots[i])
+      i++
+      if (i < frames.length) { animTimerRef.current = setTimeout(run, step); return }
+      // settle after the final frame
+      animTimerRef.current = setTimeout(() => {
+        setActiveHole(null)
+        setState(fin)
+        animatingRef.current = false
+        if (captured) {
+          playCorrect(); setKazanPop(p)
+          animTimerRef.current = setTimeout(() => setKazanPop(null), 450)
+        }
+        if (w !== null) setWinner(w)
+        else setTurn(next)
+      }, step)
+    }
+    run()
   }
 
   // AI move
@@ -249,12 +304,16 @@ export default function TogyzPage() {
   }, [winner, mode])
 
   const onHole = (i: number) => {
-    if (winner !== null || !humanTurn) return
+    if (winner !== null || !humanTurn || animatingRef.current) return
     if (!legalHoles(state, turn).includes(i)) return
     commitMove(turn, i)
   }
 
-  const reset = () => { setState(initState()); setTurn(0); setWinner(null); setLastMove(null); savedRef.current = false }
+  const reset = () => {
+    if (animTimerRef.current) clearTimeout(animTimerRef.current)
+    animatingRef.current = false; setActiveHole(null); setKazanPop(null)
+    setState(initState()); setTurn(0); setWinner(null); setLastMove(null); savedRef.current = false
+  }
   const startGame = (m: 'ai' | 'local') => { reset(); setMode(m) }
 
   // ── Mode menu ──
@@ -305,7 +364,7 @@ export default function TogyzPage() {
     isLegal: legal.includes(i),
     isLast: lastMove === i,
     tuzOwner: (state.tuz[0] === i ? 0 : state.tuz[1] === i ? 1 : null) as Player | null,
-    popping: flash?.hole === i,
+    active: activeHole === i,
     onClick: () => onHole(i),
   })
 
@@ -337,7 +396,7 @@ export default function TogyzPage() {
         style={{ background: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 7px), linear-gradient(150deg, #C8945A, #8E5E30)' }}>
         <div className="flex items-stretch gap-2">
           {/* opponent kazan (left) */}
-          <Kazan p={1} count={state.kazan[1]} popping={flash?.kazanP === 1} mode={mode} label={t('togyz_kazan', lang)} />
+          <Kazan p={1} count={state.kazan[1]} popping={kazanPop === 1} mode={mode} label={t('togyz_kazan', lang)} />
 
           {/* rows + ornament */}
           <div className="flex-1 flex flex-col gap-1.5">
@@ -347,7 +406,7 @@ export default function TogyzPage() {
           </div>
 
           {/* your kazan (right) */}
-          <Kazan p={0} count={state.kazan[0]} popping={flash?.kazanP === 0} mode={mode} label={t('togyz_kazan', lang)} />
+          <Kazan p={0} count={state.kazan[0]} popping={kazanPop === 0} mode={mode} label={t('togyz_kazan', lang)} />
         </div>
 
         {/* Win overlay */}
