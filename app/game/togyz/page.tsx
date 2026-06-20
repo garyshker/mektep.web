@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
@@ -160,25 +160,21 @@ function Ornament() {
   )
 }
 
-function Hole({ count, isLegal, isLast, active, tuzOwner, onClick }: {
-  count: number; isLegal: boolean; isLast: boolean; active: boolean; tuzOwner: Player | null; onClick: () => void
+function Hole({ count, isLegal, isLast, tuzOwner, onClick, innerRef }: {
+  count: number; isLegal: boolean; isLast: boolean; tuzOwner: Player | null; onClick: () => void
+  innerRef?: (el: HTMLButtonElement | null) => void
 }) {
   // Pearls keep a constant size (~3 per row); only shrink for unusually big piles.
   const pebbleW = count <= 12 ? 27 : count <= 20 ? 21 : 16   // % of the inner cluster width
   return (
-    <button onClick={onClick}
+    <button onClick={onClick} ref={innerRef}
       className="relative w-full aspect-[3/4] rounded-full flex items-center justify-center"
       style={{
         background: tuzOwner !== null
           ? (tuzOwner === 0 ? 'radial-gradient(ellipse at 50% 28%, #3f7a52, #163320)' : 'radial-gradient(ellipse at 50% 28%, #8a6420, #3a2a0c)')
           : 'radial-gradient(ellipse at 50% 28%, #4a2f1a, #201007)',
-        boxShadow: active
-          ? '0 0 0 3px rgba(255,238,196,0.95), 0 0 14px rgba(255,224,150,0.55), inset 0 5px 12px rgba(0,0,0,0.5)'
-          : isLegal ? '0 0 0 3px #FCD34D, inset 0 5px 12px rgba(0,0,0,0.72)'
-          : 'inset 0 5px 12px rgba(0,0,0,0.72)',
-        outline: isLast && !active ? '2px solid rgba(255,240,200,0.65)' : 'none',
-        transform: active ? 'scale(1.06)' : 'scale(1)',
-        transition: 'transform 0.13s ease, box-shadow 0.13s ease',
+        boxShadow: isLegal ? '0 0 0 3px #FCD34D, inset 0 5px 12px rgba(0,0,0,0.72)' : 'inset 0 5px 12px rgba(0,0,0,0.72)',
+        outline: isLast ? '2px solid rgba(255,240,200,0.65)' : 'none',
         cursor: isLegal ? 'pointer' : 'default',
       }}>
       {/* the real kumalaqs as pearls — no number, count them yourself */}
@@ -230,13 +226,21 @@ export default function TogyzPage() {
   const [turn, setTurn] = useState<Player>(0)
   const [winner, setWinner] = useState<Outcome>(null)
   const [lastMove, setLastMove] = useState<number | null>(null)
-  const [activeHole, setActiveHole] = useState<number | null>(null)   // hole getting a stone right now
   const [kazanPop, setKazanPop] = useState<Player | null>(null)
   const stateRef = useRef(state)
   useEffect(() => { stateRef.current = state }, [state])
   const animatingRef = useRef(false)
   const animTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const holeRefs = useRef<(HTMLButtonElement | null)[]>([])   // hole index → DOM node, for measuring centres
+  const boardRef = useRef<HTMLDivElement | null>(null)        // positioned ancestor of the flying pebble
+  const flyRef = useRef<HTMLDivElement | null>(null)          // the single travelling kumalaq
   useEffect(() => () => { if (animTimerRef.current) clearTimeout(animTimerRef.current) }, [])
+  // Stable style so React never overwrites the imperative transform/opacity we drive on it.
+  const flyStyle = useMemo<CSSProperties>(() => ({
+    opacity: 0, willChange: 'transform',
+    background: 'radial-gradient(circle at 36% 30%, #ffffff 0%, #f4eefb 28%, #ddd2ee 60%, #b8aad6 100%)',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.55), inset -1px -1.5px 2px rgba(108,86,140,0.4), inset 1px 1px 1.5px rgba(255,255,255,0.6)',
+  }), [])
 
   const humanTurn = mode === 'local' || (mode === 'ai' && turn === 0)
 
@@ -248,32 +252,56 @@ export default function TogyzPage() {
     const next = (1 - p) as Player
     const { state: fin, winner: w } = resolveEnd(moved, next)
     const captured = moved.kazan[p] > base.kazan[p]
-
     setLastMove(hole)
+
+    const finish = () => {
+      setState(fin)
+      animatingRef.current = false
+      if (captured) { playCorrect(); setKazanPop(p); animTimerRef.current = setTimeout(() => setKazanPop(null), 450) }
+      if (w !== null) setWinner(w); else setTurn(next)
+    }
+
+    const fly = flyRef.current
+    const centre = (i: number) => {
+      const el = holeRefs.current[i], b = boardRef.current
+      if (!el || !b) return null
+      const r = el.getBoundingClientRect(), br = b.getBoundingClientRect()
+      return { x: r.left - br.left + r.width / 2, y: r.top - br.top + r.height / 2, w: r.width }
+    }
+
     animatingRef.current = true
-    playTap()                                          // pickup
-    // Smooth but a touch fast: ~1s total, clamped per stone.
-    const step = Math.max(55, Math.min(120, Math.round(950 / frames.length)))
-    let i = 0
-    const run = () => {
-      setState(frames[i])
-      setActiveHole(spots[i])
-      i++
-      if (i < frames.length) { animTimerRef.current = setTimeout(run, step); return }
-      // settle after the final frame
+    playTap()
+    const c0 = centre(spots[0])
+    if (!fly || !c0) { finish(); return }              // no DOM yet → resolve instantly
+
+    // Place the travelling pearl on the source hole.
+    const size = Math.max(11, c0.w * 0.2)
+    fly.style.width = `${size}px`; fly.style.height = `${size}px`
+    fly.style.transition = 'none'
+    fly.style.transform = `translate(${c0.x - size / 2}px, ${c0.y - size / 2}px)`
+    fly.style.opacity = '1'
+    void fly.offsetWidth                                // commit the start position so the first hop animates
+    setState(frames[0])                                 // pick up: source empties
+
+    // One hop per sown stone — smooth but a touch fast (~1s total).
+    const hops = Math.max(1, spots.length - 1)
+    const step = Math.max(70, Math.min(150, Math.round(1000 / hops)))
+    let k = 1
+    const tick = () => {
+      const c = centre(spots[k])
+      if (c) {
+        fly.style.transition = `transform ${step}ms cubic-bezier(0.4, 0.1, 0.5, 1)`
+        fly.style.transform = `translate(${c.x - size / 2}px, ${c.y - size / 2}px)`
+      }
       animTimerRef.current = setTimeout(() => {
-        setActiveHole(null)
-        setState(fin)
-        animatingRef.current = false
-        if (captured) {
-          playCorrect(); setKazanPop(p)
-          animTimerRef.current = setTimeout(() => setKazanPop(null), 450)
-        }
-        if (w !== null) setWinner(w)
-        else setTurn(next)
+        setState(frames[k])                             // the stone lands → a pearl appears
+        k++
+        if (k < frames.length) tick()
+        else { fly.style.opacity = '0'; finish() }
       }, step)
     }
-    run()
+    if (frames.length > 1) tick()
+    else { fly.style.opacity = '0'; finish() }
   }
 
   // AI move
@@ -311,7 +339,8 @@ export default function TogyzPage() {
 
   const reset = () => {
     if (animTimerRef.current) clearTimeout(animTimerRef.current)
-    animatingRef.current = false; setActiveHole(null); setKazanPop(null)
+    animatingRef.current = false; setKazanPop(null)
+    if (flyRef.current) flyRef.current.style.opacity = '0'
     setState(initState()); setTurn(0); setWinner(null); setLastMove(null); savedRef.current = false
   }
   const startGame = (m: 'ai' | 'local') => { reset(); setMode(m) }
@@ -364,8 +393,8 @@ export default function TogyzPage() {
     isLegal: legal.includes(i),
     isLast: lastMove === i,
     tuzOwner: (state.tuz[0] === i ? 0 : state.tuz[1] === i ? 1 : null) as Player | null,
-    active: activeHole === i,
     onClick: () => onHole(i),
+    innerRef: (el: HTMLButtonElement | null) => { holeRefs.current[i] = el },
   })
 
   return (
@@ -392,8 +421,10 @@ export default function TogyzPage() {
       </div>
 
       {/* Wooden board (horizontal) */}
-      <div className="relative w-full max-w-3xl rounded-[26px] p-3 shadow-2xl"
+      <div ref={boardRef} className="relative w-full max-w-3xl rounded-[26px] p-3 shadow-2xl"
         style={{ background: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 7px), linear-gradient(150deg, #C8945A, #8E5E30)' }}>
+        {/* travelling kumalaq — the move animation */}
+        <div ref={flyRef} className="absolute top-0 left-0 rounded-full pointer-events-none z-20" style={flyStyle} />
         <div className="flex items-stretch gap-2">
           {/* opponent kazan (left) */}
           <Kazan p={1} count={state.kazan[1]} popping={kazanPop === 1} mode={mode} label={t('togyz_kazan', lang)} />
