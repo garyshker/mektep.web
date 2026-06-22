@@ -8,6 +8,7 @@ import type { Question } from '@/lib/lessons'
 import type { ByLang } from '@/lib/lessons/types'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { completeQuest } from '@/lib/quests'
+import { touchStreak } from '@/lib/streak'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { speak } from '@/lib/speak'
@@ -19,8 +20,6 @@ import { logAdditionAttempt, logSubtractionAttempt } from '@/lib/mastery'
 import type { CSSProperties } from 'react'
 
 type Feedback = 'right' | 'wrong' | null
-
-const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 function byLang(val: string | ByLang | undefined, lang: string): string {
   if (!val) return ''
@@ -200,25 +199,11 @@ export default function LessonPage() {
           user_id: user.id, lesson_id: lesson.id, subject_id: lesson.subjectId,
           stars: bestStars, xp_earned: earned,
         })
-        // XP accumulates; streak bumps once per day. A "freeze" forgives exactly
-        // one missed day so the streak survives.
-        const { data: prof } = await supabase.from('profiles')
-          .select('xp, streak, last_active, freeze_count').eq('id', user.id).single()
-        const today = new Date(), yest = new Date(); yest.setDate(today.getDate() - 1)
-        const twoAgo = new Date(); twoAgo.setDate(today.getDate() - 2)
-        const tStr = ymd(today), yStr = ymd(yest), twoStr = ymd(twoAgo)
-        newStreak = prof?.streak ?? 0
-        let freezes = prof?.freeze_count ?? 0
-        if (prof?.last_active !== tStr) {
-          if (prof?.last_active === yStr) newStreak += 1                                  // consecutive day
-          else if (prof?.last_active === twoStr && freezes > 0) { newStreak += 1; freezes -= 1; streakSaved = true }  // freeze saves it
-          else newStreak = 1                                                               // streak broke
-          streakUp = true
-          if (newStreak % 7 === 0) freezes = Math.min(3, freezes + 1)                      // earn a freeze each week
-        }
-        await supabase.from('profiles')
-          .update({ xp: (prof?.xp ?? 0) + earned, streak: newStreak, last_active: tStr, freeze_count: freezes })
-          .eq('id', user.id)
+        // XP for the lesson; the shared engine rolls the daily streak (+ freeze logic).
+        const { data: prof } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
+        await supabase.from('profiles').update({ xp: (prof?.xp ?? 0) + earned }).eq('id', user.id)
+        const sinfo = await touchStreak(supabase)
+        if (sinfo) { newStreak = sinfo.streak; streakUp = sinfo.streakUp; streakSaved = sinfo.streakSaved }
         completeQuest(supabase, 'lesson')
       }
       setCompletion({ earnedXp: earned, streak: newStreak, streakUp, streakSaved })

@@ -7,6 +7,7 @@ import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { trainerById, type Problem } from '@/lib/trainers'
+import { touchStreak } from '@/lib/streak'
 import { X, Flame, Square } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
@@ -70,6 +71,7 @@ export default function TrainerRunner() {
       if (user) {
         const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
         await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + xp }).eq('id', user.id)
+        void touchStreak(supabase)
       }
     }
   }

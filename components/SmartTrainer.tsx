@@ -8,6 +8,7 @@ import { useLang } from '@/lib/useLang'
 import { t, type I18NKey } from '@/lib/i18n'
 import { NumberLineSolver } from '@/components/NumberLineSolver'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { touchStreak } from '@/lib/streak'
 import { pickSkill, updateStat, type SkillStat, type TaggedOption } from '@/lib/skills'
 import type { ByLang } from '@/lib/lessons/types'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -59,6 +60,7 @@ export function SmartTrainer({ config }: { config: SmartConfig }) {
     if (n <= 0 || !userIdRef.current) return
     const { data } = await supabase.from('profiles').select('xp').eq('id', userIdRef.current).single()
     await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + n }).eq('id', userIdRef.current)
+    void touchStreak(supabase)
   }
   const rnd = useRound(bankXp)
   // A problem just concluded (answered or skipped): total is counted in pick(); advance or milestone.

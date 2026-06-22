@@ -18,6 +18,7 @@ import { t, type Lang, type I18NKey } from '@/lib/i18n'
 import { genAddition, diagnoseAddition, genSubtraction, diagnoseSubtraction } from '@/lib/skills'
 import { logAdditionAttempt, logSubtractionAttempt } from '@/lib/mastery'
 import { askCoach } from '@/lib/tutor-client'
+import { touchStreak } from '@/lib/streak'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
 import { X, Flame, Square } from 'lucide-react'
 
@@ -111,6 +112,7 @@ export function ColumnMath({ op = 'add' }: { op?: Op }) {
     if (!user) return
     const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
     await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + n }).eq('id', user.id)
+    void touchStreak(supabase)
   }
   const rnd = useRound(bankXp)
 

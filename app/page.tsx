@@ -8,6 +8,7 @@ import { ALL_LESSONS, SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { completeQuest, fetchTodayQuests, QUEST_XP } from '@/lib/quests'
+import { fetchWeekActivity } from '@/lib/streak'
 import { Flame, Zap, Play, ChevronRight, Check, Target, UserPlus, Shield } from 'lucide-react'
 import { GAME_ICONS, SUBJECT_ICONS } from '@/components/GameIcons'
 import type { User } from '@supabase/supabase-js'
@@ -127,16 +128,9 @@ export default function HomePage() {
       const gradeDone  = gradeTotal.filter(l => done.has(l.id))
       setLessonProgress({ done: gradeDone.length, total: gradeTotal.length })
 
-      // Week progress — one bubble per day Mon..Sun
-      const completedDays = Array(7).fill(false)
+      // Week strip — ANY activity (lessons, trainers, games, daily quests) lights a day
+      const completedDays = await fetchWeekActivity(supabase, weekStart)
       const todayBool = weekProgress?.some((p: { completed_at: string }) => isSameDay(new Date(p.completed_at), today)) ?? false
-      weekProgress?.forEach((p: { completed_at: string }) => {
-        const d = new Date(p.completed_at)
-        const dayIndex = (d.getDay() === 0 ? 6 : d.getDay() - 1) // Mon=0 ... Sun=6
-        const weekDay = new Date(weekStart)
-        weekDay.setDate(weekStart.getDate() + dayIndex)
-        if (d >= weekStart) completedDays[dayIndex] = true
-      })
       setWeekDays(completedDays)
       setCompletedToday(todayBool)
 

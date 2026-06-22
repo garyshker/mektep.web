@@ -9,6 +9,7 @@ import { t } from '@/lib/i18n'
 import { genEquation, genEquationExample, type EqProblem } from '@/lib/trainers'
 import { EquationSolver } from '@/components/EquationSolver'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { touchStreak } from '@/lib/streak'
 import { X, Flame, Square, ArrowRight, Lightbulb, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
@@ -39,6 +40,7 @@ export default function EquationTrainer() {
     if (!user) return
     const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
     await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + n }).eq('id', user.id)
+    void touchStreak(supabase)
   }
   const rnd = useRound(bankXp)
 

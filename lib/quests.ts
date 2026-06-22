@@ -4,6 +4,7 @@
 // row is actually inserted.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { touchStreak } from './streak'
 
 export const QUEST_XP: Record<string, number> = { lesson: 10, words: 15, game: 20, duel: 25 }
 
@@ -18,6 +19,7 @@ export async function completeQuest(sb: SupabaseClient, questId: string): Promis
   try {
     const { data: { user } } = await sb.auth.getUser()
     if (!user) return false
+    void touchStreak(sb)                              // any quest activity keeps today's streak
     const { data } = await sb.from('daily_quests')
       .upsert({ user_id: user.id, quest_date: todayDate(), quest_id: questId },
         { onConflict: 'user_id,quest_date,quest_id', ignoreDuplicates: true })
