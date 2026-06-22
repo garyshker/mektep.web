@@ -66,3 +66,24 @@ export async function fetchWeekActivity(sb: SupabaseClient, weekStart: Date): Pr
   } catch { /* ignore — strip just stays empty */ }
   return week
 }
+
+// Activity count per day (YYYY-MM-DD → how many things done) for a GitHub-style
+// heatmap. Counts daily_quests rows (incl. the 'active' footprint) + lessons.
+export async function fetchActivityCalendar(sb: SupabaseClient, sinceDays = 119): Promise<Record<string, number>> {
+  const out: Record<string, number> = {}
+  try {
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user) return out
+    const since = new Date(); since.setDate(since.getDate() - sinceDays)
+    const [{ data: quests }, { data: lessons }] = await Promise.all([
+      sb.from('daily_quests').select('quest_date').eq('user_id', user.id).gte('quest_date', ymd(since)),
+      sb.from('lesson_progress').select('completed_at').eq('user_id', user.id).gte('completed_at', since.toISOString()),
+    ])
+    ;(quests ?? []).forEach((r: { quest_date: string }) => { out[r.quest_date] = (out[r.quest_date] ?? 0) + 1 })
+    ;(lessons ?? []).forEach((r: { completed_at: string }) => {
+      const d = ymd(new Date(r.completed_at)); out[d] = (out[d] ?? 0) + 1
+    })
+  } catch { /* ignore — calendar just stays empty */ }
+  return out
+}
+

@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase'
 import { useLang } from '@/lib/useLang'
 import { t, type I18NKey } from '@/lib/i18n'
 import { SKILL_LADDERS, ALL_SKILL_IDS, SKILL_LABEL_ALL, trainerPathForSkill, ERROR_TAG_LABEL, type SkillStat } from '@/lib/skills'
+import { fetchActivityCalendar } from '@/lib/streak'
+import { ActivityCalendar } from '@/components/ActivityCalendar'
 import type { ByLang } from '@/lib/lessons/types'
 import { ChevronLeft, Zap, Target, Flame, Lightbulb, ArrowRight } from 'lucide-react'
 
@@ -22,6 +24,7 @@ export default function ProgressDashboard() {
   const [name, setName] = useState('')
   const [streak, setStreak] = useState(0)
   const [stats, setStats] = useState<Record<string, SkillStat>>({})
+  const [cal, setCal] = useState<Record<string, number>>({})
 
   useEffect(() => {
     const init = async () => {
@@ -41,6 +44,7 @@ export default function ProgressDashboard() {
         }
       }
       setStats(map)
+      setCal(await fetchActivityCalendar(supabase))
       setLoading(false)
     }
     init()
@@ -82,6 +86,7 @@ export default function ProgressDashboard() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 flex flex-col gap-4">
+        {Object.keys(cal).length > 0 && <ActivityCalendar data={cal} lang={lang} />}
         {!hasData ? (
           <div className="bg-card rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-sm)] text-center flex flex-col items-center gap-4">
             <div className="w-16 h-16 rounded-[20px] flex items-center justify-center text-3xl" style={{ background: 'var(--gradient-hero)' }}>🧠</div>
