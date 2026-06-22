@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { touchStreak } from '@/lib/streak'
 import { playCorrect, playWrong } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
@@ -153,7 +154,7 @@ export default function Game2048Page() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
-      await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + 50 }).eq('id', user.id)
+      await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + 50 }).eq('id', user.id); void touchStreak(supabase)
     }
     save()
   }, [won])

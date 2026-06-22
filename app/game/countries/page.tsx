@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { touchStreak } from '@/lib/streak'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
@@ -178,7 +179,7 @@ export default function CountriesPage() {
       if (!user) return
       const xp = score * 3
       const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
-      await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + xp }).eq('id', user.id)
+      await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + xp }).eq('id', user.id); void touchStreak(supabase)
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])

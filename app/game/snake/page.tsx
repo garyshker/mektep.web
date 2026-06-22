@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { touchStreak } from '@/lib/streak'
 import { playCorrect, playWrong } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
@@ -172,7 +173,7 @@ export default function SnakePage() {
         supabase.auth.getUser().then(({ data: { user } }) => {
           if (!user) return
           supabase.from('profiles').select('xp').eq('id', user.id).single().then(({ data }) => {
-            supabase.from('profiles').update({ xp: (data?.xp ?? 0) + s.score }).eq('id', user.id)
+            supabase.from('profiles').update({ xp: (data?.xp ?? 0) + s.score }).eq('id', user.id); void touchStreak(supabase)
           })
         })
       }

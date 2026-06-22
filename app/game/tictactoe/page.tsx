@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Users, X as XIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
+import { touchStreak } from '@/lib/streak'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
@@ -176,7 +177,7 @@ export default function TicTacToePage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
         const { data } = await supabase.from('profiles').select('xp').eq('id', user.id).single()
-        await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + 15 }).eq('id', user.id)
+        await supabase.from('profiles').update({ xp: (data?.xp ?? 0) + 15 }).eq('id', user.id); void touchStreak(supabase)
       })()
     }
   }, [winner])
