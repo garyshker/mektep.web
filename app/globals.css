@@ -10,10 +10,10 @@
   --muted-foreground: oklch(0.53 0.03 64);
 
   /* brand — "spark" amber-orange + steppe gold; turquoise kept as a cool flag accent */
-  --primary: oklch(0.64 0.17 52);              /* spark orange */
+  --primary: oklch(0.65 0.13 58);              /* spark amber (softened, less vivid) */
   --primary-foreground: oklch(1 0 0);
-  --primary-glow: oklch(0.80 0.13 70);
-  --primary-deep: oklch(0.46 0.14 45);         /* burnt-orange pop-shadow */
+  --primary-glow: oklch(0.81 0.105 72);
+  --primary-deep: oklch(0.47 0.115 50);        /* burnt-amber pop-shadow */
 
   --accent: oklch(0.82 0.15 85);               /* steppe gold */
   --accent-foreground: oklch(0.25 0.03 58);
@@ -21,7 +21,7 @@
 
   --brand: oklch(0.66 0.13 218);               /* kazakh turquoise — secondary accent */
   --brand-foreground: oklch(1 0 0);
-  --brand-deep: oklch(0.50 0.16 45);           /* ember — primary CTA pop-shadow */
+  --brand-deep: oklch(0.50 0.135 50);          /* ember — primary CTA pop-shadow */
 
   --success: oklch(0.68 0.18 145);             /* green = "correct" only */
   --success-foreground: oklch(1 0 0);
@@ -31,15 +31,15 @@
   --xp: oklch(0.74 0.17 85);
 
   /* gradients */
-  --gradient-hero: linear-gradient(135deg, oklch(0.645 0.17 60), oklch(0.59 0.185 43));
+  --gradient-hero: linear-gradient(135deg, oklch(0.65 0.13 62), oklch(0.59 0.15 50));
   --gradient-gold: linear-gradient(135deg, oklch(0.82 0.16 85), oklch(0.74 0.18 70));
-  --gradient-success: linear-gradient(135deg, oklch(0.625 0.18 54), oklch(0.565 0.19 37));
+  --gradient-success: linear-gradient(135deg, oklch(0.625 0.15 56), oklch(0.57 0.165 44));
 
   /* shadows — soft warm, plus tactile pop */
   --shadow-sm: 0 1px 2px oklch(0.30 0.03 60 / 0.05);
   --shadow-md: 0 4px 12px oklch(0.30 0.03 60 / 0.07);
   --shadow-pop: 0 4px 0 oklch(0.30 0.03 60 / 0.15);
-  --shadow-glow: 0 0 32px oklch(0.66 0.16 58 / 0.40);
+  --shadow-glow: 0 0 32px oklch(0.66 0.13 60 / 0.38);
 
   /* radii */
   --radius-sm: 12px;
