@@ -17,9 +17,8 @@ conventions to follow, and where it's going. Read it before making changes.
 
 - **Trilingual**: Kazakh (kk), Russian (ru), English (en). Every user-facing
   string goes through `lib/i18n.ts` — never hardcode UI text.
-- **Goal**: a polished, genuinely engaging learning product, aimed at a
-  **Kazakhstan government / startup grant** — so Kazakh cultural and curricular
-  relevance matters (e.g. Togyz Kumalak, steppe/national motifs).
+- **Goal**: a polished, genuinely engaging learning product with strong Kazakh
+  cultural and curricular relevance (e.g. Togyz Kumalak, steppe/national motifs).
 - **North-star right now**: make kids *return daily* (retention loop) and make
   math feel like a game. See "Roadmap".
 
@@ -134,7 +133,7 @@ Warm **"Ұшқын / spark"** palette. All tokens are CSS variables in
 
 - `--primary` = softened spark amber-orange · `--accent` = steppe gold ·
   `--brand` = Kazakh-flag **turquoise** (secondary cool accent, kept for the
-  grant/flag tie) · surface is warm cream.
+  flag tie) · surface is warm cream.
 - **Rule: green (`--success`) is reserved strictly for the "correct" state** —
   never use green for brand/CTAs.
 - CTA gradients (`--gradient-hero`, `--gradient-success`) keep lightness ≤ ~0.66
@@ -155,7 +154,7 @@ reminder*):
   `/progress` has a GitHub-style activity calendar.
 - ⏳ **Reminder channel** — strongest return lever. On web, kids have no inbox →
   go through the **parent** (weekly WhatsApp/email summary + "didn't practice N
-  days"). Needs a parent–child model. Also great for the grant.
+  days"). Needs a parent–child model.
 - ⏳ **Rewards** — spend XP (avatar / spark pet / themes).
 - ⏳ **Guided math path** (a map/тропа) instead of the grid of trainers — removes
   choice paralysis.
@@ -165,7 +164,7 @@ reminder*):
 - **Parent–child accounts** (one parent, multiple kids) — exists in the Android
   app; not on web yet.
 - **KZ data-residency / self-hosting Supabase in Kazakhstan** — relevant to the
-  personal-data law before launch/grant.
+  personal-data law before launch.
 - **Big visual redesign / mascot illustration** — wanted "in the future".
 
 ## Gotchas
