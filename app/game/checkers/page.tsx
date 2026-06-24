@@ -805,10 +805,10 @@ export default function CheckersPage() {
               <div className="grid grid-cols-3 gap-2">
                 {([['w', 'checkers_white'], ['b', 'checkers_black'], ['random', 'checkers_random']] as const).map(([opt, key]) => (
                   <button key={opt} onClick={() => { playTap(); setHostChoice(opt) }}
-                    className="bg-card border-2 rounded-[var(--radius)] py-2.5 flex items-center justify-center gap-1.5 font-display font-black text-foreground text-xs transition-all"
+                    className="bg-card border-2 rounded-[var(--radius)] py-3 flex flex-col items-center justify-center gap-1.5 font-display font-black text-foreground text-[11px] leading-tight text-center transition-all"
                     style={{ borderColor: hostChoice === opt ? 'var(--primary)' : 'var(--border)', opacity: hostChoice === opt ? 1 : 0.55 }}>
-                    {opt === 'random' ? <span className="text-base leading-none">🎲</span> : <Disc white={opt === 'w'} size={18} />}
-                    {t(key, lang)}
+                    {opt === 'random' ? <span className="text-xl leading-none">🎲</span> : <Disc white={opt === 'w'} size={22} />}
+                    <span className="w-full truncate px-0.5">{t(key, lang)}</span>
                   </button>
                 ))}
               </div>
@@ -822,12 +822,12 @@ export default function CheckersPage() {
                 <span className="text-xs text-muted-foreground font-bold">{t('checkers_join', lang)}</span>
                 <div className="flex-1 h-px bg-border" />
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <input value={joinCode} onChange={e => setJoinCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   inputMode="numeric" placeholder={t('checkers_enter_code', lang)} maxLength={4}
-                  className="flex-1 bg-card border-2 border-border rounded-[var(--radius)] px-4 py-3 text-center text-2xl font-display font-black tracking-[0.2em] text-foreground outline-none" />
+                  className="w-full bg-card border-2 border-border rounded-[var(--radius)] px-4 py-3 text-center text-2xl font-display font-black tracking-[0.25em] text-foreground outline-none placeholder:text-base placeholder:font-bold placeholder:tracking-normal" />
                 <button onClick={joinOnline} disabled={joinCode.trim().length < 4}
-                  className="px-5 rounded-[var(--radius)] text-white font-display font-black active:scale-95 transition-transform disabled:opacity-40"
+                  className="w-full py-3 rounded-[var(--radius)] text-white font-display font-black active:scale-95 transition-transform disabled:opacity-40"
                   style={{ background: 'var(--primary)' }}>
                   {t('checkers_join', lang)}
                 </button>
