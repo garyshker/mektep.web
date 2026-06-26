@@ -67,8 +67,9 @@ export default function LoginPage() {
     const { data: n } = await supabase.rpc('next_guest_seq', { p_day: dayCode })
     if (typeof n === 'number') seq = String(n).padStart(2, '0')
     else seq = data.user.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase() // fallback before migration
-    await supabase.from('profiles').upsert({ id: data.user.id, name: `${dayCode}${seq}`, grade: 2, language: lang })
-    router.push('/')
+    // Don't assume a grade — let the guest pick it in setup (jumps straight to the grade step).
+    await supabase.from('profiles').upsert({ id: data.user.id, name: `${dayCode}${seq}`, language: lang })
+    router.push('/setup')
   }
 
   const submit = async (e: React.FormEvent) => {

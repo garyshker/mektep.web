@@ -10,11 +10,11 @@ import { ChevronLeft, ArrowRight, Check } from 'lucide-react'
 import type { Lang } from '@/lib/i18n'
 import type { CSSProperties } from 'react'
 
-const GRADES = [
-  { n: 1, emoji: '🌱' },
-  { n: 2, emoji: '⭐' },
-  { n: 3, emoji: '🚀' },
-  { n: 4, emoji: '🏆' },
+const GRADES: { n: number; hint: { kk: string; ru: string; en: string } }[] = [
+  { n: 1, hint: { kk: '20-ға дейін', ru: 'Числа до 20', en: 'Numbers to 20' } },
+  { n: 2, hint: { kk: '100-ге дейін', ru: 'Числа до 100', en: 'Numbers to 100' } },
+  { n: 3, hint: { kk: '1000-ға дейін', ru: 'Числа до 1000', en: 'Numbers to 1000' } },
+  { n: 4, hint: { kk: 'Үлкен сандар', ru: 'Большие числа', en: 'Big numbers' } },
 ]
 
 const LANGS: { code: Lang; flag: string; label: string }[] = [
@@ -45,8 +45,11 @@ export default function SetupPage() {
       const { data } = await supabase.from('profiles').select('name, grade, language').eq('id', user.id).single()
       if (!data) return
       if (data.name) setName(data.name)
-      if (data.grade) setGrade(data.grade)
       if (data.language) { setLang(data.language as Lang); saveLang(data.language as Lang) }
+      // Guests already have a name + language → send them straight to the grade step,
+      // and don't pre-select a grade so they make a real choice.
+      if (user.is_anonymous) { setStep(2) }
+      else if (data.grade) { setGrade(data.grade) }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -88,7 +91,6 @@ export default function SetupPage() {
 
       {/* Content */}
       <div className="flex-1 flex flex-col max-w-sm mx-auto w-full">
-        {step === 0 && <div className="text-5xl mb-3">👋</div>}
         <h1 className="text-2xl font-display font-black text-foreground mb-1">{titles[step]}</h1>
         <p className="text-muted-foreground text-sm mb-6">{step === 0 ? t('setup_subtitle', lang) : ''}</p>
 
@@ -136,11 +138,22 @@ export default function SetupPage() {
               const active = grade === g.n
               return (
                 <button key={g.n} onClick={() => setGrade(g.n)}
-                  className="flex flex-col items-center justify-center gap-1 rounded-[var(--radius)] border-2 py-6 transition-all active:scale-[0.97]"
+                  className="relative flex flex-col items-center justify-center gap-2 rounded-[var(--radius-lg)] border-2 py-6 transition-all active:scale-[0.97]"
                   style={selStyle(active)}>
-                  <span className="text-3xl">{g.emoji}</span>
-                  <span className="text-3xl font-display font-black leading-none tabular">{g.n}</span>
-                  <span className="text-[11px] font-semibold text-muted-foreground">{t('grade', lang)}</span>
+                  {active && (
+                    <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-white"
+                      style={{ background: 'var(--primary)' }}>
+                      <Check size={12} strokeWidth={3} />
+                    </span>
+                  )}
+                  <span className="w-14 h-14 rounded-full flex items-center justify-center text-3xl font-display font-black tabular transition-colors"
+                    style={active
+                      ? { background: 'var(--primary)', color: 'var(--primary-foreground)' }
+                      : { background: 'color-mix(in oklch, var(--primary) 12%, var(--card))', color: 'var(--primary)' }}>
+                    {g.n}
+                  </span>
+                  <span className="text-sm font-display font-black text-foreground leading-none">{t('grade', lang)}</span>
+                  <span className="text-[11px] font-semibold text-muted-foreground leading-tight text-center px-2">{g.hint[lang]}</span>
                 </button>
               )
             })}
