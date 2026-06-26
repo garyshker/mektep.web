@@ -108,7 +108,7 @@ export function generateAdditionLesson(): Lesson {
     id: 'math-1', subjectId: 'math', emoji: '➕',
     titleByLang: { kk: 'Қосу · 100 ішінде', ru: 'Сложение до 100', en: 'Addition · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды қосуды үйренеміз!', ru: 'Учимся складывать числа в пределах 100!', en: "Let's practise adding numbers within 100!" },
-    grade: [1, 2, 3, 4],
+    grade: [2, 3, 4],
     questions: [...explain, ...mc, ...typ, tapQ, tfQ, wordQ],
   }
 }
@@ -183,8 +183,84 @@ export function generateSubtractionLesson(): Lesson {
     id: 'math-2', subjectId: 'math', emoji: '➖',
     titleByLang: { kk: 'Алу · 100 ішінде', ru: 'Вычитание до 100', en: 'Subtraction · within 100' },
     introByLang: { kk: '100-ге дейінгі сандарды алуды үйренеміз!', ru: 'Учимся вычитать в пределах 100!', en: "Let's practise subtraction within 100!" },
-    grade: [1, 2, 3, 4],
+    grade: [2, 3, 4],
     questions: [...explain, ...mc, ...typ, tapQ, tfQ, wordQ],
+  }
+}
+
+// ── Grade 1: addition within 20 ───────────────────────────────────────────────
+export function generateG1AdditionLesson(): Lesson {
+  const used = new Set<string>()
+  const addPair = () => {
+    let a: number, b: number, key: string
+    do { a = _ri(2, 12); b = _ri(1, 9); key = `${a}+${b}` } while (used.has(key) || a + b > 20 || a + b < 3)
+    used.add(key); return { a, b }
+  }
+  const explain = Array.from({ length: 2 }, (): Question => {
+    const { a, b } = addPair()
+    return { kind: 'addsub', prompt: `${a} + ${b} = ?`, answer: a + b, nl: { a, op: '+', b } }
+  })
+  const mc = Array.from({ length: 3 }, () => {
+    const { a, b } = addPair(); const ans = a + b; const opts = smartOptions(a, '+', b)
+    return { kind: 'mc' as const, big: true, prompt: `${a} + ${b}`, options: opts, answer: opts.indexOf(String(ans)) }
+  })
+  const typ = Array.from({ length: 3 }, () => {
+    const { a, b } = addPair()
+    return { kind: 'type' as const, prompt: `${a} + ${b} = ?`, answer: a + b }
+  })
+  const w = addPair(); const wOpts = smartOptions(w.a, '+', w.b)
+  const wordQ: Question = {
+    kind: 'word',
+    storyByLang: { kk: `${w.a} алма бар еді, тағы ${w.b} қосылды. Барлығы қанша?`, ru: `Было ${w.a} яблок, добавили ещё ${w.b}. Сколько всего?`, en: `There were ${w.a} apples, ${w.b} more were added. How many in total?` },
+    options: wOpts, answer: wOpts.indexOf(String(w.a + w.b)),
+  }
+  const tfP = addPair(); const tfWrong = _ri(0, 1) === 1
+  const tfShown = (tfP.a + tfP.b) + (tfWrong ? (_ri(0, 1) ? 1 : -1) : 0)
+  const tfQ: Question = { kind: 'tf', prompt: `${tfP.a} + ${tfP.b} = ${tfShown}`, answer: String(tfShown === tfP.a + tfP.b) }
+  return {
+    id: 'g1-add', subjectId: 'math', emoji: '➕',
+    titleByLang: { kk: 'Қосу · 20 ішінде', ru: 'Сложение в пределах 20', en: 'Addition · within 20' },
+    introByLang: { kk: '20-ға дейін қосуды үйренеміз!', ru: 'Учимся складывать в пределах 20!', en: "Let's add within 20!" },
+    grade: [1],
+    questions: [...explain, ...mc, ...typ, wordQ, tfQ],
+  }
+}
+
+// ── Grade 1: subtraction within 20 ────────────────────────────────────────────
+export function generateG1SubtractionLesson(): Lesson {
+  const used = new Set<string>()
+  const subPair = () => {
+    let a: number, b: number, key: string
+    do { a = _ri(5, 20); b = _ri(1, a - 1); key = `${a}-${b}` } while (used.has(key))
+    used.add(key); return { a, b }
+  }
+  const explain = Array.from({ length: 2 }, (): Question => {
+    const { a, b } = subPair()
+    return { kind: 'addsub', prompt: `${a} − ${b} = ?`, answer: a - b, nl: { a, op: '-', b } }
+  })
+  const mc = Array.from({ length: 3 }, () => {
+    const { a, b } = subPair(); const ans = a - b; const opts = smartOptions(a, '−', b)
+    return { kind: 'mc' as const, big: true, prompt: `${a} − ${b}`, options: opts, answer: opts.indexOf(String(ans)) }
+  })
+  const typ = Array.from({ length: 3 }, () => {
+    const { a, b } = subPair()
+    return { kind: 'type' as const, prompt: `${a} − ${b} = ?`, answer: a - b }
+  })
+  const w = subPair(); const wOpts = smartOptions(w.a, '−', w.b)
+  const wordQ: Question = {
+    kind: 'word',
+    storyByLang: { kk: `${w.a} шар болды, ${w.b}-уі ұшып кетті. Қанша қалды?`, ru: `Было ${w.a} шариков, ${w.b} улетели. Сколько осталось?`, en: `There were ${w.a} balloons, ${w.b} flew away. How many are left?` },
+    options: wOpts, answer: wOpts.indexOf(String(w.a - w.b)),
+  }
+  const tfP = subPair(); const tfWrong = _ri(0, 1) === 1
+  const tfShown = (tfP.a - tfP.b) + (tfWrong ? (_ri(0, 1) ? 1 : -1) : 0)
+  const tfQ: Question = { kind: 'tf', prompt: `${tfP.a} − ${tfP.b} = ${tfShown}`, answer: String(tfShown === tfP.a - tfP.b) }
+  return {
+    id: 'g1-sub', subjectId: 'math', emoji: '➖',
+    titleByLang: { kk: 'Алу · 20 ішінде', ru: 'Вычитание в пределах 20', en: 'Subtraction · within 20' },
+    introByLang: { kk: '20-ға дейін алуды үйренеміз!', ru: 'Учимся вычитать в пределах 20!', en: "Let's subtract within 20!" },
+    grade: [1],
+    questions: [...explain, ...mc, ...typ, wordQ, tfQ],
   }
 }
 
@@ -521,7 +597,7 @@ export const mathLessons: Lesson[] = [
     id: 'math-9', subjectId: 'math', emoji: '⚖️',
     titleByLang: { kk: 'Сандарды салыстыру · < > =', ru: 'Больше / меньше', en: 'Comparing Numbers · < > =' },
     introByLang: { kk: 'Екі таңбалы сандарды салыстыруды үйренеміз!', ru: 'Учимся сравнивать двузначные числа!', en: "Let's learn to compare two-digit numbers!" },
-    grade: [1, 2, 3, 4],
+    grade: [2, 3, 4],
     questions: [
       { kind: 'mc', big: true, image: '🔢',
         promptByLang: { kk: '47 __ 74 — қай белгі дұрыс?', ru: '47 __ 74 — какой знак верный?', en: '47 __ 74 — which sign is correct?' },
