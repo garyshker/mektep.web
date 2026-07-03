@@ -38,6 +38,7 @@ export default function TrainPage() {
   const g1Cards = [
     { path: '/train/count',   title: t('train_count_title', lang),   sub: t('train_count_sub', lang),   emoji: '🔢' },
     { path: '/train/compare', title: t('train_compare_title', lang), sub: t('train_compare_sub', lang), emoji: '⚖️' },
+    { path: '/train/bonds',   title: t('train_bonds_title', lang),   sub: t('train_bonds_sub', lang),   emoji: '🏠' },
     { path: '/train/sticks',  title: t('train_sticks_title', lang),  sub: t('train_sticks_sub', lang),  emoji: '🪵' },
   ]
 
