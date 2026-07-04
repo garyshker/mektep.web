@@ -43,6 +43,7 @@ export default function TrainPage() {
     { path: '/train/sub10',   title: t('train_sub10_title', lang),   sub: t('train_within10_sub', lang), emoji: '➖' },
     { path: '/train/sticks',  title: t('train_sticks_title', lang),  sub: t('train_sticks_sub', lang),  emoji: '🪵' },
     { path: '/train/cross10', title: t('train_cross10_title', lang), sub: t('train_cross10_sub', lang), emoji: '🔟' },
+    { path: '/train/tasks',   title: t('train_tasks_title', lang),   sub: t('train_tasks_sub', lang),   emoji: '🐑' },
   ]
 
   const smart = [
