@@ -9,6 +9,7 @@ import { t } from '@/lib/i18n'
 import { TenFrame } from '@/components/TenFrame'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
 import { touchStreak } from '@/lib/streak'
+import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
@@ -58,7 +59,7 @@ export default function CountTrainer() {
   }
   const rnd = useRound(bankXp)
 
-  const finishProblem = (wasCorrect: boolean) => { setTotal(c => c + 1); rnd.conclude(wasCorrect, newProblem) }
+  const finishProblem = (wasCorrect: boolean) => { setTotal(c => c + 1); void logTrainerAttempt(supabase, 'g1_count', wasCorrect); rnd.conclude(wasCorrect, newProblem) }
 
   const pick = (opt: number) => {
     if (status !== 'idle' || n === null) return

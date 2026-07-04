@@ -34,6 +34,11 @@ async function logAttempt(supabase: SB, skill: string, correct: boolean, errorTa
   } catch { /* table may not be migrated yet — ignore */ }
 }
 
+// Trainer-level progress (crowns): log an attempt under a trainer id like 'g1_bonds'.
+export function logTrainerAttempt(supabase: SB, skillId: string, correct: boolean) {
+  return logAttempt(supabase, skillId, correct, undefined)
+}
+
 export function logAdditionAttempt(supabase: SB, a: number, b: number, answered: number) {
   const correct = answered === a + b
   return logAttempt(supabase, additionSkillOf(a, b), correct, correct ? undefined : (diagnoseAddition(a, b, answered) ?? undefined))

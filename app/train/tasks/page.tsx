@@ -8,6 +8,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
 import { touchStreak } from '@/lib/streak'
+import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
@@ -126,7 +127,7 @@ export default function TasksTrainer() {
   }
   const rnd = useRound(bankXp)
 
-  const finishProblem = (wasCorrect: boolean) => { setTotal(c => c + 1); rnd.conclude(wasCorrect, newProblem) }
+  const finishProblem = (wasCorrect: boolean) => { setTotal(c => c + 1); void logTrainerAttempt(supabase, 'g1_tasks', wasCorrect); rnd.conclude(wasCorrect, newProblem) }
 
   const pickOp = (op: '+' | '−') => {
     if (status !== 'idle' || !problem || phase !== 'op') return

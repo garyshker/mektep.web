@@ -10,6 +10,7 @@ import { genEquation, genEquationExample, type EqProblem } from '@/lib/trainers'
 import { EquationSolver } from '@/components/EquationSolver'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
 import { touchStreak } from '@/lib/streak'
+import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight, Lightbulb, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
@@ -45,7 +46,7 @@ export default function EquationTrainer() {
   const rnd = useRound(bankXp)
 
   // A problem just concluded (solved or skipped): count it, then advance or hit a milestone.
-  const finishProblem = (wasCorrect: boolean) => { setTotal(n => n + 1); rnd.conclude(wasCorrect, next) }
+  const finishProblem = (wasCorrect: boolean) => { setTotal(n => n + 1); void logTrainerAttempt(supabase, 'eq', wasCorrect); rnd.conclude(wasCorrect, next) }
 
   const toggleHow = () => {
     playTap()

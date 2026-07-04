@@ -9,6 +9,7 @@ import { t } from '@/lib/i18n'
 import { TenFrame } from '@/components/TenFrame'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
 import { touchStreak } from '@/lib/streak'
+import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
@@ -96,7 +97,7 @@ export default function BondsTrainer() {
   }
   const rnd = useRound(bankXp)
 
-  const finishProblem = (wasCorrect: boolean) => { setTotal(c => c + 1); rnd.conclude(wasCorrect, newProblem) }
+  const finishProblem = (wasCorrect: boolean) => { setTotal(c => c + 1); void logTrainerAttempt(supabase, 'g1_bonds', wasCorrect); rnd.conclude(wasCorrect, newProblem) }
 
   const pick = (opt: number) => {
     if (status !== 'idle' || !bond) return
