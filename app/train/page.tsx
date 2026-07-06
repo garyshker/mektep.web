@@ -140,6 +140,27 @@ export default function TrainPage() {
           </button>
         )}
 
+        {/* Grade 2 — two-step word problems */}
+        {!isG1 && (
+          <button onClick={() => router.push('/train/tasks2')}
+            className="col-span-2 rounded-[var(--radius)] p-4 flex items-center gap-4 text-left border-2 active:translate-y-[-2px] transition-transform"
+            style={{ background: 'color-mix(in oklch, var(--accent) 12%, var(--card))', borderColor: 'color-mix(in oklch, var(--accent) 32%, var(--card))' }}>
+            <span className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0"
+              style={{ background: 'color-mix(in oklch, var(--accent) 22%, transparent)' }}>🧩</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-black text-foreground text-base flex items-center gap-1.5">
+                {t('train_tasks2_title', lang)} <Crowns n={crownsOf(totalFor(id => id === 'g2_tasks2'))} />
+              </p>
+              <p className="text-muted-foreground text-xs flex items-center gap-1">
+                <InfinityIcon size={12} /> {t('train_tasks2_sub', lang)}
+              </p>
+            </div>
+            <span className="text-xs font-black flex items-center gap-0.5 shrink-0" style={{ color: 'var(--accent-deep)' }}>
+              {t('game_go', lang)} <ChevronRight size={14} />
+            </span>
+          </button>
+        )}
+
         {/* Grade 2 — division as sharing (inverse of equal groups) */}
         {!isG1 && (
           <button onClick={() => router.push('/train/share')}

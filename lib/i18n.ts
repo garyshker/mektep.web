@@ -205,6 +205,8 @@ export const I18N = {
   train_tasks_sub:    { ru: 'Реши в 1 действие · 1 класс', kk: '1 амалмен шеш · 1-сынып',   en: '1-step stories · Grade 1' },
   tasks_op_q:         { ru: 'Каким действием решаем?',    kk: 'Қай амалмен шешеміз?',       en: 'Which operation solves it?' },
   tasks_solve_q:      { ru: 'Теперь посчитай',            kk: 'Енді есепте',                en: 'Now work it out' },
+  train_tasks2_title: { ru: 'Задачи в 2 действия',        kk: '2 амалды есептер',           en: 'Two-step problems' },
+  train_tasks2_sub:   { ru: 'Реши по шагам · 2 класс',    kk: 'Қадаммен шеш · 2-сынып',     en: 'Solve step by step · Grade 2' },
   train_share_title:  { ru: 'Делим поровну',              kk: 'Тең бөлеміз',                en: 'Share equally' },
   train_share_sub:    { ru: 'Деление · 2 класс',          kk: 'Бөлу · 2-сынып',             en: 'Division · Grade 2' },
   share_into:         { ru: 'разложили в',                kk: 'бөлдік, тарелка саны',       en: 'shared into' },
