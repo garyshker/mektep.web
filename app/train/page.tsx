@@ -64,7 +64,13 @@ export default function TrainPage() {
     { path: '/train/share',      emoji: '➗', title: t('train_share_title', lang),       correct: one('g2_share') },
     { path: '/train/tasks2',     emoji: '🧩', title: t('train_tasks2_title', lang),     correct: one('g2_tasks2') },
   ]
-  const path = isG1 ? g1Path : g2Path
+  const g3Path: PathStep[] = [
+    { path: '/train/fractions',  emoji: '🍕', title: t('train_fractions_title', lang),  correct: one('g3_fractions') },
+  ]
+  const g4Path: PathStep[] = [
+    { path: '/train/bignum',     emoji: '🔢', title: t('train_bignum_title', lang),     correct: one('g4_bignum') },
+  ]
+  const path = grade <= 1 ? g1Path : grade === 2 ? g2Path : grade === 3 ? g3Path : g4Path
 
   // Free practice — endless adaptive/drill trainers, not part of the linear path.
   const smart = [
