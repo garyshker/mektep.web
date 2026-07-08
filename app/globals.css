@@ -126,6 +126,10 @@ h1, h2, h3, .display {
 @keyframes mkFloatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-32px); opacity: 0; } }
 .animate-mk-float { animation: mkFloatUp 0.8s ease forwards; }
 
+/* "снос" — a digit dropping down into the next long-division step */
+@keyframes mkDrop { 0% { transform: translateY(-26px); opacity: 0; } 60% { opacity: 1; } 100% { transform: translateY(0); opacity: 1; } }
+.animate-mk-drop { animation: mkDrop 0.55s ease; }
+
 @keyframes mkShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
 @media (prefers-reduced-motion: reduce) {
