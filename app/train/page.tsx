@@ -69,6 +69,7 @@ export default function TrainPage() {
   ]
   const g4Path: PathStep[] = [
     { path: '/train/bignum',     emoji: '🔢', title: t('train_bignum_title', lang),     correct: one('g4_bignum') },
+    { path: '/train/colmul',     emoji: '✖️', title: t('train_colmul_title', lang),     correct: one('g4_colmul') },
   ]
   const path = grade <= 1 ? g1Path : grade === 2 ? g2Path : grade === 3 ? g3Path : g4Path
 
