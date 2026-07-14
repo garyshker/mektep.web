@@ -1,0 +1,32 @@
+name: Keep Supabase awake
+
+# Free-tier Supabase pauses a project after ~7 days with no API activity.
+# This makes one tiny REST request every day so the project stays awake.
+# (You can also run it by hand from the Actions tab → "Run workflow".)
+
+on:
+  schedule:
+    - cron: '30 7 * * *'   # every day at 07:30 UTC
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+            echo "::error::Add repo secrets SUPABASE_URL and SUPABASE_ANON_KEY (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          code=$(curl -s -m 30 -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/profiles?select=id&limit=1")
+          echo "Supabase responded with HTTP $code"
+          # Any real HTTP response (2xx–4xx) means the project is awake and served the request.
+          if [ "$code" -ge 200 ] && [ "$code" -lt 500 ]; then
+            echo "✓ Project is awake."
+          else
+            echo "::error::Unexpected response ($code) — project may be down."
+            exit 1
+          fi
