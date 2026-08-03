@@ -66,6 +66,7 @@ export default function TrainPage() {
   ]
   const g3Path: PathStep[] = [
     { path: '/train/hundreds',   emoji: '💯', title: t('train_hundreds_title', lang),   correct: one('g3_hundreds') },
+    { path: '/train/remainder',  emoji: '🧺', title: t('train_remainder_title', lang),  correct: one('g3_remainder') },
     { path: '/train/fractions',  emoji: '🍕', title: t('train_fractions_title', lang),  correct: one('g3_fractions') },
   ]
   const g4Path: PathStep[] = [
