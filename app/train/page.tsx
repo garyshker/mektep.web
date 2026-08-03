@@ -69,6 +69,7 @@ export default function TrainPage() {
     { path: '/train/remainder',  emoji: '🧺', title: t('train_remainder_title', lang),  correct: one('g3_remainder') },
     { path: '/train/fractions',  emoji: '🍕', title: t('train_fractions_title', lang),  correct: one('g3_fractions') },
     { path: '/train/order',      emoji: '🧮', title: t('train_order_title', lang),      correct: one('g3_order') },
+    { path: '/train/areaperim',  emoji: '📐', title: t('train_areaperim_title', lang),  correct: one('g3_areaperim') },
   ]
   const g4Path: PathStep[] = [
     { path: '/train/bignum',     emoji: '🔢', title: t('train_bignum_title', lang),     correct: one('g4_bignum') },
