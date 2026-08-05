@@ -37,26 +37,41 @@ function buildOptions(n: number, h: number, te: number, o: number): number[] {
   return arr
 }
 
+const SHADOW = '0 1px 2px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.35)'
 const gridBg = (line: string) =>
   `repeating-linear-gradient(${line} 0 1px, transparent 1px 4.6px), repeating-linear-gradient(90deg, ${line} 0 1px, transparent 1px 4.6px)`
 
 function Hundred() {
-  return <span style={{ width: 46, height: 46, borderRadius: 6, background: '#efb14a',
-    backgroundImage: gridBg('rgba(120,80,20,.35)'), border: '2px solid #a9702a' }} />
+  return <span style={{ width: 46, height: 46, borderRadius: 6, flexShrink: 0,
+    background: 'linear-gradient(160deg,#f6c163,#e5a63c)', backgroundImage: gridBg('rgba(120,80,20,.32)'),
+    border: '2px solid #a9702a', boxShadow: SHADOW }} />
 }
 function TenRod() {
-  return <span style={{ width: 13, height: 46, borderRadius: 4, background: '#5bb3a0',
-    backgroundImage: `repeating-linear-gradient(rgba(20,80,65,.4) 0 1px, transparent 1px 4.6px)`, border: '2px solid #2f7a68' }} />
+  return <span style={{ width: 13, height: 46, borderRadius: 4, flexShrink: 0,
+    background: 'linear-gradient(160deg,#6ec3af,#4da491)',
+    backgroundImage: 'repeating-linear-gradient(rgba(20,80,65,.38) 0 1px, transparent 1px 4.6px)',
+    border: '2px solid #2f7a68', boxShadow: SHADOW }} />
 }
 function Unit() {
-  return <span style={{ width: 12, height: 12, borderRadius: 3, background: '#6d8fd4', border: '1.5px solid #3f5da0' }} />
+  return <span style={{ width: 13, height: 13, borderRadius: 3, flexShrink: 0,
+    background: 'linear-gradient(160deg,#8aa8de,#6d8fd4)', border: '2px solid #3f5da0', boxShadow: SHADOW }} />
 }
 
-function Row({ label, color, children }: { label: string; color: string; children: React.ReactNode }) {
+// One place value = its own tinted band: label on its own line (Kazakh place
+// names are long, so a fixed side column collided with the blocks), then the
+// blocks below with room to wrap. The digit is revealed only after answering.
+function Band({ label, color, digit, reveal, children }: {
+  label: string; color: string; digit: number; reveal: boolean; children: React.ReactNode
+}) {
   return (
-    <div className="flex items-center gap-3 w-full min-h-[50px]">
-      <span className="w-16 shrink-0 text-[10px] font-black tracking-wide uppercase text-right" style={{ color }}>{label}</span>
-      <div className="flex flex-wrap items-center gap-[5px] flex-1">{children}</div>
+    <div className="w-full rounded-2xl px-3 py-2.5 flex flex-col gap-2"
+      style={{ background: `color-mix(in oklch, ${color} 9%, var(--card))`, border: `1.5px solid color-mix(in oklch, ${color} 22%, var(--card))` }}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-black tracking-widest uppercase leading-none" style={{ color }}>{label}</span>
+        <span className="font-display font-black text-lg tabular leading-none"
+          style={{ color, opacity: reveal ? 1 : 0, transition: 'opacity .3s ease' }}>{digit}</span>
+      </div>
+      <div className="flex flex-wrap items-end gap-[5px] min-h-[46px]">{children}</div>
     </div>
   )
 }
@@ -165,19 +180,21 @@ export default function HundredsTrainer() {
       <main className="flex-1 flex flex-col px-4 pt-2 gap-4 max-w-md mx-auto w-full">
         <RoundDots done={rnd.roundDone} />
 
-        <div className="bg-card rounded-3xl px-4 py-5 shadow-[var(--shadow-md)] flex flex-col items-stretch gap-2">
-          <p className="text-sm font-bold text-muted-foreground text-center mb-1">{t('tens_q', lang)}</p>
-          <Row label={t('hundreds_label', lang)} color="#a9702a">
-            {Array.from({ length: p.h }).map((_, i) => <Hundred key={i} />)}
-          </Row>
-          <Row label={t('tens_label', lang)} color="#2f7a68">
-            {Array.from({ length: p.te }).map((_, i) => <TenRod key={i} />)}
-          </Row>
-          <Row label={t('ones_label', lang)} color="#3f5da0">
-            {Array.from({ length: p.o }).map((_, i) => <Unit key={i} />)}
-          </Row>
+        <div className="bg-card rounded-3xl px-4 py-5 shadow-[var(--shadow-md)] flex flex-col items-stretch gap-3">
+          <p className="text-sm font-bold text-muted-foreground text-center">{t('tens_q', lang)}</p>
+          <div className="flex flex-col gap-2.5">
+            <Band label={t('hundreds_label', lang)} color="#a9702a" digit={p.h} reveal={status !== 'idle'}>
+              {Array.from({ length: p.h }).map((_, i) => <Hundred key={i} />)}
+            </Band>
+            <Band label={t('tens_label', lang)} color="#2f7a68" digit={p.te} reveal={status !== 'idle'}>
+              {Array.from({ length: p.te }).map((_, i) => <TenRod key={i} />)}
+            </Band>
+            <Band label={t('ones_label', lang)} color="#3f5da0" digit={p.o} reveal={status !== 'idle'}>
+              {Array.from({ length: p.o }).map((_, i) => <Unit key={i} />)}
+            </Band>
+          </div>
           {status !== 'idle' && (
-            <p className="text-4xl font-display font-black tabular-nums animate-mk-pop text-center mt-2"
+            <p className="text-4xl font-display font-black tabular-nums animate-mk-pop text-center mt-1"
               style={{ color: status === 'right' ? 'var(--success)' : 'var(--foreground)' }}>{p.n}</p>
           )}
         </div>
