@@ -231,11 +231,11 @@ export default function ExtMulTrainer() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col px-4 pt-2 gap-3 max-w-md mx-auto w-full">
+      <main className="flex-1 flex flex-col px-4 pt-2 gap-4 max-w-md mx-auto w-full">
         <RoundDots done={rnd.roundDone} />
 
         {/* ── The problem ── */}
-        <div className="bg-card rounded-3xl px-4 py-5 shadow-[var(--shadow-md)] flex flex-col items-center gap-3">
+        <div className="bg-card rounded-3xl px-4 py-6 shadow-[var(--shadow-md)] flex flex-col items-center gap-4">
           <p className="text-sm font-bold text-muted-foreground">{t('extmul_q', lang)}</p>
           <PartitionArray tens={p.t} ones={p.u} rows={p.b}
             split={hint >= 2 || solved}
@@ -278,11 +278,11 @@ export default function ExtMulTrainer() {
             <p className="text-2xl font-display font-black tabular-nums text-center">
               {sub === 0 ? `${p.t * 10} × ${p.b} = ?` : `${p.u} × ${p.b} = ?`}
             </p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               {subOpts.map(v => (
                 <button key={v} onClick={() => answerSub(v)}
-                  className="py-3 rounded-[var(--radius)] border-2 font-display font-black text-xl tabular"
-                  style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+                  className="pop-btn py-3.5 rounded-[var(--radius)] border-2 font-display font-black text-2xl tabular"
+                  style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)', ['--pop-shadow' as string]: 'var(--border)' } as CSSProperties}>
                   {v}
                 </button>
               ))}
@@ -318,8 +318,8 @@ export default function ExtMulTrainer() {
                 <PartitionArray tens={ex.t} ones={ex.u} rows={ex.b}
                   split={wStep >= 1}
                   highlight={wStep === 2 ? 'tens' : wStep === 3 ? 'ones' : 'none'}
-                  tensLabel={wStep >= 2 ? `${ex.t * 10} × ${ex.b} = ${ex.t * 10 * ex.b}` : ' '}
-                  onesLabel={wStep >= 3 ? `${ex.u} × ${ex.b} = ${ex.u * ex.b}` : ' '} />
+                  tensLabel={wStep >= 2 ? `${ex.t * 10} × ${ex.b} = ${ex.t * 10 * ex.b}` : undefined}
+                  onesLabel={wStep >= 3 ? `${ex.u} × ${ex.b} = ${ex.u * ex.b}` : undefined} />
 
                 {/* the equation line for THIS step, beside the blocks */}
                 <p className="text-lg font-display font-black tabular-nums text-center min-h-[28px]">
