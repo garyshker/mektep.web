@@ -64,7 +64,7 @@ function Band({ label, color, digit, reveal, children }: {
   label: string; color: string; digit: number; reveal: boolean; children: React.ReactNode
 }) {
   return (
-    <div className="w-full rounded-2xl px-3 py-2.5 flex flex-col gap-2"
+    <div className="w-full rounded-2xl px-3.5 py-3 flex flex-col gap-3"
       style={{ background: `color-mix(in oklch, ${color} 9%, var(--card))`, border: `1.5px solid color-mix(in oklch, ${color} 22%, var(--card))` }}>
       <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] font-black tracking-widest uppercase leading-none" style={{ color }}>{label}</span>
