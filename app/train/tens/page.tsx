@@ -25,15 +25,26 @@ function gen() {
   return { tens, ones, n: tens * 10 + ones }
 }
 
-function buildOptions(n: number, tens: number, ones: number): number[] {
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] }
+  return a
+}
+
+// Options sit right next to the answer (34 · 35 · 36 · 33) so the child must
+// count the blocks exactly; most rounds also include a one-rod-off option.
+function buildOptions(n: number, lo: number, hi: number): number[] {
   const s = new Set<number>([n])
-  const swap = ones * 10 + tens
-  if (ones >= 1 && swap >= 10 && swap <= 99) s.add(swap)   // the place-value trap
-  const cand = [n + 10, n - 10, n + 1, n - 1, n + 11, n - 11]
-  for (const d of cand) { if (s.size >= 4) break; if (d >= 10 && d <= 99) s.add(d) }
-  const arr = [...s].slice(0, 4)
-  for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]] }
-  return arr
+  const ones = shuffle([n + 1, n - 1, n + 2, n - 2, n + 3, n - 3])
+  const rod = shuffle([n + 10, n - 10])
+  const pool = Math.random() < 0.6 ? [...ones.slice(0, 2), rod[0]] : ones.slice(0, 3)
+  for (const d of [...pool, ...ones, ...rod]) {
+    if (s.size >= 4) break
+    if (d >= lo && d <= hi && !s.has(d)) s.add(d)
+  }
+  let pad = n + 4
+  while (s.size < 4 && pad <= hi) { if (!s.has(pad)) s.add(pad); pad++ }
+  return shuffle([...s])
 }
 
 export default function TensTrainer() {
@@ -53,7 +64,7 @@ export default function TensTrainer() {
 
   const newProblem = () => {
     const g = gen()
-    setP(g); setOptions(buildOptions(g.n, g.tens, g.ones)); setPicked(null); setStatus('idle')
+    setP(g); setOptions(buildOptions(g.n, 10, 99)); setPicked(null); setStatus('idle')
   }
   useEffect(() => { newProblem() }, [])
 

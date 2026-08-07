@@ -23,18 +23,27 @@ function gen() {
   return { h, te, o, n: h * 100 + te * 10 + o }
 }
 
-function buildOptions(n: number, h: number, te: number, o: number): number[] {
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] }
+  return a
+}
+
+// The options sit right next to the answer (233 · 234 · 235 · 236), so the
+// child has to count every block exactly instead of recognising the picture.
+// Most rounds also slip in a one-rod-off option, so the tens still get checked.
+function buildOptions(n: number, lo: number, hi: number): number[] {
   const s = new Set<number>([n])
-  const swaps = [h * 100 + o * 10 + te, te * 100 + h * 10 + o, o * 100 + te * 10 + h]
-  for (const d of swaps) { if (s.size >= 4) break; if (d >= 100 && d <= 999 && d !== n) s.add(d) }
-  let guard = 0
-  while (s.size < 4 && guard++ < 40) {
-    const d = n + [100, -100, 10, -10, 1, -1][ri(0, 5)]
-    if (d >= 100 && d <= 999 && d !== n) s.add(d)
+  const ones = shuffle([n + 1, n - 1, n + 2, n - 2, n + 3, n - 3])
+  const rod = shuffle([n + 10, n - 10])
+  const pool = Math.random() < 0.6 ? [...ones.slice(0, 2), rod[0]] : ones.slice(0, 3)
+  for (const d of [...pool, ...ones, ...rod]) {
+    if (s.size >= 4) break
+    if (d >= lo && d <= hi && !s.has(d)) s.add(d)
   }
-  const arr = [...s].slice(0, 4)
-  for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]] }
-  return arr
+  let pad = n + 4
+  while (s.size < 4 && pad <= hi) { if (!s.has(pad)) s.add(pad); pad++ }
+  return shuffle([...s])
 }
 
 const SHADOW = '0 1px 2px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.35)'
@@ -93,7 +102,7 @@ export default function HundredsTrainer() {
 
   const newProblem = () => {
     const g = gen()
-    setP(g); setOptions(buildOptions(g.n, g.h, g.te, g.o)); setPicked(null); setStatus('idle')
+    setP(g); setOptions(buildOptions(g.n, 100, 999)); setPicked(null); setStatus('idle')
   }
   useEffect(() => { newProblem() }, [])
 
