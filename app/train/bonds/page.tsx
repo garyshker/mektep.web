@@ -8,6 +8,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { TenFrame } from '@/components/TenFrame'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -75,6 +76,8 @@ export default function BondsTrainer() {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -84,6 +87,7 @@ export default function BondsTrainer() {
   const newProblem = () => {
     const b = genBond()
     setBond(b); setOptions(buildOptions(b.answer, b.whole)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(false)
   }
   useEffect(() => { newProblem() }, [])
 
@@ -108,7 +112,7 @@ export default function BondsTrainer() {
       playCorrect()
       setTimeout(() => finishProblem(true), 1300)   // a beat longer: watch the frame fill
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); setOffer(true)
     }
   }
 
@@ -184,6 +188,16 @@ export default function BondsTrainer() {
           )}
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)} principle={t('hint_bonds_rule', lang)}
+            steps={[
+              { ask: t('hint_bonds_whole', lang), answer: bond.whole, lo: 2, hi: 10 },
+              { ask: t('hint_bonds_have', lang), answer: bond.part, lo: 1, hi: 9 },
+              { ask: t('hint_bonds_need', lang), answer: bond.answer, lo: 0, hi: 9 },
+            ] as HintStep[]} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const isAns = opt === bond.answer
@@ -210,6 +224,8 @@ export default function BondsTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">

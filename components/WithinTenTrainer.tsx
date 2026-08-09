@@ -12,6 +12,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { TenFrame } from '@/components/TenFrame'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -52,6 +53,8 @@ export function WithinTenTrainer({ op }: { op: '+' | '−' }) {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -61,6 +64,7 @@ export function WithinTenTrainer({ op }: { op: '+' | '−' }) {
   const newProblem = () => {
     const p = gen(op)
     setProblem(p); setOptions(buildOptions(p.answer)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(false)
   }
   // op is fixed per route
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,7 +91,7 @@ export function WithinTenTrainer({ op }: { op: '+' | '−' }) {
       playCorrect()
       setTimeout(() => finishProblem(true), 1000)
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); setOffer(true)
     }
   }
 
@@ -168,6 +172,23 @@ export function WithinTenTrainer({ op }: { op: '+' | '−' }) {
           </p>
         </div>
 
+        {offer && !hint && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(op === '+' ? 'hint_w10_add_rule' : 'hint_sub_rule', lang)}
+            steps={(op === '+'
+              ? [
+                { ask: t('hint_w10_first', lang), answer: problem.a, lo: 1, hi: 10 },
+                { ask: t('hint_w10_second', lang), answer: problem.b, lo: 1, hi: 10 },
+                { ask: t('hint_w10_all', lang), answer: problem.answer, lo: 1, hi: 10 },
+              ]
+              : [
+                { ask: t('hint_sub_had', lang), answer: problem.a, lo: 1, hi: 10 },
+                { ask: t('hint_sub_gone', lang), answer: problem.b, lo: 1, hi: 10 },
+                { ask: t('hint_sub_left', lang), answer: problem.answer, lo: 0, hi: 10 },
+              ]) as HintStep[]} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const isAns = opt === problem.answer
@@ -194,6 +215,8 @@ export function WithinTenTrainer({ op }: { op: '+' | '−' }) {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">
