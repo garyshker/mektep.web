@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
@@ -8,6 +8,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { TenFrame } from '@/components/TenFrame'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -50,6 +51,12 @@ export default function Cross10Trainer() {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // An error reveals the fact right on the frames, so offering help *then* only
+  // repeats it. Carry the offer to the next problem instead — help lands before
+  // the next guess, which is the point.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -60,6 +67,7 @@ export default function Cross10Trainer() {
     const p = gen()
     setProblem(p); setPhase('p1'); setRegrouped(false)
     setOptions(buildOptions(p.k, 1, 6)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(offerNext.current); offerNext.current = false
   }
   useEffect(() => { newProblem() }, [])
 
@@ -86,6 +94,7 @@ export default function Cross10Trainer() {
         setTimeout(() => {
           setPhase('p2'); setStatus('idle'); setPicked(null)
           setOptions(buildOptions(problem.total, 10, 20))
+          setHint(false); setOffer(false)   // the question changed — start clean
         }, 950)
       } else {
         setCorrect(c => c + 1)
@@ -93,7 +102,7 @@ export default function Cross10Trainer() {
         setTimeout(() => finishProblem(true), 1100)
       }
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
       if (phase === 'p1') setRegrouped(true)   // show WHY: the frame fills, the fact appears
     }
   }
@@ -139,6 +148,19 @@ export default function Cross10Trainer() {
   const { a, b, k } = problem
   const rest = b - k
   const answer = phase === 'p1' ? k : problem.total
+
+  // The chain asks what the frames already show, one small step at a time:
+  // phase 1 walks to "how many cells are empty", phase 2 to "a ten and the rest".
+  const hintSteps: HintStep[] = phase === 'p1'
+    ? [
+        { ask: t('hint_c10_have', lang), answer: a, lo: 4, hi: 10 },
+        { ask: t('hint_c10_empty', lang), answer: k, lo: 1, hi: 6 },
+      ]
+    : [
+        { ask: t('hint_c10_ten', lang), answer: 10, lo: 8, hi: 12 },
+        { ask: t('hint_c10_left', lang), answer: rest, lo: 1, hi: 9 },
+        { ask: t('hint_c10_sum', lang), expr: `10 + ${rest}`, answer: problem.total, lo: 11, hi: 18 },
+      ]
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -193,6 +215,13 @@ export default function Cross10Trainer() {
           )}
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(phase === 'p1' ? 'hint_c10_make_rule' : 'hint_c10_total_rule', lang)}
+            steps={hintSteps} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const isAns = opt === answer
@@ -219,6 +248,8 @@ export default function Cross10Trainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">

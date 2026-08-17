@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
@@ -78,6 +78,9 @@ export default function BondsTrainer() {
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
   const [hint, setHint] = useState(false)
   const [offer, setOffer] = useState(false)
+  // An error already reveals the fact on screen, so offering help *then* only
+  // repeats it — carry the offer to the next problem, before the next guess.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -87,7 +90,7 @@ export default function BondsTrainer() {
   const newProblem = () => {
     const b = genBond()
     setBond(b); setOptions(buildOptions(b.answer, b.whole)); setPicked(null); setStatus('idle')
-    setHint(false); setOffer(false)
+    setHint(false); setOffer(offerNext.current); offerNext.current = false
   }
   useEffect(() => { newProblem() }, [])
 
@@ -112,7 +115,7 @@ export default function BondsTrainer() {
       playCorrect()
       setTimeout(() => finishProblem(true), 1300)   // a beat longer: watch the frame fill
     } else {
-      setStatus('wrong'); setStreak(0); playWrong(); setOffer(true)
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 

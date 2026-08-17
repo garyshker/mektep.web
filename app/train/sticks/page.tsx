@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
@@ -8,6 +8,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { CountingSticks } from '@/components/CountingSticks'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -49,6 +50,10 @@ export default function SticksTrainer() {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss already shows the result, so the offer belongs on the NEXT problem.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -58,6 +63,7 @@ export default function SticksTrainer() {
   const newProblem = () => {
     const p = genProblem()
     setProblem(p); setOptions(buildOptions(p.answer)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(offerNext.current); offerNext.current = false
   }
   useEffect(() => { newProblem() }, [])
 
@@ -82,7 +88,7 @@ export default function SticksTrainer() {
       playCorrect()
       setTimeout(() => finishProblem(true), 1100)
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -128,6 +134,20 @@ export default function SticksTrainer() {
 
   const opG = problem.op === '+' ? '+' : '−'
 
+  // Adding: count each pile, then both. Taking away: count what was there,
+  // what got crossed out, then what survives — the same picture, read in order.
+  const hintSteps: HintStep[] = problem.op === '+'
+    ? [
+        { ask: t('hint_st_left', lang), answer: problem.a, lo: 0, hi: 20 },
+        { ask: t('hint_st_right', lang), answer: problem.b, lo: 0, hi: 20 },
+        { ask: t('hint_st_all', lang), expr: `${problem.a} + ${problem.b}`, answer: problem.answer, lo: 0, hi: 20 },
+      ]
+    : [
+        { ask: t('hint_st_had', lang), answer: problem.a, lo: 0, hi: 20 },
+        { ask: t('hint_st_gone', lang), answer: problem.b, lo: 0, hi: 20 },
+        { ask: t('hint_st_rest', lang), expr: `${problem.a} − ${problem.b}`, answer: problem.answer, lo: 0, hi: 20 },
+      ]
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
       {/* Header */}
@@ -165,6 +185,13 @@ export default function SticksTrainer() {
           </div>
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(problem.op === '+' ? 'hint_st_add_rule' : 'hint_st_sub_rule', lang)}
+            steps={hintSteps} />
+        )}
+
         {/* Answer options */}
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
@@ -192,6 +219,8 @@ export default function SticksTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       {/* Stop */}

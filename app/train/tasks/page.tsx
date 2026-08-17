@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -100,6 +101,11 @@ export default function TasksTrainer() {
   const [numOptions, setNumOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<string | null>(null)   // op symbol or number-as-string
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss already prints the whole worked line, so the offer belongs on the
+  // NEXT story — before the child guesses again.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -112,6 +118,7 @@ export default function TasksTrainer() {
       setPhase('op'); setOpOrder(Math.random() < 0.5 ? ['+', '−'] : ['−', '+'])
       setNumOptions(buildNumOptions(p.answer))
       setPicked(null); setStatus('idle')
+      setHint(false); setOffer(offerNext.current); offerNext.current = false
       return p
     })
   }
@@ -134,9 +141,12 @@ export default function TasksTrainer() {
     playTap(); setPicked(op)
     if (op === problem.op) {
       setStatus('right'); playCorrect()
-      setTimeout(() => { setPhase('num'); setStatus('idle'); setPicked(null) }, 800)
+      setTimeout(() => {
+        setPhase('num'); setStatus('idle'); setPicked(null)
+        setHint(false); setOffer(false)   // the question changed — start clean
+      }, 800)
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -149,7 +159,7 @@ export default function TasksTrainer() {
       playCorrect()
       setTimeout(() => finishProblem(true), 1100)
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -192,6 +202,20 @@ export default function TasksTrainer() {
   if (!problem) return <div className="min-h-screen" style={{ background: 'var(--background)' }} />
 
   const expr = (op: '+' | '−') => `${problem.a} ${op} ${problem.b}`
+
+  // Phase 1 must NOT hand over the operation — it only pulls the two numbers out
+  // of the story and leaves the child the "more or less at the end?" decision.
+  // Phase 2 walks the story: what there was → what changed → what it makes.
+  const hintSteps: HintStep[] = phase === 'op'
+    ? [
+        { ask: t('hint_task_n1', lang), answer: problem.a, lo: 0, hi: 10 },
+        { ask: t('hint_task_n2', lang), answer: problem.b, lo: 0, hi: 10 },
+      ]
+    : [
+        { ask: t('hint_task_first', lang), answer: problem.a, lo: 0, hi: 10 },
+        { ask: t(problem.op === '+' ? 'hint_task_added' : 'hint_task_taken', lang), answer: problem.b, lo: 0, hi: 10 },
+        { ask: t('hint_task_total', lang), expr: expr(problem.op), answer: problem.answer, lo: 0, hi: 10 },
+      ]
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -238,6 +262,13 @@ export default function TasksTrainer() {
         <p className="text-xs font-black text-muted-foreground tracking-widest uppercase text-center">
           {phase === 'op' ? t('tasks_op_q', lang) : t('tasks_solve_q', lang)}
         </p>
+
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(phase === 'op' ? 'hint_task_op_rule' : 'hint_task_rule', lang)}
+            steps={hintSteps} />
+        )}
         {phase === 'op' ? (
           <div className="grid grid-cols-2 gap-3">
             {opOrder.map(op => {
@@ -285,6 +316,8 @@ export default function TasksTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">

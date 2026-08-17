@@ -10,33 +10,12 @@
 import { useState } from 'react'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { t, type Lang } from '@/lib/i18n'
+import { hintOptions, type HintStep } from '@/lib/hints'
 import { HelpCircle, Lightbulb, Check } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
-export type HintStep = {
-  ask: string          // the sub-question, in the child's language
-  expr?: string        // optional expression shown big under it
-  answer: number
-  lo: number; hi: number   // plausible range for the generated options
-}
-
-function shuffle<T>(a: T[]): T[] {
-  const r = [...a]
-  for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]] }
-  return r
-}
-
-function optionsFor(s: HintStep): number[] {
-  const set = new Set<number>([s.answer])
-  let guard = 0
-  while (set.size < 4 && guard++ < 60) {
-    const d = s.answer + (Math.floor(Math.random() * 5) - 2)
-    if (d >= s.lo && d <= s.hi) set.add(d)
-  }
-  let pad = s.lo
-  while (set.size < 4 && pad <= s.hi) { set.add(pad); pad++ }
-  return shuffle([...set])
-}
+// re-exported so trainers keep importing the step shape from one place
+export type { HintStep }
 
 /** The "I don't understand" button — always available, BEFORE any guessing,
  *  so hints are never a prize for answering wrong. */
@@ -66,7 +45,7 @@ export function HintScaffold({ steps, principle, lang, onClose }: {
   steps: HintStep[]; principle: string; lang: Lang; onClose: () => void
 }) {
   const [i, setI] = useState(0)
-  const [opts, setOpts] = useState<number[]>(() => optionsFor(steps[0]))
+  const [opts, setOpts] = useState<number[]>(() => hintOptions(steps[0]))
   const [msg, setMsg] = useState('')
   const [done, setDone] = useState(false)
 
@@ -76,7 +55,7 @@ export function HintScaffold({ steps, principle, lang, onClose }: {
     playTap()
     if (v === step.answer) {
       playCorrect(); setMsg('')
-      if (i + 1 < steps.length) { setI(i + 1); setOpts(optionsFor(steps[i + 1])) }
+      if (i + 1 < steps.length) { setI(i + 1); setOpts(hintOptions(steps[i + 1])) }
       else setDone(true)
     } else {
       playWrong(); setMsg(t('hint_retry', lang))
