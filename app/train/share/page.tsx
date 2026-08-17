@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
@@ -8,6 +8,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { EqualGroups } from '@/components/EqualGroups'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -48,6 +49,10 @@ export default function ShareTrainer() {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss already reveals the share, so the offer belongs on the NEXT problem.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -57,6 +62,7 @@ export default function ShareTrainer() {
   const newProblem = () => {
     const g = gen()
     setP(g); setPhase('share'); setOptions(buildOptions(g.each)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(offerNext.current); offerNext.current = false
   }
   useEffect(() => { newProblem() }, [])
 
@@ -78,14 +84,17 @@ export default function ShareTrainer() {
     if (opt === p.each) {
       setStatus('right'); playCorrect()
       if (phase === 'share') {
-        setTimeout(() => { setPhase('write'); setStatus('idle'); setPicked(null) }, 950)
+        setTimeout(() => {
+          setPhase('write'); setStatus('idle'); setPicked(null)
+          setHint(false); setOffer(false)   // same numbers, new question — start clean
+        }, 950)
       } else {
         setCorrect(c => c + 1)
         setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
         setTimeout(() => finishProblem(true), 1000)
       }
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -128,6 +137,14 @@ export default function ShareTrainer() {
   if (!p) return <div className="min-h-screen" style={{ background: 'var(--background)' }} />
 
   const revealed = status !== 'idle'
+
+  // Sharing read off the plates: how much there is, into how many parts, and
+  // therefore how much one part holds.
+  const hintSteps: HintStep[] = [
+    { ask: t('hint_shr_total', lang), answer: p.total, lo: 2, hi: 30 },
+    { ask: t('hint_shr_parts', lang), answer: p.groups, lo: 2, hi: 5 },
+    { ask: t('hint_shr_each', lang), expr: `${p.total} ÷ ${p.groups}`, answer: p.each, lo: 1, hi: 10 },
+  ]
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -174,6 +191,13 @@ export default function ShareTrainer() {
           )}
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(phase === 'share' ? 'hint_shr_rule' : 'hint_shr_write_rule', lang)}
+            steps={hintSteps} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const isAns = opt === p.each
@@ -200,6 +224,8 @@ export default function ShareTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">

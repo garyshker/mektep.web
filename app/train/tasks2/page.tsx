@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -111,6 +112,10 @@ export default function Tasks2Trainer() {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss already shows the step's result, so the offer belongs on the NEXT story.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -121,6 +126,7 @@ export default function Tasks2Trainer() {
     setP(prev => {
       const np = gen(prev?.emoji)
       setPhase(1); setOptions(buildOptions(np.step1)); setPicked(null); setStatus('idle')
+      setHint(false); setOffer(offerNext.current); offerNext.current = false
       return np
     })
   }
@@ -145,14 +151,17 @@ export default function Tasks2Trainer() {
     if (opt === target) {
       setStatus('right'); playCorrect()
       if (phase === 1) {
-        setTimeout(() => { setPhase(2); setStatus('idle'); setPicked(null); setOptions(buildOptions(p.answer)) }, 900)
+        setTimeout(() => {
+          setPhase(2); setStatus('idle'); setPicked(null); setOptions(buildOptions(p.answer))
+          setHint(false); setOffer(false)   // second step is a new question — start clean
+        }, 900)
       } else {
         setCorrect(c => c + 1)
         setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
         setTimeout(() => finishProblem(true), 1100)
       }
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -196,6 +205,18 @@ export default function Tasks2Trainer() {
 
   const curExpr = phase === 1 ? p.expr1 : p.expr2
   const curTarget = phase === 1 ? p.step1 : p.answer
+
+  // The two operands of the CURRENT step, pulled back out of the expression the
+  // generator wrote (`12 − 5`). If it ever stops looking like that, the chain
+  // quietly falls back to the single closing question rather than lying.
+  const operands = curExpr.match(/^(\d+)\s*[+−×]\s*(\d+)$/)
+  const hintSteps: HintStep[] = [
+    ...(operands ? [
+      { ask: t('hint_t2_first', lang), answer: Number(operands[1]), lo: 0, hi: 30 },
+      { ask: t('hint_t2_second', lang), answer: Number(operands[2]), lo: 0, hi: 30 },
+    ] : []),
+    { ask: t('hint_t2_result', lang), expr: curExpr, answer: curTarget, lo: 0, hi: 30 },
+  ]
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -242,6 +263,13 @@ export default function Tasks2Trainer() {
           <span className="ml-2 font-display font-black text-foreground">{curExpr} = ?</span>
         </p>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(phase === 1 ? 'hint_t2_step1_rule' : 'hint_t2_step2_rule', lang)}
+            steps={hintSteps} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const isAns = opt === curTarget
@@ -268,6 +296,8 @@ export default function Tasks2Trainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">

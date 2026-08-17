@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
@@ -8,6 +8,7 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { EqualGroups } from '@/components/EqualGroups'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -47,6 +48,10 @@ export default function GroupsTrainer() {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss already prints the total, so the offer belongs on the NEXT problem.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -56,6 +61,7 @@ export default function GroupsTrainer() {
   const newProblem = () => {
     const g = gen()
     setP(g); setPhase('count'); setOptions(buildOptions(g.total)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(offerNext.current); offerNext.current = false
   }
   useEffect(() => { newProblem() }, [])
 
@@ -78,14 +84,17 @@ export default function GroupsTrainer() {
       setStatus('right'); playCorrect()
       if (phase === 'count') {
         // move to the "written as multiplication" phase — same answer, now abstract
-        setTimeout(() => { setPhase('write'); setStatus('idle'); setPicked(null) }, 950)
+        setTimeout(() => {
+          setPhase('write'); setStatus('idle'); setPicked(null)
+          setHint(false); setOffer(false)   // same numbers, new question — start clean
+        }, 950)
       } else {
         setCorrect(c => c + 1)
         setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
         setTimeout(() => finishProblem(true), 1000)
       }
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -129,6 +138,14 @@ export default function GroupsTrainer() {
 
   const revealed = status !== 'idle'
   const addExpr = Array.from({ length: p.groups }).map(() => p.each).join(' + ')
+
+  // Same two questions in both phases — how many groups, how many in each —
+  // and only the closing line changes: repeated addition, then its short form.
+  const hintSteps: HintStep[] = [
+    { ask: t('hint_grp_count', lang), answer: p.groups, lo: 2, hi: 5 },
+    { ask: t('hint_grp_each', lang), answer: p.each, lo: 2, hi: 5 },
+    { ask: t('hint_grp_total', lang), expr: phase === 'count' ? addExpr : `${p.groups} × ${p.each}`, answer: p.total, lo: 2, hi: 30 },
+  ]
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -183,6 +200,13 @@ export default function GroupsTrainer() {
           )}
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(phase === 'count' ? 'hint_grp_add_rule' : 'hint_grp_mul_rule', lang)}
+            steps={hintSteps} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const isAns = opt === p.total
@@ -209,6 +233,8 @@ export default function GroupsTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">
