@@ -24,6 +24,15 @@ const TABS = [
     ),
   },
   {
+    path: '/game',
+    labelKey: 'nav_games' as const,
+    icon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'var(--primary)' : 'var(--muted-foreground)'}>
+        <path d="M17 4H7a5 5 0 0 0-5 5v6a3 3 0 0 0 5.24 2L9 15h6l1.76 2A3 3 0 0 0 22 15V9a5 5 0 0 0-5-5zM8.5 12h-1v1a.75.75 0 0 1-1.5 0v-1H5a.75.75 0 0 1 0-1.5h1v-1a.75.75 0 0 1 1.5 0v1h1a.75.75 0 0 1 0 1.5zm7.25 1.25a1.15 1.15 0 1 1 0-2.3 1.15 1.15 0 0 1 0 2.3zm2.4-2.9a1.15 1.15 0 1 1 0-2.3 1.15 1.15 0 0 1 0 2.3z" />
+      </svg>
+    ),
+  },
+  {
     path: '/leaderboard',
     labelKey: 'nav_leaderboard' as const,
     icon: (active: boolean) => (

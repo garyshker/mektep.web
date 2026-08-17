@@ -23,6 +23,17 @@
   --brand-foreground: oklch(1 0 0);
   --brand-deep: oklch(0.50 0.135 50);          /* ember — primary CTA pop-shadow */
 
+  /* Category accents — the ONLY hues a game/subject tile may use. Twelve
+     hand-picked pastels used to be hardcoded per card, which left the warm
+     brand competing with a rainbow. Six tokens, reused, read as one system.
+     No green here: green stays reserved for "correct". */
+  --cat-spark: oklch(0.65 0.13 58);            /* amber — matches the brand */
+  --cat-sea: oklch(0.66 0.13 218);             /* turquoise */
+  --cat-gold: oklch(0.72 0.15 82);             /* steppe gold */
+  --cat-violet: oklch(0.60 0.14 300);
+  --cat-rose: oklch(0.64 0.16 15);
+  --cat-sky: oklch(0.64 0.13 250);
+
   --success: oklch(0.68 0.18 145);             /* green = "correct" only */
   --success-foreground: oklch(1 0 0);
   --destructive: oklch(0.62 0.22 25);
@@ -59,6 +70,14 @@
   --border: oklch(0.30 0.02 60);
   --muted: oklch(0.25 0.018 60);
   --muted-foreground: oklch(0.70 0.015 70);
+
+  /* lifted so a tile label stays readable on the dark card */
+  --cat-spark: oklch(0.76 0.12 62);
+  --cat-sea: oklch(0.76 0.11 218);
+  --cat-gold: oklch(0.82 0.13 84);
+  --cat-violet: oklch(0.74 0.12 300);
+  --cat-rose: oklch(0.75 0.13 18);
+  --cat-sky: oklch(0.75 0.11 250);
 }
 
 @theme inline {
