@@ -22,6 +22,13 @@ function _steps(a: number, op: '+' | '−', b: number): string {
   return `${a} ${op} ${b} = ${r} ✓`
 }
 
+/** `n` distinct expressions from a maker that builds them to spec. */
+function _distinct(make: () => string, n: number): string[] {
+  const s = new Set<string>()
+  for (let i = 0; i < 200 && s.size < n; i++) s.add(make())
+  return [...s]
+}
+
 function _tapQ(prompt: { kk: string; ru: string; en: string }, correct: string[], wrong: string[]): Question {
   const items = _sfl([
     ...correct.map(e => ({ e, ok: true })),
@@ -64,16 +71,17 @@ export function generateAdditionLesson(): Lesson {
     }
   })
 
-  // Tap: random threshold so pattern varies
+  // Tap: random threshold so pattern varies. Both sides are built to order —
+  // filtering random pairs used to leave the "wrong" side empty (at thr = 20
+  // almost any pair clears it), and a tap task with nothing to reject cannot
+  // be failed.
   const thr = [20, 30, 40, 50][_ri(0, 3)]
-  const pool = Array.from({ length: 20 }, () => {
-    const a = _ri(5, 60), b = _ri(5, 60)
-    return { expr: `${a}+${b}`, correct: a + b > thr }
-  })
+  const above = () => { const a = _ri(5, 60); return `${a}+${_ri(Math.max(5, thr - a + 1), 60)}` }
+  const below = () => { const a = _ri(5, thr - 10); return `${a}+${_ri(5, thr - a)}` }
   const tapQ = _tapQ(
     { kk: `Қосындысы ${thr}-дан үлкен мысалдарды тап`, ru: `Найди примеры, где сумма больше ${thr}`, en: `Find sums greater than ${thr}` },
-    _sfl(pool.filter(p => p.correct)).slice(0, 4).map(p => p.expr),
-    _sfl(pool.filter(p => !p.correct)).slice(0, 4).map(p => p.expr),
+    _distinct(above, 4),
+    _distinct(below, 4),
   )
 
   // Word problem — pick one of 3 templates
@@ -140,16 +148,15 @@ export function generateSubtractionLesson(): Lesson {
     }
   })
 
-  // Tap: find results less than threshold
+  // Tap: find results less than the threshold. Built to order for the same
+  // reason as the addition tap — both sides must be non-empty.
   const thr = [20, 25, 30, 35][_ri(0, 3)]
-  const pool = Array.from({ length: 20 }, () => {
-    const a = _ri(20, 90), b = _ri(5, a - 1)
-    return { expr: `${a}−${b}`, correct: a - b < thr }
-  })
+  const under = () => { const a = _ri(20, 90); return `${a}−${_ri(Math.max(5, a - thr + 1), a - 1)}` }
+  const over = () => { const a = _ri(thr + 5, 90); return `${a}−${_ri(5, a - thr)}` }
   const tapQ = _tapQ(
     { kk: `Айырмасы ${thr}-дан кіші мысалдарды тап`, ru: `Найди примеры, где разность меньше ${thr}`, en: `Find results less than ${thr}` },
-    _sfl(pool.filter(p => p.correct)).slice(0, 4).map(p => p.expr),
-    _sfl(pool.filter(p => !p.correct)).slice(0, 4).map(p => p.expr),
+    _distinct(under, 4),
+    _distinct(over, 4),
   )
 
   const wordFns = [

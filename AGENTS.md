@@ -41,6 +41,7 @@ npm run dev      # local dev (Next dev server)
 npm run build    # production build — also full typecheck
 npm run lint     # eslint
 npx tsc --noEmit # typecheck only
+npm test         # vitest: generators, graders, lesson content (tests/)
 ```
 
 - **Env** (`.env.local`, gitignored): `NEXT_PUBLIC_SUPABASE_URL`,
@@ -51,12 +52,17 @@ npx tsc --noEmit # typecheck only
 ## Working mode (IMPORTANT — how to behave here)
 
 **Reliability first — "Swiss clockwork".** The owner's explicit priority is that
-existing tasks run *flawlessly*. After every change: run `tsc`, `eslint`, and a
-`build`; for logic, also reason through edge cases. Build/lint green is necessary
-but NOT sufficient — a wrong answer graded correct or an impossible generated
-task is the worst kind of bug and tooling won't catch it. When touching task
-**generators or answer-grading**, verify the math/answers by hand or with a
-quick brute-force. A big visual redesign is **deferred**; don't start one unless
+existing tasks run *flawlessly*. After every change: run `tsc`, `eslint`, `npm
+test`, and a `build`; for logic, also reason through edge cases. Build/lint green
+is necessary but NOT sufficient — a wrong answer graded correct or an impossible
+generated task is the worst kind of bug and tooling won't catch it. When touching
+task **generators or answer-grading**, verify the math/answers by hand or with a
+quick brute-force — and add the invariant to `tests/` so it stays verified.
+`tests/` brute-forces the generators (thousands of draws each), asserts every
+option set holds exactly one true answer, checks every lesson question against
+the runner's grading contract, and checks kk/ru/en coverage in `lib/i18n.ts`.
+Generators still living inside trainer pages are NOT covered — move one into
+`lib/` (with tests) whenever you touch it. A big visual redesign is **deferred**; don't start one unless
 asked.
 
 For non-trivial work, prefer: branch → `/code-review` (and `/security-review`
