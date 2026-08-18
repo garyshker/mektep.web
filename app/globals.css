@@ -10,8 +10,11 @@
   --muted-foreground: oklch(0.53 0.03 64);
 
   /* brand — "spark" amber-orange + steppe gold; turquoise kept as a cool flag accent */
-  --primary: oklch(0.65 0.13 58);              /* spark amber (softened, less vivid) */
+  --primary: oklch(0.65 0.13 58);              /* spark amber — fills, icons, chips */
   --primary-foreground: oklch(1 0 0);
+  /* Text tone. --primary as TEXT on the cream surface is only 3.22:1 — fine for
+     a big bold heading, below AA for anything small. This one is 4.86:1. */
+  --primary-ink: oklch(0.55 0.13 55);
   --primary-glow: oklch(0.81 0.105 72);
   --primary-deep: oklch(0.47 0.115 50);        /* burnt-amber pop-shadow */
 
@@ -42,7 +45,11 @@
   --xp: oklch(0.74 0.17 85);
 
   /* gradients */
-  --gradient-hero: linear-gradient(135deg, oklch(0.65 0.13 62), oklch(0.59 0.15 50));
+  /* Hero gradient. Was 0.65/0.13 → white text sat at 3.35:1, under AA even for
+     large text once it went translucent. These are DARKER but MORE saturated
+     (chroma 0.15/0.16, and inside sRGB so nothing gets clipped flat — clipping
+     was part of why the old amber read as muddy). White now clears 4.5:1. */
+  --gradient-hero: linear-gradient(135deg, oklch(0.58 0.15 50), oklch(0.54 0.16 42));
   --gradient-gold: linear-gradient(135deg, oklch(0.82 0.16 85), oklch(0.74 0.18 70));
   --gradient-success: linear-gradient(135deg, oklch(0.625 0.15 56), oklch(0.57 0.165 44));
 
@@ -70,6 +77,7 @@
   --border: oklch(0.30 0.02 60);
   --muted: oklch(0.25 0.018 60);
   --muted-foreground: oklch(0.70 0.015 70);
+  --primary-ink: oklch(0.80 0.11 62);          /* light amber — text on dark */
 
   /* lifted so a tile label stays readable on the dark card */
   --cat-spark: oklch(0.76 0.12 62);

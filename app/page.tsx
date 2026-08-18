@@ -176,8 +176,8 @@ export default function HomePage() {
           {/* Streak freezes (shields) */}
           {(profile?.freeze_count ?? 0) > 0 && (
             <div className="flex items-center gap-1 rounded-full pl-2 pr-3 py-1.5" style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))' }} title={t('streak_freeze', lang)}>
-              <Shield size={16} fill="currentColor" style={{ color: 'var(--primary)' }} />
-              <span className="font-black text-sm tabular" style={{ color: 'var(--primary)' }}>{profile?.freeze_count}</span>
+              <Shield size={16} fill="currentColor" style={{ color: 'var(--primary-ink)' }} />
+              <span className="font-black text-sm tabular" style={{ color: 'var(--primary-ink)' }}>{profile?.freeze_count}</span>
             </div>
           )}
           {/* XP */}
@@ -192,19 +192,19 @@ export default function HomePage() {
               const { data: { user } } = await supabase.auth.getUser()
               if (user) await supabase.from('profiles').update({ language: next }).eq('id', user.id)
             }} aria-label="Тіл / Язык"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-lg bg-card shadow-[var(--shadow-sm)]">
+            className="w-11 h-11 rounded-full flex items-center justify-center text-lg bg-card shadow-[var(--shadow-sm)]">
             {lang === 'kk' ? '🇰🇿' : lang === 'ru' ? '🇷🇺' : '🇬🇧'}
           </button>
           {profile?.avatar_url ? (
             <button onClick={() => router.push('/profile')} aria-label="Профиль" className="shrink-0 rounded-full">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={profile.avatar_url} alt={profile.name}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-11 h-11 rounded-full object-cover"
                 style={{ boxShadow: `0 0 0 3px color-mix(in oklch, ${tint} 26%, transparent)` }} />
             </button>
           ) : (
             <button onClick={() => router.push('/profile')} aria-label="Профиль"
-              className="w-10 h-10 rounded-full flex items-center justify-center font-display font-black text-white text-sm shrink-0"
+              className="w-11 h-11 rounded-full flex items-center justify-center font-display font-black text-white text-sm shrink-0"
               style={{ background: tint, boxShadow: `0 0 0 3px color-mix(in oklch, ${tint} 26%, transparent)` }}>
               {profile?.name?.[0]?.toUpperCase() ?? '?'}
             </button>
@@ -235,23 +235,26 @@ export default function HomePage() {
             style={{ background: 'var(--gradient-hero)' }}>
             <HeroOrnament />
             <div className="relative px-5 pt-5 pb-5">
+              {/* Sentence case, not ALL CAPS: Cyrillic caps read slower, and a
+                  6-year-old is still learning the lowercase shapes. */}
               <div className="flex items-center justify-between mb-3">
-                <span className="text-white/60 text-xs font-black tracking-widest uppercase">{t('home_today', lang)}</span>
-                <span className="text-white/60 text-xs font-black tracking-widest uppercase">
-                  {nextSubject ? subjectLabel(nextSubject, lang) : nextLesson.subjectId.toUpperCase()}
+                <span className="text-white/85 text-sm font-black">{t('home_today', lang)}</span>
+                <span className="text-white/85 text-sm font-bold">
+                  {nextSubject ? subjectLabel(nextSubject, lang) : nextLesson.subjectId}
                 </span>
               </div>
 
               <h2 className="text-white text-3xl font-display font-black leading-[1.1] mb-1.5">
                 {nextLesson.titleByLang[lang] ?? nextLesson.titleByLang.ru}
               </h2>
-              <p className="text-white/70 text-sm mb-5">{nextLesson.subtitle ?? t('hero_default', lang)}</p>
+              <p className="text-white/90 text-sm mb-5">{nextLesson.subtitle ?? t('hero_default', lang)}</p>
 
-              <div className="h-2 bg-white/20 rounded-full overflow-hidden mb-2">
+              <div className="h-2 bg-white/25 rounded-full overflow-hidden mb-2">
                 <div className="h-full bg-white rounded-full transition-all" style={{ width: `${lessonPct}%` }} />
               </div>
               <div className="flex items-center justify-between mb-5">
-                <span className="text-white/70 text-sm font-bold tabular">{lessonProgress.done} / {lessonProgress.total} {t('lesson_unit', lang)}</span>
+                {/* Named, so it can't be confused with the 0/4 daily-task count */}
+                <span className="text-white/90 text-sm font-bold tabular">{t('home_course', lang)} {lessonProgress.done} / {lessonProgress.total}</span>
                 <span className="text-white text-sm font-black tabular flex items-center gap-1">
                   <Zap size={15} fill="currentColor" style={{ color: 'var(--accent)' }} /> +{15 + nextLesson.questions.length * 5} XP
                 </span>
@@ -259,7 +262,7 @@ export default function HomePage() {
 
               <button onClick={() => router.push(`/lesson/${nextLesson.id}`)}
                 className="w-full bg-white rounded-[var(--radius)] py-4 flex items-center justify-center gap-2.5 font-display font-black text-lg active:translate-y-[2px] transition-transform"
-                style={{ color: 'var(--primary)', boxShadow: '0 4px 0 color-mix(in oklch, var(--primary) 18%, white)' }}>
+                style={{ color: 'var(--primary-ink)', boxShadow: '0 4px 0 color-mix(in oklch, var(--primary) 18%, white)' }}>
                 <span className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'var(--primary)' }}>
                   <Play size={15} className="text-white ml-0.5" fill="currentColor" />
                 </span>
@@ -277,7 +280,7 @@ export default function HomePage() {
               <h2 className="text-white text-2xl font-display font-black leading-tight mt-2 mb-5">🎉 {t('home_all_done', lang)}</h2>
               <button onClick={() => router.push('/train')}
                 className="w-full bg-white rounded-[var(--radius)] py-4 flex items-center justify-center gap-2.5 font-display font-black text-lg active:translate-y-[2px] transition-transform"
-                style={{ color: 'var(--primary)', boxShadow: '0 4px 0 color-mix(in oklch, var(--primary) 18%, white)' }}>
+                style={{ color: 'var(--primary-ink)', boxShadow: '0 4px 0 color-mix(in oklch, var(--primary) 18%, white)' }}>
                 <Target size={20} /> {t('train_title', lang)}
               </button>
             </div>
@@ -286,24 +289,31 @@ export default function HomePage() {
 
         {/* ── Week strip ── */}
         <div className="bg-card rounded-[var(--radius-lg)] px-4 py-3.5 shadow-[var(--shadow-sm)] animate-mk-pop-in" style={{ animationDelay: '40ms' }}>
-          <p className="text-xs font-black text-muted-foreground tracking-widest uppercase mb-2.5">{t('home_week', lang)}</p>
+          <p className="text-sm font-black text-muted-foreground mb-2.5">{t('home_week', lang)}</p>
+          {/* Three distinct states. A flame in every circle said nothing — it
+              just repeated the counter in the header. Done = filled + tick,
+              today = ring, future = empty. */}
           <div className="flex items-center justify-between">
             {days.map((d, i) => {
               const done = weekDays[i]
               const isToday = i === ti
               const future = i > ti
               return (
-                <div key={i} className={`flex flex-col items-center gap-1.5 ${future ? 'opacity-40' : ''}`}>
+                <div key={i} className={`flex flex-col items-center gap-1.5 ${future ? 'opacity-45' : ''}`}>
                   <span className="text-xs font-bold text-muted-foreground">{d}</span>
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center transition-all"
                     style={{
                       background: done ? 'var(--gradient-gold)' : 'var(--muted)',
-                      boxShadow: isToday ? '0 0 0 3px color-mix(in oklch, var(--primary) 45%, transparent)' : 'none',
+                      boxShadow: isToday && !done ? '0 0 0 3px color-mix(in oklch, var(--primary) 55%, transparent)' : 'none',
                     }}>
-                    <Flame size={18} className={done ? 'text-white' : 'text-muted-foreground'} fill={done ? 'currentColor' : 'none'} />
+                    {done
+                      ? <Check size={20} className="text-white" strokeWidth={3.5} />
+                      : isToday
+                        ? <Flame size={19} style={{ color: 'var(--primary)' }} fill="currentColor" />
+                        : <span className="w-2 h-2 rounded-full" style={{ background: 'var(--border)' }} />}
                   </div>
-                  <span className={`text-[11px] tabular ${isToday ? 'font-black' : 'text-muted-foreground/70'}`}
-                    style={isToday ? { color: 'var(--primary)' } : undefined}>{weekDates[i]}</span>
+                  <span className={`text-sm tabular ${isToday ? 'font-black' : 'text-muted-foreground/80'}`}
+                    style={isToday ? { color: 'var(--primary-ink)' } : undefined}>{weekDates[i]}</span>
                 </div>
               )
             })}
@@ -374,7 +384,7 @@ export default function HomePage() {
           className="bg-card rounded-[var(--radius-lg)] px-4 py-4 flex items-center gap-3 shadow-[var(--shadow-sm)] active:translate-y-[2px] transition-transform animate-mk-pop-in"
           style={{ animationDelay: '160ms' }}>
           <span className="font-display font-black text-foreground text-base flex-1 text-left">{t('subjects_title', lang)}</span>
-          <span className="text-sm font-black flex items-center gap-0.5" style={{ color: 'var(--primary)' }}>
+          <span className="text-sm font-black flex items-center gap-0.5" style={{ color: 'var(--primary-ink)' }}>
             {t('see_all', lang)} <ChevronRight size={16} />
           </span>
         </button>
