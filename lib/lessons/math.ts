@@ -107,7 +107,9 @@ export function generateAdditionLesson(): Lesson {
   const tfQ: Question = { kind: 'tf', prompt: `${tfA} + ${tfB} = ${tfShown}`, answer: String(tfShown === tfA + tfB) }
 
   // Animated number-line explainers first — teach the "by place value" method
-  const explain = Array.from({ length: 2 }, (): Question => {
+  // One worked opener, not two: this lesson ran 11 questions, over the 8–10
+  // we target for a ~5-minute session.
+  const explain = Array.from({ length: 1 }, (): Question => {
     const { a, b } = pair(22, 58, 13, 38)
     return { kind: 'addsub', prompt: `${a} + ${b} = ?`, answer: a + b, nl: { a, op: '+', b } }
   })
@@ -181,7 +183,8 @@ export function generateSubtractionLesson(): Lesson {
   const tfQ: Question = { kind: 'tf', prompt: `${tfA} − ${tfB} = ${tfShown}`, answer: String(tfShown === tfA - tfB) }
 
   // Animated number-line explainers first — teach the "by place value" method
-  const explain = Array.from({ length: 2 }, (): Question => {
+  // One worked opener — same 11 → 10 trim as the addition lesson.
+  const explain = Array.from({ length: 1 }, (): Question => {
     const { a, b } = pair(35, 80, 13, 38)
     return { kind: 'addsub', prompt: `${a} − ${b} = ?`, answer: a - b, nl: { a, op: '-', b } }
   })

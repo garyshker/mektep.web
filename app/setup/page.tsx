@@ -18,9 +18,9 @@ const GRADES: { n: number; hint: { kk: string; ru: string; en: string } }[] = [
 ]
 
 const LANGS: { code: Lang; flag: string; label: string }[] = [
-  { code: 'kk', flag: '🇰🇿', label: 'Қазақша' },
-  { code: 'ru', flag: '🇷🇺', label: 'Русский' },
-  { code: 'en', flag: '🇬🇧', label: 'English' },
+  { code: 'kk', flag: 'ҚАЗ', label: 'Қазақша' },
+  { code: 'ru', flag: 'РУС', label: 'Русский' },
+  { code: 'en', flag: 'ENG', label: 'English' },
 ]
 
 const selStyle = (active: boolean): CSSProperties => active

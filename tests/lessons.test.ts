@@ -145,4 +145,16 @@ describe('generated lessons (random each time — run them many times)', () => {
       for (let i = 0; i < 300; i++) checkLesson(gen(), `${name}#${i} `)
     })
   }
+
+  // A session is meant to run ~5 minutes. Two of these lessons had crept to 11
+  // questions, which is where a 7-year-old starts quitting mid-lesson.
+  it('stays within 8–10 questions — the agreed session length', () => {
+    for (const [name, gen] of Object.entries(generators)) {
+      for (let i = 0; i < 50; i++) {
+        const n = gen().questions.length
+        expect(n, `${name}: ${n} questions, over the 10-question ceiling`).toBeLessThanOrEqual(10)
+        expect(n, `${name}: only ${n} questions, under the 8-question floor`).toBeGreaterThanOrEqual(8)
+      }
+    }
+  })
 })

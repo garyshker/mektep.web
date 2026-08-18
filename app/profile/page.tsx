@@ -153,7 +153,7 @@ export default function ProfilePage() {
   const maxStars = Math.max(completedCount * 3, 1)
   const starsPct = Math.round((totalStars / maxStars) * 100)
 
-  const LANG_LABELS: Record<string, string> = { ru: '🇷🇺 Русский', kk: '🇰🇿 Қазақша', en: '🇬🇧 English' }
+  const LANG_LABELS: Record<string, string> = { ru: 'Русский', kk: 'Қазақша', en: 'English' }
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-24 lg:pb-10 lg:pl-60">

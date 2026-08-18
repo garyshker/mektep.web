@@ -3,10 +3,13 @@
 import { useLang, saveLang } from '@/lib/useLang'
 import type { Lang } from '@/lib/i18n'
 
-const LANGS: { code: Lang; flag: string; short: string }[] = [
-  { code: 'kk', flag: '🇰🇿', short: 'ҚАЗ' },
-  { code: 'ru', flag: '🇷🇺', short: 'РУС' },
-  { code: 'en', flag: '🇬🇧', short: 'ENG' },
+// No flag emoji. 🇰🇿 is a regional-indicator PAIR, and Windows ships no glyphs
+// for those — Chrome on Windows renders it as tofu (▯▯) or bare letters. The
+// short code says the same thing on every platform.
+const LANGS: { code: Lang; short: string }[] = [
+  { code: 'kk', short: 'ҚАЗ' },
+  { code: 'ru', short: 'РУС' },
+  { code: 'en', short: 'ENG' },
 ]
 
 export function LangSwitch({ className = '', onChange }: { className?: string; onChange?: (l: Lang) => void }) {
@@ -24,7 +27,6 @@ export function LangSwitch({ className = '', onChange }: { className?: string; o
               ? { background: '#E8943A', color: 'white' }
               : { color: '#9ca3af' }}
           >
-            <span className="text-sm leading-none">{l.flag}</span>
             <span>{l.short}</span>
           </button>
         )

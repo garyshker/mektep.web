@@ -164,8 +164,10 @@ export default function HomePage() {
 
       {/* ── Header ── */}
       <header className="px-4 pt-6 pb-4 flex items-center justify-between gap-3 max-w-lg lg:max-w-2xl mx-auto">
+        {/* A guest's stored name is a per-day code ("18AU02") that keeps the
+            leaderboard unique — fine as an id, cold as a greeting. */}
         <p className="font-display font-black text-foreground text-xl leading-tight truncate">
-          {t('hello', lang)} {profile?.name}!
+          {t('hello', lang)} {isGuest ? t('guest_name', lang) : profile?.name}!
         </p>
         <div className="flex items-center gap-2 shrink-0">
           {/* Streak */}
@@ -192,8 +194,11 @@ export default function HomePage() {
               const { data: { user } } = await supabase.auth.getUser()
               if (user) await supabase.from('profiles').update({ language: next }).eq('id', user.id)
             }} aria-label="Тіл / Язык"
-            className="w-11 h-11 rounded-full flex items-center justify-center text-lg bg-card shadow-[var(--shadow-sm)]">
-            {lang === 'kk' ? '🇰🇿' : lang === 'ru' ? '🇷🇺' : '🇬🇧'}
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[11px] font-black bg-card shadow-[var(--shadow-sm)]"
+            style={{ color: 'var(--primary-ink)' }}>
+            {/* Not a flag emoji: Windows has no glyph for regional-indicator
+                pairs, so 🇰🇿 renders as tofu in Chrome there. */}
+            {lang === 'kk' ? 'ҚАЗ' : lang === 'ru' ? 'РУС' : 'ENG'}
           </button>
           {profile?.avatar_url ? (
             <button onClick={() => router.push('/profile')} aria-label="Профиль" className="shrink-0 rounded-full">

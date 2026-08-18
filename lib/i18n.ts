@@ -30,6 +30,7 @@ export const I18N = {
   home_go:            { ru: 'Поехали',                    kk: 'Бастаймыз',                  en: "Let's go" },
   home_week:          { ru: 'Твоя неделя',                kk: 'Апталық',                    en: 'Your week' },
   home_course:        { ru: 'Курс',                       kk: 'Курс',                       en: 'Course' },
+  guest_name:         { ru: 'Гость',                      kk: 'Қонақ',                      en: 'Guest' },
   home_all_done:      { ru: 'Все уроки пройдены — молодец!', kk: 'Барлық сабақ бітті — жарайсың!', en: 'All lessons done — well done!' },
   subjects_title:     { ru: 'Все предметы',               kk: 'Барлық пәндер',              en: 'All subjects' },
   see_all:            { ru: 'Все',                        kk: 'Барлығын көру',              en: 'See all' },
