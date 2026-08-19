@@ -7,6 +7,7 @@ import { touchStreak } from '@/lib/streak'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
+import { LoaderMark } from '@/components/Loader'
 
 type Level = 'easy' | 'medium' | 'hard' | 'expert'
 
@@ -223,8 +224,8 @@ export default function SudokuPage() {
 
       {generating ? (
         <div className="w-full max-w-md aspect-square flex flex-col items-center justify-center gap-3">
-          <div className="w-8 h-8 border-4 border-[#7B5CBF] border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-400 text-sm">{t('sudoku_generating', lang)}</p>
+          <LoaderMark dot={12} />
+          <p className="text-muted-foreground text-sm font-bold">{t('sudoku_generating', lang)}</p>
         </div>
       ) : (
         <div className="relative w-full max-w-md">

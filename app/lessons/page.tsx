@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { ALL_LESSONS, SUBJECTS, UPCOMING_SUBJECTS, subjectLabel, subjectDesc } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
+import { Loader } from '@/components/Loader'
 import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { ChevronRight, ChevronLeft, Lock, Check } from 'lucide-react'
@@ -311,9 +312,7 @@ function LessonsContent() {
   }, [])
 
   if (!loaded) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
-      <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
-    </div>
+    <Loader />
   )
 
   return (

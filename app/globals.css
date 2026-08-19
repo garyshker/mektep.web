@@ -159,6 +159,18 @@ h1, h2, h3, .display {
 
 @keyframes mkShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
+/* Loading mark (components/Loader.tsx): the ten-frame counts itself up. The
+   resting 0.32 is what a reduced-motion user sees — a still frame, not a
+   blank one. */
+@keyframes mkCountUp {
+  0%, 72%, 100% { opacity: 0.32; transform: scale(0.7); }
+  14%, 58%      { opacity: 1;    transform: scale(1); }
+}
+.mk-count-dot {
+  opacity: 0.32;
+  animation: mkCountUp 1.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;

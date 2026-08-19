@@ -8,6 +8,7 @@ import { t, type I18NKey } from '@/lib/i18n'
 import { SKILL_LADDERS, ALL_SKILL_IDS, SKILL_LABEL_ALL, trainerPathForSkill, ERROR_TAG_LABEL, type SkillStat } from '@/lib/skills'
 import { fetchActivityCalendar } from '@/lib/streak'
 import { ActivityCalendar } from '@/components/ActivityCalendar'
+import { Loader } from '@/components/Loader'
 import type { ByLang } from '@/lib/lessons/types'
 import { ChevronLeft, Zap, Target, Flame, Lightbulb, ArrowRight } from 'lucide-react'
 
@@ -52,9 +53,7 @@ export default function ProgressDashboard() {
   }, [])
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
-      <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
-    </div>
+    <Loader />
   )
 
   const attempted = ALL_SKILLS.filter(s => (stats[s]?.attempts ?? 0) > 0)

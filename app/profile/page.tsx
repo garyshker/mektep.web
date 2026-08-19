@@ -7,6 +7,7 @@ import { useLang, saveLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { ALL_LESSONS } from '@/lib/lessons'
 import { BottomNav } from '@/components/BottomNav'
+import { Loader } from '@/components/Loader'
 import { LangSwitch } from '@/components/LangSwitch'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SoundToggle } from '@/components/SoundToggle'
@@ -141,9 +142,7 @@ export default function ProfilePage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
-      <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
-    </div>
+    <Loader />
   )
 
   const totalStars = progress.reduce((s, p) => s + (p.stars ?? 0), 0)
