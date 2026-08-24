@@ -55,6 +55,9 @@ export default function TrainPage() {
     { path: '/train/sticks',  emoji: '🪵', title: t('train_sticks_title', lang),  correct: one('g1_sticks') },
     { path: '/train/cross10', emoji: '🔟', title: t('train_cross10_title', lang), correct: one('g1_cross10') },
     { path: '/train/tasks',   emoji: '🐑', title: t('train_tasks_title', lang),   correct: one('g1_tasks') },
+    // Telling the time — the trainer starts at whole hours, so a grade-1 child
+    // meets exactly the rung they can read.
+    { path: '/train/clock',   emoji: '🕐', title: t('train_clock_title', lang),   correct: one('g2_clock') },
   ]
   const g2Path: PathStep[] = [
     { path: '/train/tens',       emoji: '🔟', title: t('train_tens_title', lang),       correct: one('g2_tens') },
@@ -62,6 +65,7 @@ export default function TrainPage() {
     { path: '/train/groups',     emoji: '✖️', title: t('train_groups_title', lang),     correct: one('g2_groups') },
     { path: '/train/share',      emoji: '➗', title: t('train_share_title', lang),       correct: one('g2_share') },
     { path: '/train/tasks2',     emoji: '🧩', title: t('train_tasks2_title', lang),     correct: one('g2_tasks2') },
+    { path: '/train/clock',      emoji: '🕐', title: t('train_clock_title', lang),      correct: one('g2_clock') },
   ]
   const g3Path: PathStep[] = [
     { path: '/train/hundreds',   emoji: '💯', title: t('train_hundreds_title', lang),   correct: one('g3_hundreds') },
