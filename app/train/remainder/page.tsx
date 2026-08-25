@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -57,6 +58,10 @@ export default function RemainderTrainer() {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss reveals the worked line, so the offer belongs on the NEXT problem.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -66,6 +71,7 @@ export default function RemainderTrainer() {
   const newProblem = () => {
     const g = gen()
     setP(g); setPhase('q'); setOptions(buildOptions(g.q, 1, 8)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(offerNext.current); offerNext.current = false
   }
   useEffect(() => { newProblem() }, [])
 
@@ -88,14 +94,17 @@ export default function RemainderTrainer() {
     if (opt === target) {
       setStatus('right'); playCorrect()
       if (phase === 'q') {
-        setTimeout(() => { setPhase('r'); setStatus('idle'); setPicked(null); setOptions(buildOptions(p.r, 0, p.b - 1)) }, 1000)
+        setTimeout(() => {
+          setPhase('r'); setStatus('idle'); setPicked(null); setOptions(buildOptions(p.r, 0, p.b - 1))
+          setHint(false); setOffer(false)   // second question — start clean
+        }, 1000)
       } else {
         setCorrect(c => c + 1)
         setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
         setTimeout(() => finishProblem(true), 1300)
       }
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -139,6 +148,21 @@ export default function RemainderTrainer() {
 
   const showR = phase === 'r'          // leftovers revealed once the quotient is found
   const done = phase === 'r' && status === 'right'
+
+  // Phase 1 counts the dealing itself. Phase 2 arrives at the remainder by
+  // subtraction — what went into the groups, taken from what there was — which
+  // is why it must be smaller than a group.
+  const hintSteps: HintStep[] = phase === 'q'
+    ? [
+        { ask: t('hint_rem_total', lang), answer: p.n, lo: 5, hi: 35 },
+        { ask: t('hint_rem_each', lang), answer: p.b, lo: 2, hi: 8 },
+        { ask: t('hint_rem_groups', lang), answer: p.q, lo: 1, hi: 8 },
+      ]
+    : [
+        { ask: t('hint_rem_placed', lang), expr: `${p.q} × ${p.b}`, answer: p.q * p.b, lo: 4, hi: 32 },
+        { ask: t('hint_rem_total', lang), answer: p.n, lo: 5, hi: 35 },
+        { ask: t('hint_rem_left', lang), expr: `${p.n} − ${p.q * p.b}`, answer: p.r, lo: 0, hi: 6 },
+      ]
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -201,6 +225,13 @@ export default function RemainderTrainer() {
           )}
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(phase === 'q' ? 'hint_rem_q_rule' : 'hint_rem_r_rule', lang)}
+            steps={hintSteps} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const target = phase === 'q' ? p.q : p.r
@@ -228,6 +259,8 @@ export default function RemainderTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">
