@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -71,6 +72,10 @@ export default function FractionsTrainer() {
   const [options, setOptions] = useState<Frac[]>([])
   const [picked, setPicked] = useState<Frac | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss shows the fraction, so the offer belongs on the NEXT problem.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -80,6 +85,7 @@ export default function FractionsTrainer() {
   const newProblem = () => {
     const g = gen()
     setP(g); setOptions(buildOptions(g.num, g.den)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(offerNext.current); offerNext.current = false
   }
   useEffect(() => { newProblem() }, [])
 
@@ -104,7 +110,7 @@ export default function FractionsTrainer() {
       playCorrect()
       setTimeout(() => finishProblem(true), 1000)
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -174,6 +180,16 @@ export default function FractionsTrainer() {
           )}
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t('hint_fr_rule', lang)}
+            steps={[
+              { ask: t('hint_fr_parts', lang), answer: p.den, lo: 2, hi: 8 },
+              { ask: t('hint_fr_shaded', lang), answer: p.num, lo: 1, hi: 7 },
+            ] as HintStep[]} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map((opt, i) => {
             const isAns = eq(opt, p)
@@ -200,6 +216,8 @@ export default function FractionsTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">

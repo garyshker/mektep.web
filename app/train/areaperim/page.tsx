@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -95,11 +96,16 @@ export default function AreaPerimTrainer() {
   const [streak, setStreak] = useState(0)
   const [best, setBest] = useState(0)
   const [ended, setEnded] = useState(false)
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss reveals the measure, so the offer belongs on the NEXT rectangle.
+  const offerNext = useRef(false)
 
   const newProblem = () => {
     setP(prev => {
       const g = gen(prev?.mode)
       setOptions(buildOptions(g.answer, g.w, g.h, g.mode)); setPicked(null); setStatus('idle')
+      setHint(false); setOffer(offerNext.current); offerNext.current = false
       return g
     })
   }
@@ -126,7 +132,7 @@ export default function AreaPerimTrainer() {
       playCorrect()
       setTimeout(() => finishProblem(true), 1300)
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -171,6 +177,21 @@ export default function AreaPerimTrainer() {
   const solved = status === 'right'
   const unit = p.mode === 'area' ? t('ap_unit_area', lang) : t('ap_unit_len', lang)
 
+  // Same rectangle, two different questions — so the chain differs too. Area
+  // counts rows of cells; perimeter walks the four sides. Keeping them apart is
+  // the entire point of the trainer.
+  const hintSteps: HintStep[] = p.mode === 'area'
+    ? [
+        { ask: t('hint_ap_row', lang), answer: p.w, lo: 2, hi: 8 },
+        { ask: t('hint_ap_rows', lang), answer: p.h, lo: 2, hi: 6 },
+        { ask: t('hint_ap_cells', lang), expr: `${p.w} × ${p.h}`, answer: p.w * p.h, lo: 4, hi: 48 },
+      ]
+    : [
+        { ask: t('hint_ap_top', lang), answer: p.w, lo: 2, hi: 8 },
+        { ask: t('hint_ap_side', lang), answer: p.h, lo: 2, hi: 6 },
+        { ask: t('hint_ap_around', lang), expr: `${p.w} + ${p.h} + ${p.w} + ${p.h}`, answer: 2 * (p.w + p.h), lo: 8, hi: 28 },
+      ]
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
       <header className="px-4 pt-5 pb-3 flex items-center gap-3 max-w-md mx-auto w-full">
@@ -210,6 +231,13 @@ export default function AreaPerimTrainer() {
           )}
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(p.mode === 'area' ? 'hint_ap_area_rule' : 'hint_ap_perim_rule', lang)}
+            steps={hintSteps} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const isAns = opt === p.answer
@@ -236,6 +264,8 @@ export default function AreaPerimTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">

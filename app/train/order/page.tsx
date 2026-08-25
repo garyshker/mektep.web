@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { playCorrect, playWrong, playTap } from '@/lib/sounds'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { useRound, RoundDots, RoundMilestone } from '@/components/round'
+import { HintButton, HintOffer, HintScaffold, type HintStep } from '@/components/hints'
 import { touchStreak } from '@/lib/streak'
 import { logTrainerAttempt } from '@/lib/mastery'
 import { X, Flame, Square, ArrowRight } from 'lucide-react'
@@ -106,6 +107,10 @@ export default function OrderTrainer() {
   const [options, setOptions] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
   const [status, setStatus] = useState<'idle' | 'right' | 'wrong'>('idle')
+  const [hint, setHint] = useState(false)
+  const [offer, setOffer] = useState(false)
+  // A miss leaves the worked step on screen, so the offer belongs on the NEXT one.
+  const offerNext = useRef(false)
   const [correct, setCorrect] = useState(0)
   const [total, setTotal] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -115,6 +120,7 @@ export default function OrderTrainer() {
   const newProblem = () => {
     const g = gen()
     setP(g); setPhase(1); setOptions(buildOptions(g.step1)); setPicked(null); setStatus('idle')
+    setHint(false); setOffer(offerNext.current); offerNext.current = false
   }
   useEffect(() => { newProblem() }, [])
 
@@ -137,14 +143,17 @@ export default function OrderTrainer() {
     if (opt === target) {
       setStatus('right'); playCorrect()
       if (phase === 1) {
-        setTimeout(() => { setPhase(2); setStatus('idle'); setPicked(null); setOptions(buildOptions(p.answer)) }, 1000)
+        setTimeout(() => {
+          setPhase(2); setStatus('idle'); setPicked(null); setOptions(buildOptions(p.answer))
+          setHint(false); setOffer(false)   // the expression changed — start clean
+        }, 1000)
       } else {
         setCorrect(c => c + 1)
         setStreak(s => { const ns = s + 1; setBest(b => Math.max(b, ns)); return ns })
         setTimeout(() => finishProblem(true), 1200)
       }
     } else {
-      setStatus('wrong'); setStreak(0); playWrong()
+      setStatus('wrong'); setStreak(0); playWrong(); offerNext.current = true
     }
   }
 
@@ -187,6 +196,20 @@ export default function OrderTrainer() {
   if (!p) return <div className="min-h-screen" style={{ background: 'var(--background)' }} />
 
   const done = phase === 2 && status === 'right'
+
+  // The chain reads the operands straight off the tokens that are on screen —
+  // the highlighted part in phase 1, the simplified line in phase 2 — so the
+  // child never has to hold the expression in their head.
+  const stepToks = phase === 1 ? p.toks.filter(tk => tk.hot) : p.rest(p.step1)
+  const nums = stepToks.filter(tk => /^\d+$/.test(tk.s)).map(tk => Number(tk.s))
+  const stepExpr = stepToks.map(tk => tk.s).join(' ')
+  const hintSteps: HintStep[] = [
+    ...(nums.length >= 2 ? [
+      { ask: t('hint_ord_first', lang), answer: nums[0], lo: 0, hi: 30 },
+      { ask: t('hint_ord_second', lang), answer: nums[1], lo: 0, hi: 30 },
+    ] : []),
+    { ask: t('hint_ord_result', lang), expr: stepExpr, answer: phase === 1 ? p.step1 : p.answer, lo: 0, hi: 99 },
+  ]
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -231,6 +254,13 @@ export default function OrderTrainer() {
           </p>
         </div>
 
+        {offer && !hint && status === 'idle' && <HintOffer lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
+        {hint && (
+          <HintScaffold lang={lang} onClose={() => setHint(false)}
+            principle={t(phase === 1 ? (p.why === 'brackets' ? 'hint_ord_br_rule' : 'hint_ord_md_rule') : 'hint_ord_fin_rule', lang)}
+            steps={hintSteps} />
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           {options.map(opt => {
             const target = phase === 1 ? p.step1 : p.answer
@@ -258,6 +288,8 @@ export default function OrderTrainer() {
             {t('next', lang)} <ArrowRight size={20} />
           </button>
         )}
+
+        {!hint && status === 'idle' && <HintButton lang={lang} onOpen={() => { setOffer(false); setHint(true) }} />}
       </main>
 
       <div className="px-4 pb-8 pt-4 max-w-md mx-auto w-full">
