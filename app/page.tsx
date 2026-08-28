@@ -159,31 +159,18 @@ export default function HomePage() {
   return (
     <div className="min-h-screen pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-10 lg:pl-60 lg:pt-8" style={{ background: 'var(--background)' }}>
 
-      {/* ── Header ── */}
-      <header className="px-4 pt-6 pb-4 flex items-center justify-between gap-3 max-w-lg lg:max-w-2xl mx-auto">
-        {/* A guest's stored name is a per-day code ("18AU02") that keeps the
-            leaderboard unique — fine as an id, cold as a greeting. */}
-        <p className="font-display font-black text-foreground text-xl leading-tight truncate">
-          {t('hello', lang)} {isGuest ? t('guest_name', lang) : profile?.name}!
-        </p>
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Streak */}
-          <div className="flex items-center gap-1 rounded-full pl-2 pr-3 py-1.5" style={{ background: 'color-mix(in oklch, var(--warning) 16%, var(--card))' }}>
-            <Flame size={18} fill="currentColor" style={{ color: 'var(--warning)' }} />
-            <span className="font-black text-sm tabular" style={{ color: 'var(--warning)' }}>{streak}</span>
-          </div>
-          {/* Streak freezes (shields) */}
-          {(profile?.freeze_count ?? 0) > 0 && (
-            <div className="flex items-center gap-1 rounded-full pl-2 pr-3 py-1.5" style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))' }} title={t('streak_freeze', lang)}>
-              <Shield size={16} fill="currentColor" style={{ color: 'var(--primary-ink)' }} />
-              <span className="font-black text-sm tabular" style={{ color: 'var(--primary-ink)' }}>{profile?.freeze_count}</span>
-            </div>
-          )}
-          {/* XP */}
-          <div className="flex items-center gap-1 rounded-full pl-2 pr-3 py-1.5" style={{ background: 'color-mix(in oklch, var(--xp) 18%, var(--card))' }}>
-            <Zap size={18} fill="currentColor" style={{ color: 'var(--xp)' }} />
-            <span className="font-black text-sm tabular" style={{ color: 'var(--xp)' }}>{xp}</span>
-          </div>
+      {/* ── Header ──
+           Two rows on purpose. One row could not hold a name plus three
+           counters plus the language and the avatar at 390px, so the greeting
+           was being truncated to "Сәле…". The name gets the full width; the
+           counters sit under it where they are actually readable. ── */}
+      <header className="px-4 pt-6 pb-4 max-w-lg lg:max-w-2xl mx-auto flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          {/* A guest's stored name is a per-day code ("18AU02") that keeps the
+              leaderboard unique — fine as an id, cold as a greeting. */}
+          <p className="font-display font-black text-foreground text-2xl leading-tight flex-1 min-w-0 truncate">
+            {t('hello', lang)} {isGuest ? t('guest_name', lang) : profile?.name}!
+          </p>
           <button onClick={async () => {
               const order: ('kk' | 'ru' | 'en')[] = ['kk', 'ru', 'en']
               const next = order[(order.indexOf(lang) + 1) % 3]
@@ -191,7 +178,7 @@ export default function HomePage() {
               const { data: { user } } = await supabase.auth.getUser()
               if (user) await supabase.from('profiles').update({ language: next }).eq('id', user.id)
             }} aria-label="Тіл / Язык"
-            className="w-11 h-11 rounded-full flex items-center justify-center text-[11px] font-black bg-card shadow-[var(--shadow-sm)]"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[11px] font-black bg-card shadow-[var(--shadow-sm)] shrink-0"
             style={{ color: 'var(--primary-ink)' }}>
             {/* Not a flag emoji: Windows has no glyph for regional-indicator
                 pairs, so 🇰🇿 renders as tofu in Chrome there. */}
@@ -211,6 +198,26 @@ export default function HomePage() {
               {profile?.name?.[0]?.toUpperCase() ?? '?'}
             </button>
           )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Streak */}
+          <div className="flex items-center gap-1.5 rounded-full pl-2.5 pr-3.5 py-2" style={{ background: 'color-mix(in oklch, var(--warning) 16%, var(--card))' }}>
+            <Flame size={18} fill="currentColor" style={{ color: 'var(--warning)' }} />
+            <span className="font-black text-sm tabular" style={{ color: 'var(--warning)' }}>{streak}</span>
+          </div>
+          {/* Streak freezes (shields) */}
+          {(profile?.freeze_count ?? 0) > 0 && (
+            <div className="flex items-center gap-1.5 rounded-full pl-2.5 pr-3.5 py-2" style={{ background: 'color-mix(in oklch, var(--primary) 14%, var(--card))' }} title={t('streak_freeze', lang)}>
+              <Shield size={17} fill="currentColor" style={{ color: 'var(--primary-ink)' }} />
+              <span className="font-black text-sm tabular" style={{ color: 'var(--primary-ink)' }}>{profile?.freeze_count}</span>
+            </div>
+          )}
+          {/* XP */}
+          <div className="flex items-center gap-1.5 rounded-full pl-2.5 pr-3.5 py-2" style={{ background: 'color-mix(in oklch, var(--xp) 18%, var(--card))' }}>
+            <Zap size={18} fill="currentColor" style={{ color: 'var(--xp)' }} />
+            <span className="font-black text-sm tabular" style={{ color: 'var(--xp)' }}>{xp}</span>
+          </div>
         </div>
       </header>
 
