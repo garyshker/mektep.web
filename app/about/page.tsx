@@ -17,7 +17,7 @@ import type { CSSProperties } from 'react'
 // FILL THESE IN. Left blank on purpose — a block renders only once its value is
 // set, so nothing shows as an empty placeholder to a visitor.
 const AUTHOR = 'Kaisar Myrzakhmet'
-const KASPI_PHONE = ''            // e.g. '+7 700 000 00 00'
+const KASPI_PHONE = '+7 707 130 6660'
 const KASPI_QR = ''               // business/ИП only — an individual has no Kaspi QR, so leave this
                                   // empty and use the phone number above; the block then does not render
 const AUTHOR_PHOTO = ''           // e.g. '/author.jpg' — drop the image in public/
