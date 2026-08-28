@@ -131,6 +131,45 @@ describe('lesson catalogue', () => {
   })
 })
 
+describe('trilingual content', () => {
+  // A Kazakh screen was showing Russian nouns: only the PROMPT of a tap/match
+  // question was ever translated, while the words themselves were one flat
+  // array. Numbers and expressions need no translation — words do.
+  const hasLetters = (s: string) => /\p{L}{2,}/u.test(s.replace(/△/g, ''))
+
+  it('tap words that are words, not numbers, carry kk/ru/en', () => {
+    for (const l of ALL_LESSONS) {
+      if (l.subjectId !== 'math') continue      // the Kazakh course teaches the words themselves
+      l.questions.forEach((q, i) => {
+        if (q.kind !== 'tap' || !q.words) return
+        if (!q.words.some(hasLetters)) return
+        const by = (q as { wordsByLang?: { kk: string[]; ru: string[]; en: string[] } }).wordsByLang
+        expect(by, `${l.id} q${i + 1}: worded tap without wordsByLang — a Kazakh child sees Russian`).toBeTruthy()
+        for (const lang of ['kk', 'ru', 'en'] as const) {
+          expect(by![lang].length, `${l.id} q${i + 1}: ${lang} list length must match words`).toBe(q.words!.length)
+          for (const w of by![lang]) expect(w.trim().length, `${l.id} q${i + 1}: empty ${lang} word`).toBeGreaterThan(0)
+        }
+      })
+    }
+  })
+
+  it('match items that are words carry kk/ru/en', () => {
+    for (const l of ALL_LESSONS) {
+      if (l.subjectId !== 'math') continue
+      l.questions.forEach((q, i) => {
+        if (q.kind !== 'match' || !q.items) return
+        for (const it of q.items) {
+          if (!hasLetters(it.text)) continue
+          expect(it.textByLang, `${l.id} q${i + 1}: "${it.text}" has no textByLang`).toBeTruthy()
+          for (const lang of ['kk', 'ru', 'en'] as const) {
+            expect(it.textByLang![lang].trim().length, `${l.id} q${i + 1}: empty ${lang} label`).toBeGreaterThan(0)
+          }
+        }
+      })
+    }
+  })
+})
+
 describe('generated lessons (random each time — run them many times)', () => {
   const generators = {
     g1_add: generateG1AdditionLesson,

@@ -2,7 +2,10 @@ export type QuestionKind = 'mc' | 'type' | 'tap' | 'word' | 'match' | 'clock' | 
 
 export interface ByLang { kk: string; ru: string; en: string }
 
-export interface MatchItem { text: string; group: number }
+// `text` is the fallback; `textByLang` is what a trilingual item must carry —
+// without it a Kazakh UI showed Russian nouns, because only the PROMPT was
+// ever translated.
+export interface MatchItem { text: string; textByLang?: ByLang; group: number }
 
 export interface Question {
   kind: QuestionKind
@@ -21,6 +24,7 @@ export interface Question {
   // answer is the value
   // tap
   words?: string[]
+  wordsByLang?: { kk: string[]; ru: string[]; en: string[] }   // same order as `words`
   correctIdxs?: number[]
   // match
   groupsByLang?: { kk: string[]; ru: string[]; en: string[] }

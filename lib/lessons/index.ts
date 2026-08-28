@@ -7,14 +7,21 @@ function randomiseTaps(lesson: Lesson): Lesson {
     ...lesson,
     questions: lesson.questions.map(q => {
       if (q.kind !== 'tap' || !q.words || !q.correctIdxs) return q
-      const items = q.words.map((w, i) => ({ w, ok: q.correctIdxs!.includes(i) }))
+      // Carry the index through the shuffle so every language list and the
+      // correct-answer indices move together — shuffling them apart would
+      // silently mark the wrong words correct in kk and en.
+      const items = q.words.map((w, i) => ({ w, i, ok: q.correctIdxs!.includes(i) }))
       for (let i = items.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [items[i], items[j]] = [items[j], items[i]]
       }
+      const reorder = (list: string[]) => items.map(p => list[p.i])
       return {
         ...q,
         words: items.map(p => p.w),
+        wordsByLang: q.wordsByLang && {
+          kk: reorder(q.wordsByLang.kk), ru: reorder(q.wordsByLang.ru), en: reorder(q.wordsByLang.en),
+        },
         correctIdxs: items.map((p, i) => p.ok ? i : -1).filter(i => i >= 0),
       }
     }),

@@ -34,6 +34,16 @@ function fmtExpr(s: string): string {
 
 function BigMath({ text }: { text: string }) {
   const clean = fmtExpr(text)
+  // This lays out ONE expression on ONE line — nowrap, overflow hidden, up to
+  // 52px. Feed it a sentence ("Шелекке 5 л су сыйды. 3 шелек су = ? литр") and
+  // it renders it huge and slices the end off. So anything that is not a bare
+  // expression gets normal wrapped text instead.
+  if (!/^[\d\s+\-−×÷=?()]+$/.test(clean)) {
+    return (
+      <p className="font-display font-black text-foreground text-center leading-snug py-2 text-balance"
+        style={{ fontSize: 'clamp(18px, 5.2vw, 28px)' }}>{clean}</p>
+    )
+  }
   const parts = clean.split(/(\s*[+\-−×÷]\s*)/)
   return (
     <div className="font-black text-center leading-none tracking-tight py-3 select-none flex items-center justify-center flex-nowrap max-w-full overflow-hidden tabular-nums"
@@ -305,7 +315,9 @@ export default function LessonPage() {
     }
 
     if (q.kind === 'tap') {
-      const words = q.words ?? []
+      // The words themselves have to follow the UI language: a Kazakh screen
+      // was showing Russian nouns because only the prompt was translated.
+      const words = q.wordsByLang?.[lang] ?? q.words ?? []
       return (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
@@ -358,7 +370,8 @@ export default function LessonPage() {
           {items.map((item, i) => (
             <div key={i} className="flex items-center gap-2">
               <span className="min-w-[90px] text-sm font-bold text-foreground bg-card shadow-[var(--shadow-sm)] border border-border px-3 py-2.5 rounded-xl text-center">
-                {item.text}
+                {/* `text` stays the identity used by matchMap; only the label is localised */}
+                {item.textByLang?.[lang] ?? item.text}
               </span>
               <div className="flex gap-2 flex-1">
                 {groups.map((g, gi) => {
