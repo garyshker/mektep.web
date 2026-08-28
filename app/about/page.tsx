@@ -18,7 +18,8 @@ import type { CSSProperties } from 'react'
 // set, so nothing shows as an empty placeholder to a visitor.
 const AUTHOR = 'Kaisar Myrzakhmet'
 const KASPI_PHONE = ''            // e.g. '+7 700 000 00 00'
-const KASPI_QR = ''               // e.g. '/kaspi-qr.png' — drop the image in public/
+const KASPI_QR = ''               // business/ИП only — an individual has no Kaspi QR, so leave this
+                                  // empty and use the phone number above; the block then does not render
 const AUTHOR_PHOTO = ''           // e.g. '/author.jpg' — drop the image in public/
 const FEEDBACK_URL = ''           // e.g. 'https://wa.me/77000000000' or 'mailto:you@mail.com'
 // ─────────────────────────────────────────────────────────────────────────────
