@@ -16,12 +16,13 @@ import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
 import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
-import { ArrowLeft, MessageCircle, Copy, Check, CreditCard } from 'lucide-react'
+import { ArrowLeft, MessageCircle, Copy, Check, CreditCard, Smartphone } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
 // ─────────────────────────────────────────────────────────────────────────────
 const AUTHOR = 'Kaisar Myrzakhmet'
 const KASPI_PHONE = '+7 707 130 6660'
+const KASPI_CARD = '4400 4302 4232 3670'
 const KASPI_QR = ''               // business/ИП only — an individual has no Kaspi QR, so leave this
                                   // empty and use the phone number above; the block then does not render
 const KASPI_LOGO = ''             // drop the official SVG/PNG in public/ and put its path here;
@@ -61,10 +62,10 @@ function Rule({ n, label }: { n: string; label: string }) {
 export default function AboutPage() {
   const router = useRouter()
   const lang = useLang()
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState<'phone' | 'card' | null>(null)
 
-  const copyKaspi = async () => {
-    try { await navigator.clipboard.writeText(KASPI_PHONE); setCopied(true); setTimeout(() => setCopied(false), 1600) } catch { /* clipboard blocked */ }
+  const copy = async (what: 'phone' | 'card', value: string) => {
+    try { await navigator.clipboard.writeText(value); setCopied(what); setTimeout(() => setCopied(null), 1600) } catch { /* clipboard blocked */ }
   }
 
   const initials = AUTHOR.split(' ').map(w => w[0]).join('').slice(0, 2)
@@ -128,34 +129,52 @@ export default function AboutPage() {
         </section>
 
         {/* ── 03 · support ── */}
-        {(KASPI_PHONE || KASPI_QR) && (
+        {(KASPI_PHONE || KASPI_CARD || KASPI_QR) && (
           <section className="flex flex-col gap-3">
             <Rule n="03" label={t('about_support', lang)} />
             <p className="text-sm text-muted-foreground leading-relaxed">{t('about_support_note', lang)}</p>
 
-            {KASPI_PHONE && (
-              <button onClick={copyKaspi}
-                className="flex items-center gap-3.5 px-4 py-3.5 min-h-[64px] active:translate-y-[2px] transition-transform"
+            {(KASPI_PHONE || KASPI_CARD) && (
+              <div className="flex flex-col"
                 style={{ background: 'var(--card)', border: '2.5px solid var(--foreground)',
                   borderRadius: 'var(--radius-sm)', boxShadow: '4px 4px 0 var(--cat-rose)' } as CSSProperties}>
-                {/* Neutral badge, not the Kaspi mark — set KASPI_LOGO to use the real asset */}
-                {KASPI_LOGO ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={KASPI_LOGO} alt="Kaspi" className="w-11 h-11 object-contain shrink-0" />
-                ) : (
-                  <span className="w-11 h-11 flex items-center justify-center shrink-0"
-                    style={{ background: 'var(--cat-rose)', borderRadius: 'var(--radius-sm)', color: 'var(--card)' }}>
-                    <CreditCard size={22} />
-                  </span>
+                {KASPI_PHONE && (
+                  <button onClick={() => copy('phone', KASPI_PHONE)}
+                    className="flex items-center gap-3.5 px-4 py-3.5 min-h-[64px] text-left active:opacity-70 transition-opacity"
+                    style={KASPI_CARD ? { borderBottom: '2px solid var(--border)' } : undefined}>
+                    {KASPI_LOGO ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={KASPI_LOGO} alt="" className="w-11 h-11 object-contain shrink-0" />
+                    ) : (
+                      <span className="w-11 h-11 flex items-center justify-center shrink-0"
+                        style={{ background: 'var(--cat-rose)', borderRadius: 'var(--radius-sm)', color: 'var(--card)' }}>
+                        <Smartphone size={22} />
+                      </span>
+                    )}
+                    <span className="flex-1 min-w-0 font-display font-black text-foreground text-xl tabular leading-tight">
+                      {KASPI_PHONE}
+                    </span>
+                    {copied === 'phone'
+                      ? <span className="flex items-center gap-1 text-sm font-black shrink-0" style={{ color: 'var(--success)' }}><Check size={18} /> {t('about_copied', lang)}</span>
+                      : <Copy size={20} className="text-muted-foreground shrink-0" />}
+                  </button>
                 )}
-                <span className="flex-1 text-left min-w-0">
-                  <span className="block text-xs font-black tracking-[0.18em] text-muted-foreground">Kaspi</span>
-                  <span className="block font-display font-black text-foreground text-xl tabular leading-tight">{KASPI_PHONE}</span>
-                </span>
-                {copied
-                  ? <span className="flex items-center gap-1 text-sm font-black shrink-0" style={{ color: 'var(--success)' }}><Check size={18} /> {t('about_copied', lang)}</span>
-                  : <Copy size={20} className="text-muted-foreground shrink-0" />}
-              </button>
+                {KASPI_CARD && (
+                  <button onClick={() => copy('card', KASPI_CARD)}
+                    className="flex items-center gap-3.5 px-4 py-3.5 min-h-[64px] text-left active:opacity-70 transition-opacity">
+                    <span className="w-11 h-11 flex items-center justify-center shrink-0"
+                      style={{ background: 'var(--cat-sky)', borderRadius: 'var(--radius-sm)', color: 'var(--card)' }}>
+                      <CreditCard size={22} />
+                    </span>
+                    <span className="flex-1 min-w-0 font-display font-black text-foreground text-xl tabular leading-tight">
+                      {KASPI_CARD}
+                    </span>
+                    {copied === 'card'
+                      ? <span className="flex items-center gap-1 text-sm font-black shrink-0" style={{ color: 'var(--success)' }}><Check size={18} /> {t('about_copied', lang)}</span>
+                      : <Copy size={20} className="text-muted-foreground shrink-0" />}
+                  </button>
+                )}
+              </div>
             )}
 
             {KASPI_QR && (
