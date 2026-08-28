@@ -219,10 +219,19 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Help link */}
+          {/* Help + about. A teacher or parent weighing up an unknown site asks
+              "who made this and what happens to my child's data" BEFORE signing
+              up, so the trust page has to be reachable from the front door. */}
           <p className="text-center text-sm text-muted-foreground mt-5">
             {t('need_help', lang)}{' '}
             <a href="mailto:kaisar@list.ru" className="font-bold text-foreground">{t('write_us', lang)}</a>
+          </p>
+          <p className="text-center mt-2">
+            <button type="button" onClick={() => router.push('/about')}
+              className="text-sm font-bold underline underline-offset-4 py-2 px-3 min-h-[44px]"
+              style={{ color: 'var(--primary-ink)' }}>
+              {t('about_title', lang)}
+            </button>
           </p>
         </div>
 

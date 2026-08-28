@@ -306,14 +306,6 @@ export default function ProfilePage() {
           <ChevronRight size={18} className="text-muted-foreground" />
         </button>
 
-        {/* About / trust — parent-facing, so it lives here and not on the home screen */}
-        <button onClick={() => router.push('/about')}
-          className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] px-5 py-4 flex items-center gap-3 active:translate-y-[2px] transition-transform">
-          <Info size={20} className="text-muted-foreground" />
-          <span className="font-semibold text-foreground text-sm flex-1 text-left">{t('about_title', lang)}</span>
-          <ChevronRight size={18} className="text-muted-foreground" />
-        </button>
-
         {/* Language */}
         <div className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] px-5 py-4 flex items-center gap-3">
           <Globe size={20} className="text-muted-foreground" />
@@ -342,6 +334,13 @@ export default function ProfilePage() {
             className="w-full flex items-center gap-3 px-5 py-4 border-b border-border/50 active:bg-muted transition-colors">
             <Pencil size={18} className="text-muted-foreground" />
             <span className="font-semibold text-foreground text-sm flex-1 text-left">{t('edit_profile', lang)}</span>
+            <ChevronRight size={18} className="text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => router.push('/about')}
+            className="w-full flex items-center gap-3 px-5 py-4 border-b border-border/50 active:bg-muted transition-colors">
+            <Info size={18} className="text-muted-foreground" />
+            <span className="font-semibold text-foreground text-sm flex-1 text-left">{t('about_title', lang)}</span>
             <ChevronRight size={18} className="text-muted-foreground" />
           </button>
           <button

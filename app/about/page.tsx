@@ -21,7 +21,8 @@ const KASPI_PHONE = '+7 707 130 6660'
 const KASPI_QR = ''               // business/ИП only — an individual has no Kaspi QR, so leave this
                                   // empty and use the phone number above; the block then does not render
 const AUTHOR_PHOTO = ''           // e.g. '/author.jpg' — drop the image in public/
-const FEEDBACK_URL = ''           // e.g. 'https://wa.me/77000000000' or 'mailto:you@mail.com'
+const FEEDBACK_URL = 'mailto:kaisar@list.ru'   // the address already published on /login;
+                                              // swap for 'https://wa.me/77071306660' if WhatsApp suits better
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function AboutPage() {
