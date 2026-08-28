@@ -13,7 +13,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { SoundToggle } from '@/components/SoundToggle'
 import { SUBJECT_ICONS } from '@/components/GameIcons'
 import { AvatarCropper } from '@/components/AvatarCropper'
-import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2, Star, UserPlus, LineChart, Camera } from 'lucide-react'
+import { Zap, Flame, CheckCircle2, Globe, Pencil, LogOut, ChevronRight, Moon, Volume2, Star, UserPlus, LineChart, Camera, Info } from 'lucide-react'
 import type { Lang } from '@/lib/i18n'
 
 type Profile = {
@@ -303,6 +303,14 @@ export default function ProfilePage() {
             <p className="font-display font-black text-foreground text-sm">{t('dash_open', lang)}</p>
             <p className="text-muted-foreground text-xs">{t('dash_radar', lang)}</p>
           </div>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </button>
+
+        {/* About / trust — parent-facing, so it lives here and not on the home screen */}
+        <button onClick={() => router.push('/about')}
+          className="bg-card rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] px-5 py-4 flex items-center gap-3 active:translate-y-[2px] transition-transform">
+          <Info size={20} className="text-muted-foreground" />
+          <span className="font-semibold text-foreground text-sm flex-1 text-left">{t('about_title', lang)}</span>
           <ChevronRight size={18} className="text-muted-foreground" />
         </button>
 
