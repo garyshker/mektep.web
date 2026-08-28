@@ -208,7 +208,7 @@ export default function CountriesPage() {
     return (
       <div className="min-h-screen pb-28" style={{ background: BG }}>
         <header className="px-4 pt-5 pb-3 flex items-center gap-3 max-w-2xl mx-auto">
-          <button onClick={() => router.push('/')}
+          <button onClick={() => router.push('/game')}
             className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0" style={{ color: MUTED }}>
             <X size={18} />
           </button>

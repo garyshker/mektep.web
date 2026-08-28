@@ -350,7 +350,7 @@ export default function TogyzPage() {
   if (mode === null) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: '#2A2017' }}>
-        <button onClick={() => router.push('/')}
+        <button onClick={() => router.push('/game')}
           className="absolute top-5 left-4 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">✕</button>
         <div className="text-6xl mb-3">🪨</div>
         <h1 className="text-2xl font-black text-white mb-1 text-center">{t('togyz_title', lang)}</h1>
@@ -451,7 +451,7 @@ export default function TogyzPage() {
               {state.kazan[0]} : {state.kazan[1]}{winner === 0 && mode === 'ai' ? '  ·  +40 XP' : ''}
             </p>
             <div className="flex gap-3">
-              <button onClick={() => router.push('/')}
+              <button onClick={() => router.push('/game')}
                 className="px-6 py-3 rounded-2xl bg-white/15 text-white font-bold active:scale-95">{t('game_home', lang)}</button>
               <button onClick={reset}
                 className="px-6 py-3 rounded-2xl bg-amber-400 text-gray-900 font-black active:scale-95">{t('game_again', lang)}</button>

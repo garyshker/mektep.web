@@ -204,7 +204,7 @@ export default function TicTacToePage() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center px-5 py-6">
         <div className="w-full max-w-md flex items-center mb-2">
-          <button onClick={() => router.push('/')} aria-label={t('game_home', lang)}
+          <button onClick={() => router.push('/game')} aria-label={t('game_home', lang)}
             className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground active:scale-90 transition-transform">
             <XIcon size={20} />
           </button>
@@ -339,7 +339,7 @@ export default function TicTacToePage() {
             <h2 className="text-2xl font-display font-black text-foreground text-center px-6">{statusText}</h2>
             {winner === 'X' && mode === 'ai' && <p className="font-display font-black" style={{ color: 'var(--xp)' }}>+15 XP</p>}
             <div className="flex gap-3">
-              <button onClick={() => router.push('/')}
+              <button onClick={() => router.push('/game')}
                 className="px-5 py-3 rounded-[var(--radius)] bg-card border-2 border-border font-display font-black text-foreground active:scale-95 transition-transform">
                 {t('game_home', lang)}
               </button>

@@ -254,7 +254,7 @@ export default function DuelPage() {
   // ── Lobby ────────────────────────────────────────────────────────────────
   if (phase === 'lobby') return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: '#F5F4F0' }}>
-      <button onClick={() => router.push('/')}
+      <button onClick={() => router.push('/game')}
         className="absolute top-5 left-4 w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 font-bold text-sm">✕</button>
       <div className="text-7xl mb-4">⚔️</div>
       <h1 className="text-3xl font-black text-gray-900 mb-2">{t('duel_title', lang)}</h1>
@@ -342,7 +342,7 @@ export default function DuelPage() {
           </div>
         )}
         <div className="flex gap-3 w-full max-w-xs">
-          <button onClick={() => router.push('/')}
+          <button onClick={() => router.push('/game')}
             className="flex-1 py-3.5 rounded-2xl bg-white border-2 border-gray-200 text-gray-700 font-bold active:scale-95">
             {t('game_home', lang)}
           </button>

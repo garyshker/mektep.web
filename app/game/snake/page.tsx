@@ -274,7 +274,7 @@ export default function SnakePage() {
     <div className="min-h-screen flex flex-col items-center pb-6" style={{ background: '#0f0f1a' }}>
       {/* Header */}
       <header className="w-full max-w-sm px-4 pt-5 pb-3 flex items-center gap-3">
-        <button onClick={() => router.push('/')}
+        <button onClick={() => router.push('/game')}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">✕</button>
         <div className="flex-1">
           <h1 className="text-xl font-black text-white">{t('game_snake_title', lang)}</h1>
@@ -325,10 +325,19 @@ export default function SnakePage() {
             <h2 className="text-2xl font-black text-white mb-1">{t('game_over', lang)}</h2>
             <p className="text-gray-400 mb-1">{t('game_score', lang)}: <span className="text-white font-black text-xl">{score}</span></p>
             <p className="text-orange-400 font-semibold mb-6">+{score} XP</p>
-            <button onClick={startGame}
-              className="px-8 py-3.5 rounded-2xl bg-emerald-500 text-white font-black text-lg active:scale-95">
-              {t('game_again', lang)}
-            </button>
+            {/* Two ways out. "Again" alone left the only visible action pointing
+                back into the game; a child who wanted a different one had to
+                spot the ✕ up in the header. */}
+            <div className="flex flex-col gap-2.5 w-full max-w-[220px] px-4">
+              <button onClick={startGame}
+                className="w-full py-3.5 rounded-2xl bg-emerald-500 text-white font-black text-lg active:scale-95">
+                {t('game_again', lang)}
+              </button>
+              <button onClick={() => router.push('/game')}
+                className="w-full py-3 rounded-2xl border-2 border-white/25 text-white/85 font-black active:scale-95">
+                {t('back_to_games', lang)}
+              </button>
+            </div>
           </div>
         )}
       </div>

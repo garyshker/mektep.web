@@ -181,7 +181,7 @@ export default function SudokuPage() {
   if (level === null) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: '#EDE8F8' }}>
-        <button onClick={() => router.push('/')}
+        <button onClick={() => router.push('/game')}
           className="absolute top-5 left-4 w-9 h-9 rounded-full bg-black/5 flex items-center justify-center text-gray-500 font-bold text-sm">✕</button>
         <div className="text-6xl mb-3">🧩</div>
         <h1 className="text-2xl font-black text-gray-900 mb-1">{t('sudoku_title', lang)}</h1>
@@ -271,7 +271,7 @@ export default function SudokuPage() {
               <h2 className="text-2xl font-black text-white">{t('sudoku_solved', lang)}</h2>
               <p className="text-amber-300 font-bold">+{LEVELS.find(l => l.id === level)!.xp} XP · {mmss(seconds)}</p>
               <div className="flex gap-3">
-                <button onClick={() => router.push('/')}
+                <button onClick={() => router.push('/game')}
                   className="px-6 py-3 rounded-2xl bg-white/15 text-white font-bold active:scale-95">{t('game_home', lang)}</button>
                 <button onClick={() => start(level)}
                   className="px-6 py-3 rounded-2xl bg-amber-400 text-gray-900 font-black active:scale-95">{t('game_again', lang)}</button>

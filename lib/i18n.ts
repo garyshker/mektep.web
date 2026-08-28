@@ -25,6 +25,7 @@ export const I18N = {
   daily_title:        { ru: 'Задания на сегодня',         kk: 'Бүгінгі тапсырмалар',        en: "Today's tasks" },
   games_title:        { ru: 'Игры и задания',             kk: 'Ойындар мен тапсырмалар',    en: 'Games & activities' },
   games_subtitle:     { ru: 'Считай и побеждай',          kk: 'Есепте және жең',            en: 'Count and win' },
+  back_to_games:      { ru: 'К играм',                    kk: 'Ойындарға',                  en: 'To games' },
   nav_games:          { ru: 'Игры',                       kk: 'Ойындар',                    en: 'Games' },
   home_today:         { ru: 'Сегодня',                    kk: 'Бүгін',                      en: 'Today' },
   home_go:            { ru: 'Поехали',                    kk: 'Бастаймыз',                  en: "Let's go" },

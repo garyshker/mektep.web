@@ -94,7 +94,7 @@ export default function ClockGame() {
         <p className="font-black tabular mb-1" style={{ color: 'var(--warning)' }}>🔥 {t('train_best', lang)}: {best}</p>
         <p className="font-black text-xl mb-10 tabular" style={{ color: 'var(--primary)' }}>+{correct * 2} XP</p>
         <div className="flex gap-3 w-full max-w-xs">
-          <button onClick={() => router.push('/')}
+          <button onClick={() => router.push('/game')}
             className="pop-btn flex-1 py-3.5 rounded-[var(--radius)] font-display font-black"
             style={{ background: 'var(--card)', color: 'var(--foreground)', ['--pop-shadow' as string]: 'var(--border)' } as CSSProperties}>
             {t('game_home', lang)}
@@ -117,7 +117,7 @@ export default function ClockGame() {
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
       {/* Header */}
       <header className="px-4 pt-5 pb-3 flex items-center gap-3 max-w-md mx-auto w-full">
-        <button onClick={() => router.push('/')} aria-label={t('game_home', lang)}
+        <button onClick={() => router.push('/game')} aria-label={t('game_home', lang)}
           className="w-9 h-9 rounded-full bg-card shadow-[var(--shadow-sm)] flex items-center justify-center text-muted-foreground shrink-0">
           <X size={18} />
         </button>

@@ -134,7 +134,7 @@ export default function SimonGame() {
     <div className="min-h-screen bg-background flex flex-col items-center px-5 py-6">
       {/* Header */}
       <div className="w-full max-w-md flex items-center gap-3 mb-4">
-        <button onClick={() => router.push('/')} aria-label={t('game_home', lang)}
+        <button onClick={() => router.push('/game')} aria-label={t('game_home', lang)}
           className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground active:scale-90 transition-transform shrink-0">
           <X size={20} />
         </button>
@@ -200,7 +200,7 @@ export default function SimonGame() {
             <p className="text-foreground text-4xl font-display font-black tabular leading-none">{finalRound}</p>
             {xpAward > 0 && <p className="font-display font-black mt-1" style={{ color: 'var(--xp)' }}>+{xpAward} XP</p>}
             <div className="flex gap-3 mt-3">
-              <button onClick={() => router.push('/')}
+              <button onClick={() => router.push('/game')}
                 className="px-5 py-2.5 rounded-[var(--radius)] bg-card border-2 border-border font-display font-black text-foreground active:scale-95 transition-transform">
                 {t('game_home', lang)}
               </button>

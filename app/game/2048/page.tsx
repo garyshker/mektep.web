@@ -163,7 +163,7 @@ export default function Game2048Page() {
     <div className="min-h-screen flex flex-col items-center" style={{ background: '#FAF8F0' }}>
       {/* Header */}
       <header className="w-full max-w-sm px-4 pt-5 pb-3 flex items-center gap-3">
-        <button onClick={() => router.push('/')}
+        <button onClick={() => router.push('/game')}
           className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">✕</button>
         <div className="flex-1">
           <h1 className="text-2xl font-black text-gray-900">2048</h1>
@@ -216,10 +216,18 @@ export default function Game2048Page() {
             style={{ background: 'rgba(238,228,218,0.88)' }}>
             <p className="text-4xl font-black text-gray-900">{won ? '🎉 2048!' : `😔 ${t('game_over', lang)}`}</p>
             <p className="text-gray-600 font-semibold">{won ? `+50 XP` : `${t('game_score', lang)}: ${score}`}</p>
-            <button onClick={restart}
-              className="px-8 py-3 rounded-2xl bg-gray-900 text-white font-black text-lg active:scale-95">
-              {t('game_again', lang)}
-            </button>
+            {/* Two ways out — the end of a game is exactly when a child wants
+                to pick a different one. */}
+            <div className="flex flex-col gap-2.5 w-full max-w-[220px] px-4">
+              <button onClick={restart}
+                className="w-full py-3 rounded-2xl bg-gray-900 text-white font-black text-lg active:scale-95">
+                {t('game_again', lang)}
+              </button>
+              <button onClick={() => router.push('/game')}
+                className="w-full py-2.5 rounded-2xl border-2 border-gray-900/25 text-gray-700 font-black active:scale-95">
+                {t('back_to_games', lang)}
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -634,7 +634,7 @@ export default function CheckersPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center px-5 py-6">
         <div className="w-full max-w-md flex items-center mb-2">
-          <button onClick={() => router.push('/')} aria-label={t('game_home', lang)}
+          <button onClick={() => router.push('/game')} aria-label={t('game_home', lang)}
             className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground active:scale-90 transition-transform">
             <X size={20} />
           </button>
@@ -969,7 +969,7 @@ export default function CheckersPage() {
               <p className="text-amber-300 font-bold">+30 XP</p>
             )}
             <div className="flex gap-3">
-              <button onClick={() => router.push('/')}
+              <button onClick={() => router.push('/game')}
                 className="px-6 py-3 rounded-2xl bg-white/15 text-white font-bold active:scale-95">
                 {t('game_home', lang)}
               </button>
@@ -988,7 +988,7 @@ export default function CheckersPage() {
             <div className="text-5xl">🚪</div>
             <h2 className="text-2xl font-black text-white text-center px-6">{t('checkers_opp_left', lang)}</h2>
             <div className="flex gap-3">
-              <button onClick={() => router.push('/')}
+              <button onClick={() => router.push('/game')}
                 className="px-6 py-3 rounded-2xl bg-white/15 text-white font-bold active:scale-95">
                 {t('game_home', lang)}
               </button>
