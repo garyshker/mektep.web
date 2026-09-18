@@ -3,6 +3,13 @@ name: Keep Supabase awake
 # Free-tier Supabase pauses a project after ~7 days with no API activity.
 # This makes one tiny REST request every day so the project stays awake.
 # (You can also run it by hand from the Actions tab → "Run workflow".)
+#
+# It failed every single run from 2026-07-15 to 2026-09-18 — first because the
+# secrets were never added, then because a pasted secret carried a trailing
+# newline — and the project paused. Two rules now:
+#   · secrets reach the script as ENV VARS, never spliced into its text, so a
+#     stray character can no longer break the shell before it even starts;
+#   · every failure ends in a readable ::error:: line instead of a bare exit code.
 
 on:
   schedule:
@@ -14,19 +21,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase REST
+        env:
+          RAW_URL: ${{ secrets.SUPABASE_URL }}
+          RAW_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+          # Pull the actual values out of whatever was pasted. People paste
+          # "SUPABASE_URL = https://…", the whole .env line, quotes, a trailing
+          # slash or newline — take the part that has the right shape.
+          URL=$(printf '%s' "$RAW_URL" | grep -oE 'https://[a-z0-9]+\.supabase\.co' | head -n1 || true)
+          KEY=$(printf '%s' "$RAW_KEY" | grep -oE 'eyJ[A-Za-z0-9._-]+|sb_publishable_[A-Za-z0-9_-]+' | head -n1 || true)
+
+          if [ -z "$RAW_URL" ] || [ -z "$RAW_KEY" ]; then
             echo "::error::Add repo secrets SUPABASE_URL and SUPABASE_ANON_KEY (Settings → Secrets and variables → Actions)."
             exit 1
           fi
-          code=$(curl -s -m 30 -o /dev/null -w "%{http_code}" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/profiles?select=id&limit=1")
-          echo "Supabase responded with HTTP $code"
-          # Any real HTTP response (2xx–4xx) means the project is awake and served the request.
-          if [ "$code" -ge 200 ] && [ "$code" -lt 500 ]; then
-            echo "✓ Project is awake."
-          else
-            echo "::error::Unexpected response ($code) — project may be down."
+          if [ -z "$URL" ]; then
+            echo "::error::SUPABASE_URL has no https://<ref>.supabase.co in it — re-enter the secret with just that address."
             exit 1
           fi
+          if [ -z "$KEY" ]; then
+            echo "::error::SUPABASE_ANON_KEY has no key in it (expected eyJ… or sb_publishable_…) — re-enter it."
+            exit 1
+          fi
+
+          # The shell runs with -e: a failing curl inside $(...) would kill the
+          # step with curl's own exit code and no explanation. Capture it instead.
+          code=$(curl -sS -m 30 -o /dev/null -w "%{http_code}" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+            "$URL/rest/v1/profiles?select=id&limit=1" 2>curl.err) || true
+
+          echo "Supabase responded with HTTP ${code:-none}"
+          [ -s curl.err ] && echo "curl: $(cat curl.err)"
+
+          # Only a 2xx counts: that is a query the database actually ran, which is
+          # what keeps a free project from being paused. A 401 means the gateway
+          # answered but the key was refused — the old script called that "awake".
+          case "${code:-000}" in
+            2??) echo "✓ Project is awake — the query reached the database." ;;
+            401|403) echo "::error::Supabase refused the key (HTTP $code) — SUPABASE_ANON_KEY is wrong."; exit 1 ;;
+            *) echo "::error::No usable response (HTTP ${code:-none}). $(cat curl.err 2>/dev/null) — if the project is paused: supabase.com/dashboard → Restore."; exit 1 ;;
+          esac
