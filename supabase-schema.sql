@@ -47,12 +47,9 @@ create policy "Users can insert own progress" on public.lesson_progress
 create policy "Users can update own progress" on public.lesson_progress
   for update using (auth.uid() = user_id);
 
--- Leaderboard view (public top 50 by XP)
-create view public.leaderboard as
-  select name, grade, xp, streak
-  from public.profiles
-  order by xp desc
-  limit 50;
+-- Leaderboard: NOT a view. A view runs with its owner's rights, bypasses RLS,
+-- and exposed children's names to anyone with the public key. It is the
+-- function public.get_leaderboard() — see supabase-privacy-fix.sql.
 
 -- Auto-create profile on signup
 create or replace function public.handle_new_user()

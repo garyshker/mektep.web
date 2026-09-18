@@ -17,6 +17,8 @@ interface Entry {
   streak: number
   avatar_url: string | null
 }
+// What get_leaderboard() returns: no id, just a flag for the caller's own row.
+type RankedRow = Omit<Entry, 'id'> & { is_me: boolean }
 
 const AVATAR_COLORS = ['#22C55E', '#F59E0B', '#3B82F6', '#8B5CF6', '#EF4444', '#EC4899']
 function avatarColor(name: string) {
@@ -40,11 +42,24 @@ export default function LeaderboardPage() {
       if (!user) { router.push('/login'); return }
       setMyId(user.id)
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, name, grade, xp, streak, avatar_url')
-        .order('xp', { ascending: false })
-        .limit(50)
+      // get_leaderboard() returns only the fields shown here, only the top 50,
+      // and flags the caller's own row as is_me — other children's ids never
+      // leave the server (supabase-privacy-fix.sql). The direct read below is
+      // a fallback for the window before that SQL is run; once the
+      // profiles_read_all policy is gone it would only ever return one's own row.
+      let data: Entry[] | null = null
+      const { data: ranked, error } = await supabase.rpc('get_leaderboard')
+      if (!error && ranked) {
+        data = (ranked as RankedRow[])
+          .map(({ is_me, ...r }, i) => ({ ...r, id: is_me ? user.id : `rank-${i}` }))
+      } else {
+        const { data: rows } = await supabase
+          .from('profiles')
+          .select('id, name, grade, xp, streak, avatar_url')
+          .order('xp', { ascending: false })
+          .limit(50)
+        data = rows
+      }
 
       if (data) {
         setRows(data)
