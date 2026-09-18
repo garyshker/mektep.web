@@ -7,7 +7,8 @@ import { useLang } from '@/lib/useLang'
 import { t } from '@/lib/i18n'
 import { BottomNav } from '@/components/BottomNav'
 import { Loader } from '@/components/Loader'
-import { Trophy } from 'lucide-react'
+import { Trophy, Lock } from 'lucide-react'
+import type { CSSProperties } from 'react'
 
 interface Entry {
   id: string
@@ -18,7 +19,7 @@ interface Entry {
   avatar_url: string | null
 }
 // What get_leaderboard() returns: no id, just a flag for the caller's own row.
-type RankedRow = Omit<Entry, 'id'> & { is_me: boolean }
+type RankedRow = Omit<Entry, 'id'> & { is_me: boolean; place?: number; total?: number }
 
 const AVATAR_COLORS = ['#22C55E', '#F59E0B', '#3B82F6', '#8B5CF6', '#EF4444', '#EC4899']
 function avatarColor(name: string) {
@@ -34,6 +35,9 @@ export default function LeaderboardPage() {
   const [myId, setMyId] = useState<string | null>(null)
   const [myRank, setMyRank] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  // A guest is one click away for anyone on the internet, so a guest sees only
+  // their own place — never other children's names or photos.
+  const [guest, setGuest] = useState<{ place: number | null; total: number | null; xp: number } | null>(null)
   const lang = useLang()
 
   useEffect(() => {
@@ -49,6 +53,22 @@ export default function LeaderboardPage() {
       // profiles_read_all policy is gone it would only ever return one's own row.
       let data: Entry[] | null = null
       const { data: ranked, error } = await supabase.rpc('get_leaderboard')
+
+      if (user.is_anonymous) {
+        // Keep only the caller's own row, whatever the server sent. With v2 of
+        // the function (supabase-leaderboard-guests.sql) that is all it sends.
+        const list = (!error && ranked ? ranked : []) as RankedRow[]
+        const i = list.findIndex(r => r.is_me)
+        const mine = i >= 0 ? list[i] : null
+        setGuest({
+          place: mine ? (mine.place ?? i + 1) : null,
+          total: mine?.total ?? null,
+          xp: mine?.xp ?? 0,
+        })
+        setLoading(false)
+        return
+      }
+
       if (!error && ranked) {
         data = (ranked as RankedRow[])
           .map(({ is_me, ...r }, i) => ({ ...r, id: is_me ? user.id : `rank-${i}` }))
@@ -77,6 +97,70 @@ export default function LeaderboardPage() {
   if (loading) return (
     <Loader />
   )
+
+  if (guest) {
+    // Placeholder rows under the blur are shapes, not people: nothing real is
+    // hidden behind them, so there is nothing to recover from the page.
+    const ghost = [88, 74, 81, 66, 70, 58]
+    return (
+      <div className="min-h-screen flex flex-col bg-background pb-24 lg:pb-10 lg:pl-60">
+        <header className="px-4 pt-5 pb-4 border-b-2 border-border/50 lg:max-w-2xl lg:mx-auto lg:w-full">
+          <h1 className="text-xl font-display font-black text-foreground leading-tight flex items-center gap-2">
+            <Trophy size={20} style={{ color: 'var(--accent)' }} />
+            {t('nav_leaderboard', lang)}
+          </h1>
+        </header>
+
+        <main className="flex-1 px-4 pt-4 pb-8 flex flex-col gap-4 lg:max-w-2xl lg:mx-auto lg:w-full">
+          {/* The one thing a guest does see: where they stand */}
+          <div className="rounded-[var(--radius-lg)] px-5 py-5 flex items-center gap-4 shadow-[var(--shadow-md)]"
+            style={{ background: 'var(--gradient-hero)' }}>
+            <div className="flex-1 min-w-0">
+              <p className="text-white/90 text-sm font-bold">{t('lb_guest_place', lang)}</p>
+              <p className="text-white font-display font-black text-5xl leading-none tabular mt-1">
+                {guest.place != null ? `#${guest.place}` : '—'}
+              </p>
+              {guest.total != null && (
+                <p className="text-white/90 text-sm mt-2">{t('lb_guest_among', lang).replace('{n}', String(guest.total))}</p>
+              )}
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-white font-display font-black text-2xl tabular">{guest.xp}</p>
+              <p className="text-white/90 text-xs font-bold">XP</p>
+            </div>
+          </div>
+
+          {/* Everyone else — locked */}
+          <div className="relative rounded-[var(--radius-lg)] overflow-hidden bg-card shadow-[var(--shadow-sm)]">
+            <div className="flex flex-col gap-3 px-4 py-4 select-none" style={{ filter: 'blur(5px)' }} aria-hidden>
+              {ghost.map((w, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="w-6 text-sm font-black text-muted-foreground tabular">{i + 1}</span>
+                  <span className="w-10 h-10 rounded-full shrink-0" style={{ background: 'var(--muted)' }} />
+                  <span className="h-3.5 rounded-full" style={{ width: `${w}%`, background: 'var(--muted)' }} />
+                </div>
+              ))}
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center"
+              style={{ background: 'color-mix(in oklch, var(--card) 55%, transparent)' }}>
+              <span className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: 'color-mix(in oklch, var(--primary) 16%, var(--card))', color: 'var(--primary-ink)' }}>
+                <Lock size={22} />
+              </span>
+              <p className="text-sm font-bold text-foreground leading-snug max-w-[260px]">{t('lb_guest_locked', lang)}</p>
+              <button onClick={() => router.push('/login')}
+                className="pop-btn px-6 py-3.5 min-h-[48px] rounded-[var(--radius)] text-white font-display font-black text-base"
+                style={{ background: 'var(--gradient-hero)', ['--pop-shadow' as string]: 'var(--primary-deep)' } as CSSProperties}>
+                {t('lb_guest_cta', lang)}
+              </button>
+            </div>
+          </div>
+        </main>
+
+        <BottomNav />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-24 lg:pb-10 lg:pl-60">

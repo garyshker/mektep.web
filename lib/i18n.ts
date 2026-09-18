@@ -26,6 +26,11 @@ export const I18N = {
   games_title:        { ru: 'Игры и задания',             kk: 'Ойындар мен тапсырмалар',    en: 'Games & activities' },
   games_subtitle:     { ru: 'Считай и побеждай',          kk: 'Есепте және жең',            en: 'Count and win' },
   back_to_games:      { ru: 'К играм',                    kk: 'Ойындарға',                  en: 'To games' },
+  // leaderboard as seen by a guest — their own place, everyone else locked
+  lb_guest_place:     { ru: 'Твоё место',                 kk: 'Сенің орның',                en: 'Your place' },
+  lb_guest_among:     { ru: 'из {n} учеников',            kk: '{n} оқушының ішінде',        en: 'out of {n} students' },
+  lb_guest_locked:    { ru: 'Весь рейтинг видят только зарегистрированные ученики.', kk: 'Толық рейтингті тек тіркелген оқушылар көреді.', en: 'Only registered students can see the full leaderboard.' },
+  lb_guest_cta:       { ru: 'Зарегистрироваться — увидеть всех', kk: 'Тіркел — барлығын көр', en: 'Sign up to see everyone' },
   nav_games:          { ru: 'Игры',                       kk: 'Ойындар',                    en: 'Games' },
   home_today:         { ru: 'Сегодня',                    kk: 'Бүгін',                      en: 'Today' },
   home_go:            { ru: 'Поехали',                    kk: 'Бастаймыз',                  en: "Let's go" },
