@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://mektep-web.vercel.app"><strong>🌐 Live →</strong></a>
+  <a href="https://mektep.vercel.app"><strong>🌐 Live →</strong></a>
 </p>
 
 ---
